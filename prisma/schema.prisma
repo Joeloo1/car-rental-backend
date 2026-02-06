@@ -1,0 +1,216 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum UserRole {
+    User 
+    lender
+    admin
+}
+
+enum AccountStatus {
+    active 
+    suspended
+    deleted
+}
+
+enum CarStatus {
+    available
+    rented 
+    inactive
+}
+
+enum MessageStatus {
+    sent 
+    delivered 
+    read
+}
+
+model User {
+id                    String  @id @default(uuid())
+firstName             String
+email                 String  @unique
+phoneNumber           String?
+passwordHash          String
+profileImage          String    @default("default.jpg")
+
+role                  UserRole     @default(User)
+accountStatus         AccountStatus   @default(active)
+
+isVerified            Boolean         @default(false)
+verifyToken           String?
+verifyTokenExpiry     DateTime?
+
+passwordResetToken    String?
+passwordResetTokenExpiry  DateTime?
+
+createdAt              DateTime        @default(now())
+updatedAt              DateTime        @updatedAt
+
+// Relations 
+ address         Address?
+ cars            Car[]       @relation("LenderCars")
+ messages       Message[]
+ reviewsGiven   Review[]     @relation("UserReviews")
+ reviewsRecv    Review[]     @relation("LenderReviews")
+ refreshTokens  RefreshToken[]
+ chatsAsUser    Chat[]      @relation("ChatUser")
+ chatsAsLender  Chat[]      @relation("ChatLender")
+
+ @@index([email])  
+ @@index([role])  
+}
+
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  createdAt DateTime @default(now())
+}
+
+model Address {
+  id        String @id @default(uuid())
+  street    String?
+  city      String?
+  state     String?
+  country   String?
+  latitude  Float?
+  longitude Float?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  cars Car[]
+}
+
+
+model Car {
+  id          String   @id @default(uuid())
+  title       String
+  brand       String?
+  model       String?
+  year        Int?
+  description String?
+  pricePerDay  Float
+  locationCity String?
+
+  availabilityStatus CarStatus @default(available)
+
+  lender   User   @relation("LenderCars", fields: [lenderId], references: [id], onDelete: Cascade)
+  lenderId String
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  images   CarImage[]
+  chats    Chat[]
+  reviews  Review[]
+
+  createdAt DateTime @default(now())
+
+
+  @@index([lenderId])          
+  @@index([categoryId])         
+  @@index([availabilityStatus]) 
+  @@index([locationCity])       
+  @@index([pricePerDay])       
+}
+
+
+model CarImage {
+  id     String @id @default(uuid())
+  imageUrl String
+
+  car   Car   @relation(fields: [carId], references: [id], onDelete: Cascade)
+  carId String
+
+  createdAt DateTime @default(now())
+}
+
+model Chat {
+  id String @id @default(uuid())
+
+  car   Car   @relation(fields: [carId], references: [id], onDelete: Cascade)
+  carId String
+
+  user     User @relation("ChatUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+
+  lender   User @relation("ChatLender", fields: [lenderId], references: [id], onDelete: Cascade)
+  lenderId String
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([carId, userId])
+
+  @@index([userId])   
+  @@index([lenderId]) 
+  @@index([carId])    
+}
+
+model Message {
+  id        String        @id @default(uuid())
+  messageText String
+  status    MessageStatus @default(sent)
+
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId String
+
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+
+  createdAt DateTime @default(now())
+
+  @@index([chatId])    
+  @@index([senderId])  
+  @@index([createdAt])
+}
+
+model Review {
+  id      String @id @default(uuid())
+  rating  Int
+  comment String?
+
+  car   Car   @relation(fields: [carId], references: [id], onDelete: Cascade)
+  carId String
+
+  lender   User @relation("LenderReviews", fields: [lenderId], references: [id])
+  lenderId String
+
+  user   User @relation("UserReviews", fields: [userId], references: [id])
+  userId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([carId, userId])
+
+  @@index([carId])   
+  @@index([lenderId]) 
+  @@index([userId])  
+}
+
