@@ -1,10 +1,14 @@
-import express, { urlencoded } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import morgan from "morgan";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 
 import config from "./config/config.env";
+import { globalErrorHandler } from "./error/errorHandling";
+
+import AppError from "./utils/AppError";
+import logger from "./config/winston";
 
 const app = express();
 
@@ -31,4 +35,18 @@ const limiter = rateLimit({
 
 app.use("/api", limiter);
 
+/*
+ * Handling unhandle Routes
+ */
+app.use((req: Request, res: Response, next: NextFunction) => {
+  logger.warn(`Can't find ${req.originalUrl} on this server`);
+  return next(
+    new AppError(`Can't find ${req.originalUrl} on this server`, 404),
+  );
+});
+
+/*
+ * Global Error Hander
+ */
+app.use(globalErrorHandler);
 export default app;
