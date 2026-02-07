@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import logger from "./winston";
 
 export const prisma = new PrismaClient({
   log:
@@ -11,9 +12,10 @@ export const prisma = new PrismaClient({
 export const connectDB = async () => {
   try {
     await prisma.$connect();
-    console.log("🟢 DB Connected via Prisma + Neon");
+    logger.info("🟢 DB Connected via Prisma + Neon");
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    logger.error(`DB connection error: ${message}`);
     console.error(`DB connection error: ${message}`);
     process.exit(1);
   }
@@ -21,4 +23,5 @@ export const connectDB = async () => {
 
 export const disconnectDB = async () => {
   await prisma.$disconnect();
+  logger.info("DB disconnected");
 };
