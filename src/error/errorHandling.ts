@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import AppError from "../utils/AppError";
+import logger from "../config/winston";
 
 interface CustomError extends Error {
   status?: string;
@@ -71,6 +72,7 @@ const handlePostgresNotNullViolationError = (err: CustomError) => {
 
 // send error in development
 const sendErrorDev = (err: CustomError, res: Response) => {
+  logger.error("Error:", err);
   res.status(err.statusCode || 500).json({
     status: err.status || "error",
     message: err.message,
@@ -86,6 +88,7 @@ const sendErrorProd = (err: AppError, res: Response) => {
       status: err.status,
       message: err.message,
     });
+    logger.error("ERROR 💥", err);
   } else {
     res.status(500).json({
       status: "error",
