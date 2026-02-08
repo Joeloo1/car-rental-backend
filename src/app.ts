@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import config from "./config/config.env";
 import { globalErrorHandler } from "./error/errorHandling";
 
+import categoryRoutes from "./routes/category.routes";
 import AppError from "./utils/AppError";
 import logger from "./config/winston";
 
@@ -34,6 +35,11 @@ const limiter = rateLimit({
 });
 
 app.use("/api", limiter);
+
+/*
+ * ROUTES
+ */
+app.use("/api/category", categoryRoutes);
 
 /*
  * Handling unhandle Routes
