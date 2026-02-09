@@ -3,9 +3,6 @@ import AppError from "../utils/AppError";
 import logger from "../config/winston";
 
 import {
-  CategoryParamsSchema,
-  UpdateCategorySchema,
-  CreateCategorySchema,
   CreateCategoryInput,
   UpdateCategoryInput,
 } from "../schema/categorySchema";
