@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import {
-  singupService,
+  signupService,
   verifyEmailService,
   resendverifyEmailService,
 } from "../../services/auth/auth.service";
@@ -10,7 +10,7 @@ import AppError from "../../utils/AppError";
 
 // signup
 export const signup = catchAsync(async (req: Request, res: Response) => {
-  const { newUser, refreshToken, accessToken } = await singupService(req.body);
+  const { newUser, refreshToken, accessToken } = await signupService(req.body);
 
   logger.info(`User with email: ${newUser.email} Signed Up successfully`);
   res.status(201).json({

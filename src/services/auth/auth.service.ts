@@ -16,7 +16,7 @@ import config from "../../config/config.env";
  * USER SIGN UP
  */
 
-export const singupService = async (data: SignupInput) => {
+export const signupService = async (data: SignupInput) => {
   // Check if user exist
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
