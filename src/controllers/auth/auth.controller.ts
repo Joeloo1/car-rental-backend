@@ -1,20 +1,34 @@
 import { NextFunction, Request, Response } from "express";
 import {
   signupService,
+  loginService,
   verifyEmailService,
   resendverifyEmailService,
+  forgotPasswordServices,
+  resetPasswordService,
 } from "../../services/auth/auth.service";
 import catchAsync from "../../utils/catchAsync";
 import logger from "../../config/winston";
 import AppError from "../../utils/AppError";
+import config from "../../config/config.env";
 
 // signup
 export const signup = catchAsync(async (req: Request, res: Response) => {
   const { newUser, refreshToken, accessToken } = await signupService(req.body);
 
+  // Set refresh token cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
   logger.info(`User with email: ${newUser.email} Signed Up successfully`);
   res.status(201).json({
-    statu: "success",
+    status: "success",
+    message:
+      "Account created successfully. Please check your email to verify your account.",
     data: { newUser },
     token: { refreshToken, accessToken },
   });
@@ -51,6 +65,77 @@ export const resendverifyEmail = catchAsync(
 
     res.status(200).json({
       message: "Verification email sent successfully",
+    });
+  },
+);
+
+// Login
+export const login = catchAsync(async (req: Request, res: Response) => {
+  const { user, accessToken, refreshToken } = await loginService(req.body);
+
+  // Set refresh token cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  logger.info(`User logged in successfully... Email:${user.email}`);
+  res.status(200).json({
+    status: "success",
+    message: "User logged in Successfully",
+    data: { user },
+    tokens: { accessToken, refreshToken },
+  });
+});
+
+// Forgot password
+export const forgotPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+
+    if (!email) {
+      logger.warn("Email is required");
+      return next(new AppError("Email is required", 400));
+    }
+
+    // Pass the URL to the service
+    const result = await forgotPasswordServices(email);
+
+    res.status(200).json({
+      status: "success",
+      message: result.message,
+    });
+  },
+);
+
+// Reset Password
+export const resetPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { token } = req.params;
+    const { password, passwordConfirm } = req.body;
+
+    // Validation
+    if (!token) {
+      return next(new AppError("Reset token is required", 400));
+    }
+
+    if (!password || !passwordConfirm) {
+      return next(
+        new AppError("Please provide password and password confirmation", 400),
+      );
+    }
+
+    const result = await resetPasswordService(
+      token as string,
+      password,
+      passwordConfirm,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: result.message,
     });
   },
 );
