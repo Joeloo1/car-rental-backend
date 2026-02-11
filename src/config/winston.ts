@@ -61,7 +61,7 @@ const transports: winston.transport[] = [
     maxFiles: 5,
   }),
   new winston.transports.File({
-    filename: path.join("logs", "error.log"),
+    filename: path.join("logs", "combine.log"),
     format: fileFormat,
     maxsize: 5242880,
     maxFiles: 5,
