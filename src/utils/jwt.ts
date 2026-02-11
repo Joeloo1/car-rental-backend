@@ -8,17 +8,26 @@ interface TokenPayload extends JwtPayload {
 /**
  * Generate Access Token
  */
-export const generateAccessToken = async (userId: string): Promise<string> => {
-  return jwt.sign({ id: userId }, config.JWT_ACCESS_TOKEN_SECRET, {
+export const generateAccessToken = async (payload: object): Promise<string> => {
+  return jwt.sign({ payload }, config.JWT_ACCESS_TOKEN_SECRET, {
     expiresIn: config.ACCESS_TOKEN_EXPIRY,
   });
 };
 
 /**
+ * Verify Access Token
+ */
+export const verifyAccessToken = async (token: string) => {
+  return jwt.verify(token, config.JWT_ACCESS_TOKEN_SECRET);
+};
+
+/**
  * Generate Refresh Token
  */
-export const generateRefreshToken = async (userId: string): Promise<string> => {
-  return jwt.sign({ id: userId }, config.JWT_REFRESH_TOKEN_SECRET, {
+export const generateRefreshToken = async (
+  payload: object,
+): Promise<string> => {
+  return jwt.sign({ payload }, config.JWT_REFRESH_TOKEN_SECRET, {
     expiresIn: config.REFRESH_TOKEN_EXPIRY,
   });
 };
