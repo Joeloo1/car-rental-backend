@@ -3,6 +3,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 
 import config from "./config/config.env";
 import { globalErrorHandler } from "./error/errorHandling";
@@ -11,6 +12,7 @@ import logger from "./config/winston";
 
 import categoryRoutes from "./routes/category.routes";
 import authRoutes from "./routes/auth/auth.routes";
+import addressRoutes from "./routes/address.routes";
 
 const app = express();
 
@@ -21,6 +23,8 @@ if (config.NODE_ENV === "development") {
 
 // Set security HTTP Headers
 app.use(helmet());
+
+app.use(cookieParser());
 
 // Body parser, reading data from body into req.body
 app.use(express.json());
@@ -42,6 +46,7 @@ app.use("/api", limiter);
  */
 app.use("/api/category", categoryRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/address", addressRoutes);
 
 /*
  * Handling unhandle Routes
