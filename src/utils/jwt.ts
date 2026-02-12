@@ -1,5 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../config/config.env";
+import { UserRole } from "@prisma/client";
 
 interface TokenPayload extends JwtPayload {
   email: string;
@@ -8,8 +9,13 @@ interface TokenPayload extends JwtPayload {
 /**
  * Generate Access Token
  */
-export const generateAccessToken = async (payload: object): Promise<string> => {
-  return jwt.sign({ payload }, config.JWT_ACCESS_TOKEN_SECRET, {
+
+export const generateAccessToken = async (payload: {
+  id: string;
+  role: UserRole;
+}): Promise<string> => {
+  // Put payload fields at the top level, not nested
+  return jwt.sign(payload, config.JWT_ACCESS_TOKEN_SECRET, {
     expiresIn: config.ACCESS_TOKEN_EXPIRY,
   });
 };
@@ -24,9 +30,10 @@ export const verifyAccessToken = async (token: string) => {
 /**
  * Generate Refresh Token
  */
-export const generateRefreshToken = async (
-  payload: object,
-): Promise<string> => {
+export const generateRefreshToken = async (payload: {
+  id: string;
+  role: UserRole;
+}): Promise<string> => {
   return jwt.sign({ payload }, config.JWT_REFRESH_TOKEN_SECRET, {
     expiresIn: config.REFRESH_TOKEN_EXPIRY,
   });

@@ -221,7 +221,7 @@ export const loginService = async (data: LoginInput) => {
 
   // Generate accessToken and refreshToken
 
-  const payload = { userId: user.id, role: user.role };
+  const payload = { id: user.id, role: user.role };
   const accessToken = await generateAccessToken(payload);
   const refreshToken = await generateRefreshToken(payload);
 
