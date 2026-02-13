@@ -6,6 +6,7 @@ import {
   resendverifyEmailService,
   forgotPasswordServices,
   resetPasswordService,
+  logOutService,
 } from "../../services/auth/auth.service";
 import catchAsync from "../../utils/catchAsync";
 import logger from "../../config/winston";
@@ -139,3 +140,32 @@ export const resetPassword = catchAsync(
     });
   },
 );
+
+// log out
+export const logOut = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id;
+  const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+
+  if (!userId) {
+    res.status(401).json({
+      success: false,
+      message: "User not authenticated",
+    });
+    return;
+  }
+
+  if (!refreshToken) {
+    res.status(400).json({
+      success: false,
+      message: "Refresh token is required",
+    });
+    return;
+  }
+
+  await logOutService(userId, refreshToken);
+
+  res.status(200).json({
+    status: "success",
+    message: "logged out successfully",
+  });
+});

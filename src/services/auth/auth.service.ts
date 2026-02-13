@@ -46,19 +46,21 @@ export const signupService = async (data: SignupInput) => {
   // Create user
   const newUser = await prisma.user.create({
     data: {
-      firstName: data.firstName,
+      name: data.name,
       email: data.email,
       passwordHash: hashedPassword,
       role: "User",
       verifyToken: verificationToken,
       verifyTokenExpiry: verificationExpiry,
+      accountStatus: "active",
     },
     select: {
       id: true,
-      firstName: true,
+      name: true,
       email: true,
       role: true,
       phoneNumber: true,
+      isVerified: true,
     },
   });
 
@@ -67,7 +69,7 @@ export const signupService = async (data: SignupInput) => {
   sendEmail({
     email: newUser.email,
     subject: "Verify Your Email Address",
-    html: getVerificationEmailHtml(verifyUrl, newUser.firstName),
+    html: getVerificationEmailHtml(verifyUrl, newUser.name),
   })
     .then(() => {
       logger.info("Verification email sent successfully", {
@@ -180,7 +182,7 @@ export const resendverifyEmailService = async (email: string) => {
   await sendEmail({
     email: user.email,
     subject: "Verify your email",
-    html: getVerificationEmailHtml(verifyUrl, user.firstName),
+    html: getVerificationEmailHtml(verifyUrl, user.name),
   });
   logger.info(`Verification email resent to ${user.email}`);
 };
@@ -375,4 +377,18 @@ export const resetPasswordService = async (
     message:
       "Password reset successful. You can now login with your new password.",
   };
+};
+
+/**
+ *  Log Out
+ */
+export const logOutService = async (userId: string, refreshToken: string) => {
+  await prisma.refreshToken.deleteMany({
+    where: {
+      userId,
+      token: refreshToken,
+    },
+  });
+
+  logger.info(`User logged out: ${userId}`);
 };

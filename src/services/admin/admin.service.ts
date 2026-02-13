@@ -25,7 +25,7 @@ export const adminSignupService = async (data: SignupInput) => {
   // Create Admin
   const newAdmin = await prisma.user.create({
     data: {
-      firstName: data.firstName,
+      name: data.name,
       email: data.email,
       passwordHash: hashedPassword,
       role: "admin",
@@ -33,7 +33,7 @@ export const adminSignupService = async (data: SignupInput) => {
     },
     select: {
       id: true,
-      firstName: true,
+      name: true,
       email: true,
       role: true,
       phoneNumber: true,
