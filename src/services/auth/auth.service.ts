@@ -13,6 +13,7 @@ import {
   generateRefreshToken,
   generateVerificationToken,
   verifyEmailToken,
+  verifyRefreshToken,
 } from "../../utils/jwt";
 import {
   sendEmail,
@@ -20,6 +21,9 @@ import {
   generatePasswordResetEmail,
 } from "../../utils/email";
 import config from "../../config/config.env";
+import { Jwtpayload } from "../../types/auth.types";
+import { UserRole } from "@prisma/client";
+import { JwtPayload } from "jsonwebtoken";
 
 /**
  * USER SIGN UP
@@ -43,13 +47,15 @@ export const signupService = async (data: SignupInput) => {
   const verificationToken = generateVerificationToken(data.email);
   const verificationExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
+  const role = data.role === "lender" ? UserRole.lender : UserRole.User;
+
   // Create user
   const newUser = await prisma.user.create({
     data: {
       name: data.name,
       email: data.email,
       passwordHash: hashedPassword,
-      role: "User",
+      role,
       verifyToken: verificationToken,
       verifyTokenExpiry: verificationExpiry,
       accountStatus: "active",
@@ -391,4 +397,76 @@ export const logOutService = async (userId: string, refreshToken: string) => {
   });
 
   logger.info(`User logged out: ${userId}`);
+};
+
+/**
+ * Refresh Access Token
+ */
+export const refreshAccessTokenService = async (refreshToken: string) => {
+  let decoded: JwtPayload;
+
+  // 1️⃣ Verify token safely
+  try {
+    decoded = (await verifyRefreshToken(refreshToken)) as JwtPayload;
+  } catch (err) {
+    logger.warn(`Invalid refresh token attempted`);
+    throw new AppError("Invalid or expired refresh token", 401);
+  }
+
+  // Check if refreshToken exist in database
+  const storedToken = await prisma.refreshToken.findUnique({
+    where: { token: refreshToken },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          accountStatus: true,
+          isVerified: true,
+        },
+      },
+    },
+  });
+  if (!storedToken) {
+    logger.warn(`Refresh token not found in database: ${decoded.id}`);
+    throw new AppError("Invalid refresh token", 401);
+  }
+
+  // Check if token is expired
+  if (storedToken.expiresAt < new Date()) {
+    // Delete expired token
+    await prisma.refreshToken.delete({
+      where: { id: storedToken.id },
+    });
+    logger.warn(`Expired refresh token used: ${decoded.id}`);
+    throw new AppError("Refresh token expired", 401);
+  }
+
+  // Check if user exists and is active
+  if (!storedToken.user) {
+    throw new AppError("User not found", 401);
+  }
+
+  if (storedToken.user.accountStatus !== "active") {
+    throw new AppError("Account is not active", 403);
+  }
+
+  // Generate new access token
+  const payload = { id: storedToken.user.id, role: storedToken.user.role };
+  const newAccessToken = await generateAccessToken(payload);
+
+  logger.info(`Access token refreshed for user: ${storedToken.user.id}`);
+
+  return {
+    accessToken: newAccessToken,
+    user: {
+      id: storedToken.user.id,
+      name: storedToken.user.name,
+      email: storedToken.user.email,
+      role: storedToken.user.role,
+      isVerified: storedToken.user.isVerified,
+    },
+  };
 };

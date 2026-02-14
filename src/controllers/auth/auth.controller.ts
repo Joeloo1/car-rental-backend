@@ -7,6 +7,7 @@ import {
   forgotPasswordServices,
   resetPasswordService,
   logOutService,
+  refreshAccessTokenService,
 } from "../../services/auth/auth.service";
 import catchAsync from "../../utils/catchAsync";
 import logger from "../../config/winston";
@@ -169,3 +170,26 @@ export const logOut = catchAsync(async (req: Request, res: Response) => {
     message: "logged out successfully",
   });
 });
+
+// REFRESH ACCESS token
+export const refreshAccessToken = catchAsync(
+  async (req: Request, res: Response) => {
+    const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      res.status(401).json({
+        success: false,
+        message: "Refresh token is required",
+      });
+      return;
+    }
+    const result = await refreshAccessTokenService(refreshToken);
+
+    res.status(200).json({
+      status: "success",
+      message: "Access token refreshed successfully",
+      accessToken: result.accessToken,
+      user: result.user,
+    });
+  },
+);
