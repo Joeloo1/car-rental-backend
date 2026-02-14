@@ -28,6 +28,13 @@ export const verifyAccessToken = async (token: string) => {
 };
 
 /**
+ * Verify Refresh Token
+ */
+export const verifyRefreshToken = async (token: string) => {
+  return jwt.verify(token, config.JWT_REFRESH_TOKEN_SECRET);
+};
+
+/**
  * Generate Refresh Token
  */
 export const generateRefreshToken = async (payload: {
