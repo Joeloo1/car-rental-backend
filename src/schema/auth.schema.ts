@@ -12,6 +12,7 @@ export const SignupSchema = z.object({
         .max(100, "Name must not exceed 100 characters")
         .trim(),
       email: z.string().email("Invalid email address"),
+      role: z.enum(["user", "lender"]).optional(),
       phoneNumber: z
         .string()
         .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
