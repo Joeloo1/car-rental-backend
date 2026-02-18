@@ -73,7 +73,9 @@ export const resendverifyEmail = catchAsync(
 
 // Login
 export const login = catchAsync(async (req: Request, res: Response) => {
-  const { user, accessToken, refreshToken } = await loginService(req.body);
+  const { sanitizedUser, accessToken, refreshToken } = await loginService(
+    req.body,
+  );
 
   // Set refresh token cookie
   res.cookie("refreshToken", refreshToken, {
@@ -83,11 +85,11 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  logger.info(`User logged in successfully... Email:${user.email}`);
+  logger.info(`User logged in successfully... Email:${sanitizedUser.email}`);
   res.status(200).json({
     status: "success",
     message: "User logged in Successfully",
-    data: { user },
+    data: { sanitizedUser },
     tokens: { accessToken, refreshToken },
   });
 });

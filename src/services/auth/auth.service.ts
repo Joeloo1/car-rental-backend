@@ -227,6 +227,15 @@ export const loginService = async (data: LoginInput) => {
     throw new AppError("Please verify your email first", 403);
   }
 
+  const sanitizedUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phoneNumber: user.phoneNumber,
+    profileImage: user.profileImage,
+    role: user.role,
+  };
+
   // Generate accessToken and refreshToken
 
   const payload = { id: user.id, role: user.role };
@@ -251,7 +260,7 @@ export const loginService = async (data: LoginInput) => {
     },
   });
 
-  return { user, accessToken, refreshToken };
+  return { sanitizedUser, accessToken, refreshToken };
 };
 
 /**
