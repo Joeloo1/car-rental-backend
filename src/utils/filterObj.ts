@@ -1,0 +1,12 @@
+export const filterObj = (
+  obj: Record<string, any>,
+  ...allowedFields: string[]
+): Record<string, any> => {
+  const newObj: Record<string, any> = {};
+  Object.keys(obj).forEach((key) => {
+    if (allowedFields.includes(key)) {
+      newObj[key] = obj[key];
+    }
+  });
+  return newObj;
+};
