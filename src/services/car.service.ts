@@ -123,7 +123,12 @@ export const GetAllCarsService = async (filter: CarQuery) => {
         },
         category: true,
         images: {
-          orderBy: [{ isMain: "desc" }, { order: "asc" }],
+          where: { isMain: true },
+          take: 1,
+          select: {
+            imageUrl: true,
+            publicId: true,
+          },
         },
         reviews: {
           select: {
