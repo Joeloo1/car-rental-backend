@@ -17,6 +17,7 @@ import {
   deleteCar,
 } from "../controllers/car.controller";
 import { Role } from "../types/role.types";
+import carImageRouter from "./carImage.routes";
 
 const router = Router();
 
@@ -88,4 +89,12 @@ router.route("/:id/status").patch(restrictTo(Role.LENDER), updateCarStatus);
  */
 router.route("/:id").delete(restrictTo(Role.LENDER, Role.Admin), deleteCar);
 
+/**
+ * MOUNT /api/cars/:carId/images
+ * Mounts the carImage router under a specific car listing
+ * All carImage routes will have access to :carId via mergeParams
+ * Params: { carId: string (uuid) }
+ * See: src/routes/carImage.routes.ts for all available image routes
+ */
+router.use("/:carId/images", carImageRouter);
 export default router;
