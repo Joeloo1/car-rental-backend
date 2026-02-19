@@ -27,9 +27,10 @@ enum AccountStatus {
 }
 
 enum CarStatus {
-    available
-    rented 
-    inactive
+  available
+  rented
+  maintenance
+  unavailable
 }
 
 enum MessageStatus {
@@ -40,11 +41,13 @@ enum MessageStatus {
 
 model User {
 id                    String  @id @default(uuid())
-firstName             String
+name                  String
 email                 String  @unique
 phoneNumber           String?
 passwordHash          String
 profileImage          String    @default("default.jpg")
+
+passwordChangedAt     DateTime?
 
 role                  UserRole     @default(User)
 accountStatus         AccountStatus   @default(active)
@@ -55,6 +58,8 @@ verifyTokenExpiry     DateTime?
 
 passwordResetToken    String?
 passwordResetTokenExpiry  DateTime?
+active                Boolean         @default(true)
+profileImagePublicId  String?
 
 createdAt              DateTime        @default(now())
 updatedAt              DateTime        @updatedAt
@@ -76,12 +81,12 @@ updatedAt              DateTime        @updatedAt
 
 model RefreshToken {
   id        String   @id @default(uuid())
-  token     String
+  token     String   @unique
   expiresAt DateTime
   revoked   Boolean  @default(false)
 
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  userId    String   @unique
 
   createdAt DateTime @default(now())
 }
@@ -143,6 +148,9 @@ model Car {
 model CarImage {
   id     String @id @default(uuid())
   imageUrl String
+  isMain  Boolean @default(false)
+  order   Int     @default(0)
+  publicId String
 
   car   Car   @relation(fields: [carId], references: [id], onDelete: Cascade)
   carId String
