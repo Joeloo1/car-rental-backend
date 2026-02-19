@@ -14,6 +14,7 @@ import categoryRoutes from "./routes/category.routes";
 import authRoutes from "./routes/auth/auth.routes";
 import addressRoutes from "./routes/address.routes";
 import carRoutes from "./routes/car.routes";
+import adminUserRoutes from "./routes/admin/admin.user.routes"
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api", limiter);
 /*
  * ROUTES
  */
+app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/address", addressRoutes);
