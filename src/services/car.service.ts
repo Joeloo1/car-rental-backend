@@ -44,7 +44,7 @@ export const CreateCarService = async (data: CreateCarInput, user: any) => {
         },
       },
       category: true,
-      images: true,
+      images: { orderBy: { order: "asc" } },
     },
   });
 
@@ -79,24 +79,24 @@ export const GetAllCarsService = async (filter: CarQuery) => {
    * Building where Cluase
    */
   const where: any = {};
-  if (brand) where.brand = { contain: brand, mode: "insensitive" };
-  if (model) where.model = { contain: model, mode: "insensitive" };
+  if (brand) where.brand = { contains: brand, mode: "insensitive" };
+  if (model) where.model = { contains: model, mode: "insensitive" };
   if (locationCity)
-    where.locationCity = { contain: locationCity, mode: "insensitive" };
+    where.locationCity = { contains: locationCity, mode: "insensitive" };
   if (availabilityStatus) where.availabilityStatus = availabilityStatus;
   if (categoryId) where.categoryId = categoryId;
   if (lenderId) where.lenderId = lenderId;
 
   if (minYear || maxYear) {
     where.year = {};
-    if (minYear) where.minYear.gte = minYear;
-    if (maxYear) where.maxYear.lte = maxYear;
+    if (minYear) where.year.gte = minYear;
+    if (maxYear) where.year.lte = maxYear;
   }
 
   if (minPrice || maxPrice) {
     where.pricePerDay = {};
-    if (minPrice) where.minPrice.gte = minPrice;
-    if (maxPrice) where.maxPrice.lte = maxPrice;
+    if (minPrice) where.pricePerDay.gte = minPrice;
+    if (maxPrice) where.pricePerDay.lte = maxPrice;
   }
 
   /**
@@ -122,7 +122,9 @@ export const GetAllCarsService = async (filter: CarQuery) => {
           },
         },
         category: true,
-        images: true,
+        images: {
+          orderBy: [{ isMain: "desc" }, { order: "asc" }],
+        },
         reviews: {
           select: {
             rating: true,
@@ -186,7 +188,9 @@ export const GetCarByIdService = async (id: string) => {
         },
       },
       category: true,
-      images: true,
+      images: {
+        orderBy: [{ isMain: "desc" }, { order: "asc" }],
+      },
       reviews: {
         include: {
           user: {
@@ -241,7 +245,7 @@ export const UpdateCarService = async (
   }
 
   // Check if user is the Lender
-  if (user.role === "LENDER" && car.lenderId !== user.id) {
+  if (user.role === "lender" && car.lenderId !== user.id) {
     logger.warn("Unauthorized: You can only update your own cars");
     throw new AppError("You can only update your own cars", 403);
   }
@@ -268,7 +272,7 @@ export const UpdateCarService = async (
         },
       },
       category: true,
-      images: true,
+      images: { orderBy: [{ isMain: "desc" }, { order: "asc" }] },
     },
   });
 
@@ -309,7 +313,7 @@ export const GetCarsByLenderService = async (lenderId: string) => {
     where: { lenderId },
     include: {
       category: true,
-      images: true,
+      images: { orderBy: [{ isMain: "desc" }, { order: "asc" }] },
       reviews: {
         select: {
           rating: true,

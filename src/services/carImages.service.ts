@@ -136,7 +136,7 @@ export const GetCarImagesService = async (
 ): Promise<UploadedImage[]> => {
   return await prisma.carImage.findMany({
     where: { carId },
-    orderBy: { order: "desc" },
+    orderBy: [{ isMain: "desc" }, { order: "asc" }],
   });
 };
 
