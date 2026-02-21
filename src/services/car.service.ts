@@ -197,13 +197,16 @@ export const GetCarByIdService = async (id: string) => {
         orderBy: [{ isMain: "desc" }, { order: "asc" }],
       },
       reviews: {
-        include: {
+        select: {
+          rating: true,
+          comment: true,
+          createdAt: true,
           user: {
             select: {
               id: true,
               name: true,
             },
-          },
+          },    
         },
         orderBy: {
           createdAt: "desc",
