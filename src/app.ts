@@ -14,7 +14,8 @@ import categoryRoutes from "./routes/category.routes";
 import authRoutes from "./routes/auth/auth.routes";
 import addressRoutes from "./routes/address.routes";
 import carRoutes from "./routes/car.routes";
-import adminUserRoutes from "./routes/admin/admin.user.routes"
+import adminUserRoutes from "./routes/admin/admin.user.routes";
+import reviewRoutes from "./routes/review.routes";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/cars", carRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 /*
  * Handling unhandle Routes
