@@ -18,6 +18,11 @@ import {
 } from "../controllers/car.controller";
 import { Role } from "../types/role.types";
 import carImageRouter from "./carImage.routes";
+import { createReviewSchema } from "../schema/review.schema";
+import {
+  createReview,
+  getAllReviewForCar,
+} from "../controllers/review.controller";
 
 const router = Router();
 
@@ -45,6 +50,14 @@ router.route("/:id").get(validateRequest(CarParamsSchema), getCarById);
  * Protection: PUBLIC
  */
 router.route("/lender/:id").get(getCarByLender);
+
+/**
+ * GET /api/cars/:id/reviews
+ * Get all reviews for a specific car
+ * Params: { id: string (car ID) }
+ * Protection: PUBLIC
+ */
+router.route("/:id/reviews").get(getAllReviewForCar);
 
 // All routes below this middleware require authentication
 router.use(protect);
@@ -90,6 +103,17 @@ router.route("/:id/status").patch(restrictTo(Role.LENDER), updateCarStatus);
 router.route("/:id").delete(restrictTo(Role.LENDER, Role.Admin), deleteCar);
 
 /**
+ * POST /api/cars/:id/reviews
+ * Create a review for a specific car
+ * Params: { id: string (car ID) }
+ * Body: { rating: number, comment?: string }
+ * Protection: PROTECTED (Renter only - cannot review your own car)
+ */
+router
+  .route("/:id/reviews")
+  .post(validateRequest(createReviewSchema), createReview);
+
+/**
  * MOUNT /api/cars/:carId/images
  * Mounts the carImage router under a specific car listing
  * All carImage routes will have access to :carId via mergeParams
@@ -97,4 +121,5 @@ router.route("/:id").delete(restrictTo(Role.LENDER, Role.Admin), deleteCar);
  * See: src/routes/carImage.routes.ts for all available image routes
  */
 router.use("/:carId/images", carImageRouter);
+
 export default router;
