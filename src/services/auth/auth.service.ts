@@ -21,7 +21,6 @@ import {
   generatePasswordResetEmail,
 } from "../../utils/email";
 import config from "../../config/config.env";
-import { Jwtpayload } from "../../types/auth.types";
 import { UserRole } from "@prisma/client";
 import { JwtPayload } from "jsonwebtoken";
 
@@ -89,8 +88,6 @@ export const signupService = async (data: SignupInput) => {
         email: newUser.email,
         error: error.message,
       });
-      // Optional: Queue for retry or notify admin
-      // emailQueue.add({ userId: newUser.id, type: 'verification' });
     });
 
   // Generate accessToken and refreshToken
