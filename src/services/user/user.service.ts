@@ -56,7 +56,8 @@ export const uploadProfileImageService = async (
  */
 export const updateUserService = async (
   userId: string,
-  data: UpdateUserInput,
+  data: Partial<UpdateUserInput>,
+  profileImage?: string,
 ) => {
   // Chect is the user exists
   const user = await prisma.user.findUnique({
@@ -66,6 +67,10 @@ export const updateUserService = async (
   if (!user) {
     logger.warn("There is no user with the ID", { userId });
     throw new AppError("User not found", 404);
+  }
+
+  if (profileImage) {
+    data.profileImage = profileImage;
   }
 
   // Update user

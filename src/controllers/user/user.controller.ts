@@ -15,7 +15,7 @@ import { updateUserSchema } from "../../schema/user/user.schema";
 export const updateUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     // Block Password update on this route
-    if (req.body.Password || req.body.passwordConfirm) {
+    if (req.body?.Password || req.body?.passwordConfirm) {
       logger.warn("User attempt to update password with update User routes");
       return next(
         new AppError(
@@ -25,7 +25,7 @@ export const updateUser = catchAsync(
       );
     }
 
-    const userData = updateUserSchema.parse(req.body);
+    const userData = updateUserSchema.partial().parse(req.body || {});
 
     const filteredBody = filterObj(userData, "name", "email", "phoneNumber");
 
