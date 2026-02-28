@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { uploadProfileImage } from "../../middleware/upload.middleware";
+import { resizePhoto } from "../../middleware/resize-middleware";
 import {
   updateUser,
   deleteUser,
@@ -14,6 +15,7 @@ router.use(protect);
 router.patch(
   "/updateMe",
   uploadProfileImage.single("profileImage"),
+  resizePhoto,
   updateUser,
 );
 

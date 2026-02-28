@@ -12,6 +12,7 @@ import logger from "./config/winston";
 
 import categoryRoutes from "./routes/category.routes";
 import authRoutes from "./routes/auth/auth.routes";
+import userRoutes from "./routes/user/user.route";
 import addressRoutes from "./routes/address.routes";
 import carRoutes from "./routes/car.routes";
 import adminUserRoutes from "./routes/admin/admin.user.routes";
@@ -51,6 +52,7 @@ app.use("/api", limiter);
 app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/cars", carRoutes);
 app.use("/api/reviews", reviewRoutes);
