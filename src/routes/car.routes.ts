@@ -16,7 +16,7 @@ import {
   updateCarStatus,
   deleteCar,
 } from "../controllers/car.controller";
-import { Role } from "../types/role.types";
+import { UserRole } from "../generated/prisma/client";
 import carImageRouter from "./carImage.routes";
 import { createReviewSchema } from "../schema/review.schema";
 import {
@@ -71,7 +71,11 @@ router.use(protect);
  */
 router
   .route("/")
-  .post(restrictTo(Role.LENDER), validateRequest(CreateCarSchema), createCar);
+  .post(
+    restrictTo(UserRole.lender),
+    validateRequest(CreateCarSchema),
+    createCar,
+  );
 
 /**
  * PATCH /api/cars/:id
@@ -83,7 +87,11 @@ router
  */
 router
   .route("/:id")
-  .patch(restrictTo(Role.LENDER), validateRequest(UpdateCarSchema), updateCars);
+  .patch(
+    restrictTo(UserRole.lender),
+    validateRequest(UpdateCarSchema),
+    updateCars,
+  );
 
 /**
  * PATCH /api/cars/:id/status
@@ -92,7 +100,7 @@ router
  * Body: { status: string }
  * Protection: PROTECTED (Lender only - must own the car)
  */
-router.route("/:id/status").patch(restrictTo(Role.LENDER), updateCarStatus);
+router.route("/:id/status").patch(restrictTo(UserRole.lender), updateCarStatus);
 
 /**
  * DELETE /api/cars/:id
@@ -100,7 +108,9 @@ router.route("/:id/status").patch(restrictTo(Role.LENDER), updateCarStatus);
  * Params: { id: string }
  * Protection: PROTECTED (Lender who owns the car OR Admin)
  */
-router.route("/:id").delete(restrictTo(Role.LENDER, Role.Admin), deleteCar);
+router
+  .route("/:id")
+  .delete(restrictTo(UserRole.lender, UserRole.admin), deleteCar);
 
 /**
  * POST /api/cars/:id/reviews

@@ -10,11 +10,12 @@ import {
 } from "../../controllers/admin/admin.user.controller";
 import { protect } from "../../middleware/protect.middleware";
 import { restrictTo } from "../../middleware/authorization";
-import { Role } from "../../types/role.types";
+import { UserRole } from "../../generated/prisma/client";
 
 const router = Router();
 
-router.use(protect, restrictTo(Role.Admin));
+router.use(protect);
+router.use(restrictTo(UserRole.admin));
 
 router.get("/", getAllUsers);
 

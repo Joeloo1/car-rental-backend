@@ -21,7 +21,7 @@ import {
   generatePasswordResetEmail,
 } from "../../utils/email";
 import config from "../../config/config.env";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "../../generated/prisma/client";
 import { JwtPayload } from "jsonwebtoken";
 
 /**
@@ -212,7 +212,7 @@ export const loginService = async (data: LoginInput) => {
   }
 
   // Compare the passwords
-  const isValid = await ComparePassword(password, user.passwordHash);
+  const isValid = await ComparePassword(password, user.passwordHash as string);
   if (!isValid) {
     logger.warn(`Incorrect password attempt for email: ${email}`);
     throw new AppError("Invalid email or password", 401);

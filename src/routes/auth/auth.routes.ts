@@ -12,6 +12,7 @@ import {
 import { validateRequest } from "../../middleware/validation_middleware";
 import { SignupSchema, LoginSchema } from "../../schema/auth.schema";
 import { adminSignup } from "../../controllers/admin/admin.controller";
+import { protect } from "../../middleware/protect.middleware";
 
 const router = Router();
 
@@ -44,7 +45,7 @@ router.route("/login").post(validateRequest(LoginSchema), login);
  * End user session and invalidate authentication token
  * Requires authentication
  */
-router.route("/logout").post(logOut);
+router.route("/logout").post(protect, logOut);
 
 /**
  * GET /api/auth/verify-email

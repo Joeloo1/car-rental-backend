@@ -1,6 +1,6 @@
 import z from "zod";
 import { Role } from "../../types/role.types";
-import { AccountStatus } from "@prisma/client";
+import { AccountStatus } from "../../generated/prisma/client";
 
 /**
  * User Update Schema

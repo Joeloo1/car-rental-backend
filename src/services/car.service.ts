@@ -2,7 +2,7 @@ import { prisma } from "../config/database";
 import AppError from "../utils/AppError";
 import { CreateCarInput, UpdateCarInput, CarQuery } from "../schema/car.schema";
 import logger from "../config/winston";
-import { CarStatus } from "@prisma/client";
+import { CarStatus } from "../generated/prisma/client";
 
 /**
  * CREATE CAR SERVICE
@@ -206,7 +206,7 @@ export const GetCarByIdService = async (id: string) => {
               id: true,
               name: true,
             },
-          },    
+          },
         },
         orderBy: {
           createdAt: "desc",
