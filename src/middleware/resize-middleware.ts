@@ -4,12 +4,13 @@ import sharp from "sharp";
 import catchAsync from "../utils/catchAsync";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
+import { AuthRequest } from "../types/authRequest";
 
 /**
  * RESIZE MIDDLEWARE
  */
 export const resizePhoto = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.file) return next();
 
     if (!req.user || !req.user.id) {

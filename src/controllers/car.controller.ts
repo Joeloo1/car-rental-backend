@@ -10,6 +10,7 @@ import {
   GetCarsByLenderService,
 } from "../services/car.service";
 import { CarQuerySchema } from "../schema/car.schema";
+import { AuthRequest } from "../types/authRequest";
 
 // create car
 export const createCar = catchAsync(async (req: Request, res: Response) => {
@@ -73,12 +74,12 @@ export const updateCars = catchAsync(async (req: Request, res: Response) => {
 
 // Update car status
 export const updateCarStatus = catchAsync(
-  async (req: Request, res: Response) => {
+  async (req: AuthRequest, res: Response) => {
     const { availabilityStatus } = req.body;
     const car = await UpdateCarStatusService(
       req.params.id as string,
       availabilityStatus,
-      req.user.id,
+      req.user!.id,
     );
 
     res.status(200).json({

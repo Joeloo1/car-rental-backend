@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import {
   uploadProfileImageService,
   updateUserService,
@@ -10,10 +10,11 @@ import catchAsync from "../../utils/catchAsync";
 import AppError from "../../utils/AppError";
 import { filterObj } from "../../utils/filterObj";
 import { updateUserSchema } from "../../schema/user/user.schema";
+import { AuthRequest } from "../../types/authRequest";
 
 // Update User
 export const updateUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     // Block Password update on this route
     if (req.body.Password || req.body.passwordConfirm) {
       logger.warn("User attempt to update password with update User routes");
@@ -31,7 +32,7 @@ export const updateUser = catchAsync(
 
     // Upload new profile image to Cloudinary if provided
     if (req.file) {
-      logger.info(`Uploading profile image for user: ${req.user.id}`);
+      logger.info(`Uploading profile image for user: ${req.user!.id}`);
 
       const { imageUrl, publicId } = await uploadProfileImageService(
         req.file.buffer,
@@ -53,8 +54,8 @@ export const updateUser = catchAsync(
       );
     }
 
-    logger.info(`User with ID: ${req.user.id} is updating their profile`);
-    const updateUser = await updateUserService(req.user.id, filteredBody);
+    logger.info(`User with ID: ${req.user!.id} is updating their profile`);
+    const updateUser = await updateUserService(req.user!.id, filteredBody);
 
     logger.info(`User with ID: ${req.user!.id} updated successfully`);
 
@@ -70,10 +71,10 @@ export const updateUser = catchAsync(
 
 // Get user
 export const getUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = await GetUserService(req.user.id);
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const user = await GetUserService(req.user!.id);
 
-    logger.info(`User getting there profile UserID: ${req.user.id}`);
+    logger.info(`User getting there profile UserID: ${req.user!.id}`);
     res.status(200).json({
       status: "success",
       data: { user },
@@ -83,8 +84,8 @@ export const getUser = catchAsync(
 
 // delete user
 export const deleteUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = await deleteUserService(req.user.id);
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const user = await deleteUserService(req.user!.id);
 
     if (!user) {
       logger.warn(`user with ID:${req.user!.id} not found`);

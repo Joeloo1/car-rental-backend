@@ -8,17 +8,18 @@ import {
   DeleteReviewService,
   GetAllReviewForCarService,
 } from "../services/review.service";
+import { AuthRequest } from "../types/authRequest";
 
 // Create Review
 export const createReview = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     const review = await CreateReviewService(
-      req.user.id,
+      req.user!.id,
       req.params.id as string,
       req.body,
     );
 
-    logger.info(`User with ID: ${req.user.id} creating a review`);
+    logger.info(`User with ID: ${req.user!.id} creating a review`);
     res.status(201).json({
       status: "success",
       data: {
@@ -31,9 +32,9 @@ export const createReview = catchAsync(
 
 // Update Review
 export const updateReview = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     const review = await UpdateReviewService(
-      req.user.id,
+      req.user!.id,
       req.params.id as string,
       req.body,
     );
@@ -82,8 +83,8 @@ export const getReview = catchAsync(
 
 // Delete Review
 export const deleteReview = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    await DeleteReviewService(req.user.id, req.params.id as string);
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    await DeleteReviewService(req.user!.id, req.params.id as string);
 
     res.status(200).json({
       status: "success",

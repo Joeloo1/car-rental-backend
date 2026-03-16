@@ -13,6 +13,7 @@ import catchAsync from "../../utils/catchAsync";
 import logger from "../../config/winston";
 import AppError from "../../utils/AppError";
 import config from "../../config/config.env";
+import { AuthRequest } from "../../types/authRequest";
 
 // signup
 export const signup = catchAsync(async (req: Request, res: Response) => {
@@ -145,8 +146,8 @@ export const resetPassword = catchAsync(
 );
 
 // log out
-export const logOut = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+export const logOut = catchAsync(async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
   const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
 
   if (!userId) {
