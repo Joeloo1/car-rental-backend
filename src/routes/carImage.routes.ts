@@ -10,25 +10,9 @@ import { uploadMiddleware } from "../middleware/upload.middleware";
 import { protect } from "../middleware/protect.middleware";
 import { restrictTo } from "../middleware/authorization";
 import { Role } from "../types/role.types";
+import { UserRole } from "../generated/prisma/enums";
 
 const router = Router({ mergeParams: true });
-
-router.get("/", getImages);
-
-router.use(protect);
-
-router.post(
-  "/",
-  restrictTo(Role.LENDER, Role.Admin),
-  uploadMiddleware.array("images", 10),
-  uploadImages,
-);
-
-router.patch("/reorder", restrictTo(Role.LENDER, Role.Admin), bulkReorder);
-
-router.put("/:imageId", restrictTo(Role.LENDER, Role.Admin), updateImage);
-
-router.delete("/:imageId", restrictTo(Role.LENDER, Role.Admin), deleteImage);
 
 /**
  * GET /api/cars/:carId/images
@@ -38,8 +22,22 @@ router.delete("/:imageId", restrictTo(Role.LENDER, Role.Admin), deleteImage);
  */
 router.get("/", getImages);
 
-// Apply protect middleware to all routes below this line
 router.use(protect);
+router.use(restrictTo(UserRole.admin, UserRole.lender));
+
+// router.get("/", getImages);
+// router.post(
+//   "/",
+//   restrictTo(Role.LENDER, Role.Admin),
+//   uploadMiddleware.array("images", 10),
+//   uploadImages,
+// );
+//
+// router.patch("/reorder", restrictTo(Role.LENDER, Role.Admin), bulkReorder);
+//
+// router.put("/:imageId", restrictTo(Role.LENDER, Role.Admin), updateImage);
+//
+// router.delete("/:imageId", restrictTo(Role.LENDER, Role.Admin), deleteImage);
 
 /**
  * POST /api/cars/:carId/images
@@ -49,12 +47,7 @@ router.use(protect);
  * Validates request against uploadCarImageSchema
  * Protection: PROTECTED (Lender and Admin only)
  */
-router.post(
-  "/",
-  restrictTo(Role.LENDER, Role.Admin),
-  uploadMiddleware.array("images", 10),
-  uploadImages,
-);
+router.post("/", uploadMiddleware.array("images", 10), uploadImages);
 
 /**
  * PATCH /api/cars/:carId/images/reorder
@@ -64,7 +57,7 @@ router.post(
  * Validates request against bulkReorderSchema
  * Protection: PROTECTED (Lender and Admin only)
  */
-router.put("/reorder", restrictTo(Role.LENDER, Role.Admin), bulkReorder);
+router.put("/reorder", bulkReorder);
 
 /**
  * PUT /api/cars/:carId/images/:imageId
@@ -74,7 +67,7 @@ router.put("/reorder", restrictTo(Role.LENDER, Role.Admin), bulkReorder);
  * Validates request against updateCarImageSchema
  * Protection: PROTECTED (Lender and Admin only)
  */
-router.patch("/:imageId", restrictTo(Role.LENDER, Role.Admin), updateImage);
+router.patch("/:imageId", updateImage);
 
 /**
  * DELETE /api/cars/:carId/images/:imageId
@@ -83,6 +76,6 @@ router.patch("/:imageId", restrictTo(Role.LENDER, Role.Admin), updateImage);
  * Params: { carId: string (uuid), imageId: string (uuid) }
  * Protection: PROTECTED (Lender and Admin only)
  */
-router.delete("/:imageId", restrictTo(Role.LENDER, Role.Admin), deleteImage);
+router.delete("/:imageId", deleteImage);
 
 export default router;
