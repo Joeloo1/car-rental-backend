@@ -10,14 +10,15 @@ import { globalErrorHandler } from "./error/errorHandling";
 import AppError from "./utils/AppError";
 import logger from "./config/winston";
 
-import categoryRoutes from "./routes/category.routes";
-import authRoutes from "./routes/auth/auth.routes";
-import userRoutes from "./routes/user/user.route";
-import addressRoutes from "./routes/address.routes";
-import carRoutes from "./routes/car.routes";
-import adminUserRoutes from "./routes/admin/admin.user.routes";
-import reviewRoutes from "./routes/review.routes";
-import chatRoutes from "./routes/chat.routes";
+import routes from "./routes/routes";
+// import categoryRoutes from "./routes/category.routes";
+// import authRoutes from "./routes/auth/auth.routes";
+// import userRoutes from "./routes/user/user.route";
+// import addressRoutes from "./routes/address.routes";
+// import carRoutes from "./routes/car.routes";
+// import adminUserRoutes from "./routes/admin/admin.user.routes";
+// import reviewRoutes from "./routes/review.routes";
+// import chatRoutes from "./routes/chat.routes";
 
 const app = express();
 
@@ -49,14 +50,15 @@ app.use("/api", limiter);
 /*
  * ROUTES
  */
-app.use("/api/admin/users", adminUserRoutes);
-app.use("/api/category", categoryRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/address", addressRoutes);
-app.use("/api/cars", carRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/chats", chatRoutes);
+app.use("/api", routes);
+// app.use("/api/admin/users", adminUserRoutes);
+// app.use("/api/category", categoryRoutes);
+// app.use("/api/auth", authRoutes);
+// app.use("/api/users", userRoutes);
+// app.use("/api/address", addressRoutes);
+// app.use("/api/cars", carRoutes);
+// app.use("/api/reviews", reviewRoutes);
+// app.use("/api/chats", chatRoutes);
 
 /*
  * Handling unhandle Routes
@@ -72,4 +74,5 @@ app.use((req: Request, res: Response, next: NextFunction) => {
  * Global Error Hander
  */
 app.use(globalErrorHandler);
+
 export default app;

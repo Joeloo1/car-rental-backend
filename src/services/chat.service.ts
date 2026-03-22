@@ -67,6 +67,8 @@ export const InitiateChatService = async (
     },
     update: {},
   });
+
+  return chat;
 };
 
 /**
