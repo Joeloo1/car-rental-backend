@@ -63,7 +63,7 @@ app.use("/api", routes);
 /*
  * Handling unhandle Routes
  */
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
   logger.warn(`Can't find ${req.originalUrl} on this server`);
   return next(
     new AppError(`Can't find ${req.originalUrl} on this server`, 404),

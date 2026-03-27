@@ -13,7 +13,14 @@
     "declarationMap": true,
     "sourceMap": true,
     "moduleResolution": "node",
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "baseUrl": ".", // Base directory for resolving non-relative module names
+    "paths": {
+      // "@components/*": ["src/components/*"], // Map @components/* to src/components/*
+      // "@utils/*": ["src/utils/*"],
+      "@/*": ["src/*"] // A general alias for the src directory
+    }
+    //
   },
   "include": ["./src/**/*.ts", "./src/types/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
