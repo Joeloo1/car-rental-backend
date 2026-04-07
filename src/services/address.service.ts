@@ -90,7 +90,7 @@ export const UpdateAddressService = async (
 };
 
 /**
- * DETELE ADDRESS SERVICE
+ * DELETE ADDRESS SERVICE
  */
 
 export const DeleteAddressService = async (

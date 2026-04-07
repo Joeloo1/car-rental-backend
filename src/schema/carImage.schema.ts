@@ -33,7 +33,7 @@ export const bulkReorderSchema = z.object({
 });
 
 /**
- * Types Interene
+ * Types Inference
  */
 export type UploadCarImageInput = z.infer<typeof uploadCarImageSchema>;
 export type UpdateCarImageInput = z.infer<typeof updateCarImageSchema>;

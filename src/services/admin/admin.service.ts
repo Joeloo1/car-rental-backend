@@ -15,7 +15,9 @@ export const adminSignupService = async (data: SignupInput) => {
     where: { email: data.email },
   });
   if (existingAdmin) {
-    logger.info(`Admm with this Email already in user Email: ${existingAdmin}`);
+    logger.info(
+      `Admin with this Email already in user Email: ${existingAdmin}`,
+    );
     throw new AppError("Admin already exist", 400);
   }
 

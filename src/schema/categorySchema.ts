@@ -34,7 +34,7 @@ export const CategoryParamsSchema = z.object({
 });
 
 /*
- * Type Inferene
+ * Type Inference
  */
 export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>["body"];
 export type UpdateCategoryInput = z.infer<typeof UpdateCategorySchema>["body"];

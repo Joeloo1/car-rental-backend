@@ -3,15 +3,13 @@ import nodemailer from "nodemailer";
 import config from "../config/config.env";
 import logger from "../config/winston";
 
-interface EmmailOptions {
+interface EmailOptions {
   email: string;
   subject: string;
   html: string;
 }
 
-export const sendEmail = async function (
-  options: EmmailOptions,
-): Promise<void> {
+export const sendEmail = async function (options: EmailOptions): Promise<void> {
   /*
    * Create Transporter
    */

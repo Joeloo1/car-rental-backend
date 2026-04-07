@@ -33,7 +33,7 @@ export const updateCategory = catchAsync(
     logger.info(`Updating category with Id: ${category.id}`);
     res.status(200).json({
       status: "success",
-      message: "Category updated sucessfully",
+      message: "Category updated successfully",
       data: {
         category,
       },
@@ -82,7 +82,7 @@ export const deleteCategory = catchAsync(
     logger.info(`Deleting category with ID: ${categoryId}`);
     res.status(200).json({
       status: "success",
-      message: "Category deleted sucessfully",
+      message: "Category deleted successfully",
     });
   },
 );

@@ -33,7 +33,7 @@ export const uploadProfileImageService = async (
         public_id: `user_${userId}`,
         resource_type: "image",
         transformation: [
-          { wigth: 300, heght: 300, crop: "fill", gravity: "face" },
+          { width: 300, height: 300, crop: "fill", gravity: "face" },
           { quality: "auto:good" },
           { fetch_format: "auto" },
         ],
@@ -59,7 +59,7 @@ export const updateUserService = async (
   data: Partial<UpdateUserInput>,
   profileImage?: string,
 ) => {
-  // Chect is the user exists
+  // Check is the user exists
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -97,7 +97,7 @@ export const updateUserService = async (
  * Get user
  */
 export const GetUserService = async (userId: string) => {
-  // Chect is the user exists
+  // Check is the user exists
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });

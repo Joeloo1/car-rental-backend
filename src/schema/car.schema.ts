@@ -110,7 +110,7 @@ export const CarQuerySchema = z.object({
 });
 
 /**
- * Types Interene
+ * Types Inference
  */
 export type CreateCarInput = z.infer<typeof CreateCarSchema>["body"];
 export type UpdateCarInput = z.infer<typeof UpdateCarSchema>["body"];
