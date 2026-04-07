@@ -41,7 +41,7 @@ export const AddressParamsSchema = z.object({
   }),
 });
 /*
- * Type Inferene
+ * Type Inference
  */
 export type CreateAddressInput = z.infer<typeof CreateAddressSchema>["body"];
 export type UpdateAddressInput = z.infer<typeof UpdateAddressSchema>["body"];

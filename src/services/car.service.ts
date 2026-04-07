@@ -76,7 +76,7 @@ export const GetAllCarsService = async (filter: CarQuery) => {
   const skip = (page - 1) * limit;
 
   /**
-   * Building where Cluase
+   * Building where Clause
    */
   const where: any = {};
   if (brand) where.brand = { contains: brand, mode: "insensitive" };
@@ -220,7 +220,7 @@ export const GetCarByIdService = async (id: string) => {
     throw new AppError("Car not Found", 404);
   }
 
-  // Caculating the average rating
+  // Calculating the average rating
   const avgRating =
     car.reviews.length > 0
       ? car.reviews.reduce((sum, review) => sum + review.rating, 0) /
@@ -333,7 +333,7 @@ export const GetCarsByLenderService = async (lenderId: string) => {
     },
   });
 
-  // Caculating the average rating
+  // Calculating the average rating
   const carsWithRating = cars.map((car) => {
     const avgRating =
       car.reviews.length > 0
@@ -353,7 +353,7 @@ export const GetCarsByLenderService = async (lenderId: string) => {
 };
 
 /**
- * Update Car Aailability Status
+ * Update Car Availability Status
  */
 export const UpdateCarStatusService = async (
   id: string,

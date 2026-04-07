@@ -61,7 +61,7 @@ app.use("/api", routes);
 // app.use("/api/chats", chatRoutes);
 
 /*
- * Handling unhandle Routes
+ * Handling unhandled Routes
  */
 app.use((req: Request, _res: Response, next: NextFunction) => {
   logger.warn(`Can't find ${req.originalUrl} on this server`);
@@ -71,7 +71,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 /*
- * Global Error Hander
+ * Global Error Handler
  */
 app.use(globalErrorHandler);
 

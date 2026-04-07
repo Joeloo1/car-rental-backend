@@ -296,7 +296,7 @@ export const forgotPasswordServices = async (email: string) => {
   const { passwordResetToken, resetToken, resetTokenExpiry } =
     createPasswordResetToken();
 
-  // save the hased token to database
+  // save the hashed token to database
   await prisma.user.update({
     where: { email },
     data: {

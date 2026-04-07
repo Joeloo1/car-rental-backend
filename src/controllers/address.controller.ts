@@ -17,7 +17,7 @@ export const createAddress = catchAsync(
 
     logger.info(`Creating address...`);
     res.status(201).json({
-      status: "seccess",
+      status: "success",
       message: "Address created successfully",
       data: {
         address,
@@ -50,7 +50,7 @@ export const getAddress = catchAsync(
       req.params.id as string,
     );
 
-    logger.info(`Getting addressby ID: ${address.id}`);
+    logger.info(`Getting address by ID: ${address.id}`);
     res.status(200).json({
       status: "success",
       data: {
