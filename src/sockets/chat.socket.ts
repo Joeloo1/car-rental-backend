@@ -14,8 +14,11 @@ export const registerChatSocket = (io: Server) => {
         const decoded = (await verifyAccessToken(token)) as { id: string };
 
         socket.data.userId = decoded.id;
+        
+        // Join a global room for this user to receive notifications
+        socket.join(`user_${decoded.id}`);
 
-        logger.info(`Socket ${socket.id} authenticated as ${decoded.id}`);
+        logger.info(`Socket ${socket.id} authenticated as ${decoded.id} and joined room user_${decoded.id}`);
 
         if (callback) callback({ success: true });
       } catch (err) {
@@ -23,6 +26,7 @@ export const registerChatSocket = (io: Server) => {
         if (callback) callback({ success: false });
       }
     });
+
 
     socket.on("join_chat", async (chatId: string) => {
       const userId = socket.data.userId;
@@ -129,6 +133,17 @@ export const registerChatSocket = (io: Server) => {
 
           // Emit only to people in this specific chat room
           io.to(data.chatId).emit("new_message", message);
+          
+          // Emit notification to the other person in the chat
+          const recipientId = chat.userId === senderId ? chat.lenderId : chat.userId;
+          io.to(`user_${recipientId}`).emit("new_notification", {
+            type: "message",
+            chatId: data.chatId,
+            message: message.messageText,
+            senderName: message.sender.name,
+            createdAt: message.createdAt
+          });
+
         } catch (err) {
           logger.error(err);
           socket.emit("chat_error", "Failed to send message");
