@@ -305,7 +305,8 @@ export const forgotPasswordServices = async (email: string) => {
     },
   });
 
-  const resetURL = `${config.CLIENT_URL}/api/auth/reset-password/${passwordResetToken}`;
+  const resetURL = `${config.CLIENT_URL}/reset-password/${passwordResetToken}`;
+
 
   try {
     await sendEmail({

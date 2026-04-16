@@ -34,7 +34,17 @@ export const CreateCarService = async (data: CreateCarInput, user: any) => {
       availabilityStatus: data.availabilityStatus || "available",
       lenderId: user.id,
       categoryId: data.categoryId,
+      fuelType: data.fuelType,
+      transmission: data.transmission,
+      seats: data.seats,
+      topSpeed: data.topSpeed,
+      acceleration: data.acceleration,
+      enginePower: data.enginePower,
+      latitude: data.latitude,
+      longitude: data.longitude,
     },
+
+
     include: {
       lender: {
         select: {
@@ -67,7 +77,11 @@ export const GetAllCarsService = async (filter: CarQuery) => {
     availabilityStatus,
     categoryId,
     lenderId,
+    fuelType,
+    transmission,
+    seats,
     sortBy = "createdAt",
+
     sortOrder = "desc",
     page = 1,
     limit = 10,
@@ -86,6 +100,10 @@ export const GetAllCarsService = async (filter: CarQuery) => {
   if (availabilityStatus) where.availabilityStatus = availabilityStatus;
   if (categoryId) where.categoryId = categoryId;
   if (lenderId) where.lenderId = lenderId;
+  if (fuelType) where.fuelType = fuelType;
+  if (transmission) where.transmission = transmission;
+  if (seats) where.seats = seats;
+
 
   if (minYear || maxYear) {
     where.year = {};
@@ -119,6 +137,7 @@ export const GetAllCarsService = async (filter: CarQuery) => {
           select: {
             id: true,
             name: true,
+            profileImage: true,
           },
         },
         category: true,
@@ -190,8 +209,11 @@ export const GetCarByIdService = async (id: string) => {
           name: true,
           email: true,
           phoneNumber: true,
+          profileImage: true,
+          createdAt: true,
         },
       },
+
       category: true,
       images: {
         orderBy: [{ isMain: "desc" }, { order: "asc" }],
@@ -227,13 +249,26 @@ export const GetCarByIdService = async (id: string) => {
         car.reviews.length
       : 0;
 
+  // Calculating host stats (total trips across all their cars)
+  const totalTrips = await prisma.booking.count({
+    where: {
+      car: { lenderId: car.lenderId },
+      status: "completed",
+    },
+  });
+
   logger.info(`Fetching Car By ID: ${id}`);
   return {
     ...car,
     averageRating: Number(avgRating.toFixed(1)),
     totalReviews: car.reviews.length,
+    lender: {
+      ...car.lender,
+      totalTrips,
+    },
   };
 };
+
 
 /**
  * Update Car
