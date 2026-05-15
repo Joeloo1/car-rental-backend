@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat with Lender</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <!-- 
+        These data attributes are filled in by your server when rendering the page.
+        If you're using Express + EJS:  data-car-id="<%= car.id %>"
+        If you're using Next.js:        data-car-id={car.id}  (in JSX)
+        If you're hardcoding to test:   just paste a real UUID from your DB
+    -->
+    <div
+      id="chat-widget"
+      data-car-id="9c7eeb2d-5bd8-4751-9004-378b80657461"
+      data-lender-id="6f1bccdf-1423-4550-a6a7-4533d64f7a9d"
+    >
+      <!-- ── Chat Header ── -->
+      <div id="chat-header">
+        <div id="lender-info">
+          <img
+            id="lender-avatar"
+            src="https://placehold.co/40x40"
+            alt="Lender avatar"
+          />
+          <div>
+            <div id="lender-name">Lender</div>
+            <div id="chat-status">Connecting...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Messages Area ── -->
+      <div id="messages">
+        <!-- messages are injected here by main.js -->
+
+        <!-- shown while history is loading -->
+        <div id="messages-loader" class="system-message">
+          Loading conversation...
+        </div>
+      </div>
+
+      <!-- ── Typing Indicator ── -->
+      <div id="typing-indicator"></div>
+
+      <!-- ── Message Input ── -->
+      <form id="message-form">
+        <input
+          type="text"
+          id="message-input"
+          placeholder="Type a message..."
+          autocomplete="off"
+          disabled
+        />
+        <!-- disabled until chat is ready so user can't fire events too early -->
+        <button type="submit" id="send-button" disabled>Send</button>
+      </form>
+    </div>
+
+    <!-- current user id injected by your server so JS knows which side is "me" -->
+    <!-- EJS example:   <script>window.__CURRENT_USER_ID__ = "<%- currentUser.id %>"</script>  -->
+    <!-- Next.js:       put this in a _document or layout component                            -->
+    <script>
+      window.__CURRENT_USER_ID__ = "9d85f44d-229a-4437-9d8f-156f856d30f6";
+      window.__AUTHENTICATE_AS__ = "9d85f44d-229a-4437-9d8f-156f856d30f6";
+    </script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
