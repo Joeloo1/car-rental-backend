@@ -1,0 +1,14 @@
+/* Register-specific overrides — all shared styles live in Login.css */
+
+/* The register form is taller; allow right panel to scroll on small heights */
+.login-right.register-scroll {
+  align-items: flex-start;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+/* Ensures terms checkbox row doesn't get misaligned */
+.form-options .checkbox-container {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
