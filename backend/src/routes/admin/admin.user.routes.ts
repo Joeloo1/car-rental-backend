@@ -12,7 +12,7 @@ import { protect } from "../../middleware/protect.middleware";
 import { restrictTo } from "../../middleware/authorization";
 import { UserRole } from "../../generated/prisma/client";
 
-const router = Router();
+const router: Router = Router();
 
 router.use(protect);
 router.use(restrictTo(UserRole.admin));

@@ -14,7 +14,7 @@ import {
   deleteAddress,
 } from "../controllers/address.controller";
 
-const router = Router();
+const router: Router = Router();
 
 router.use(protect);
 

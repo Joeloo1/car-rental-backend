@@ -7,8 +7,13 @@ import {
   getUser,
 } from "../../controllers/user/user.controller";
 import { protect } from "../../middleware/protect.middleware";
+import {
+  getMyNotifications,
+  markRead,
+  markAllRead,
+} from "../../controllers/notification.controller";
 
-const router = Router();
+const router: Router = Router();
 
 router.use(protect);
 
@@ -23,10 +28,8 @@ router.get("/me", getUser);
 router.delete("/deleteMe", deleteUser);
 
 // Notifications
-import { getMyNotifications, markRead, markAllRead } from "../../controllers/notification.controller";
 router.get("/notifications", getMyNotifications);
-router.patch("/notifications/read-all", markAllRead);
 router.patch("/notifications/:id/read", markRead);
+router.patch("/notifications/mark-all-read", markAllRead);
 
 export default router;
-
