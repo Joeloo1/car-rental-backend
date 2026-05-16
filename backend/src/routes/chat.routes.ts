@@ -7,7 +7,7 @@ import {
 } from "../controllers/chat.controller";
 import { protect } from "../middleware/protect.middleware";
 
-const router = Router();
+const router: Router = Router();
 
 router.use(protect);
 

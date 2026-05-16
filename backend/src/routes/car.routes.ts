@@ -1,4 +1,4 @@
-import Router from "express";
+import { Router } from "express";
 import { validateRequest } from "../middleware/validation_middleware";
 import {
   CreateCarSchema,
@@ -24,7 +24,7 @@ import {
   getAllReviewForCar,
 } from "../controllers/review.controller";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET /api/cars

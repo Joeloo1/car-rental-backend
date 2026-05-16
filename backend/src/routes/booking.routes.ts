@@ -10,7 +10,7 @@ import {
   createBooking,
 } from "../controllers/booking.controller";
 
-const router = Router({ mergeParams: true });
+const router: Router = Router({ mergeParams: true });
 
 // All booking routes requires authentication
 router.use(protect);
@@ -42,7 +42,7 @@ router.route("/:id/status").patch(updateBookingStatus);
 /**
  * POST /api/cars/:carId/bookings
  * Create a new booking for a specific car
- * Note: this route should be mounted on carRoutes or we can leave it here 
+ * Note: this route should be mounted on carRoutes or we can leave it here
  * and mount bookingRoutes on `/api/cars/:carId/bookings` as well.
  */
 router.post("/car/:carId", createBooking);

@@ -1,16 +1,16 @@
 import { Router, Request, Response } from "express";
 
-import categoryRoutes from "../routes/category.routes";
-import authRoutes from "../routes/auth/auth.routes";
-import userRoutes from "../routes/user/user.route";
-import addressRoutes from "../routes/address.routes";
-import carRoutes from "../routes/car.routes";
-import adminUserRoutes from "../routes/admin/admin.user.routes";
-import reviewRoutes from "../routes/review.routes";
-import chatRoutes from "../routes/chat.routes";
-import bookingRoutes from "../routes/booking.routes";
+import categoryRoutes from "./category.routes";
+import authRoutes from "./auth/auth.routes";
+import userRoutes from "./user/user.route";
+import addressRoutes from "./address.routes";
+import carRoutes from "./car.routes";
+import adminUserRoutes from "./admin/admin.user.routes";
+import reviewRoutes from "./review.routes";
+import chatRoutes from "./chat.routes";
+import bookingRoutes from "./booking.routes";
 
-const router = Router();
+const router: Router = Router();
 
 router.get("/health", (_req: Request, res: Response) => {
   res.json({

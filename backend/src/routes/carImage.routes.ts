@@ -12,7 +12,7 @@ import { restrictTo } from "../middleware/authorization";
 import { Role } from "../types/role.types";
 import { UserRole } from "../generated/prisma/enums";
 
-const router = Router({ mergeParams: true });
+const router: Router = Router({ mergeParams: true });
 
 /**
  * GET /api/cars/:carId/images

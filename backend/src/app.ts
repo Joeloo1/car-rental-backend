@@ -1,14 +1,16 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { NextFunction, Request, Response } from "express";
+import express, { NextFunction, Request, Response, Express } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
+import session from "express-session";
 
 import config from "./config/config.env";
 import logger from "./config/winston";
 import { globalErrorHandler } from "./error/errorHandling";
 import AppError from "./utils/AppError";
+import passport from "./config/passport";
 
 import routes from "./routes/routes";
 // import categoryRoutes from "./routes/category.routes";
@@ -20,7 +22,7 @@ import routes from "./routes/routes";
 // import reviewRoutes from "./routes/review.routes";
 // import chatRoutes from "./routes/chat.routes";
 
-const app = express();
+const app: Express = express();
 
 // Development logging
 if (config.NODE_ENV === "development") {
@@ -32,14 +34,38 @@ app.use(helmet());
 
 app.use(cookieParser());
 
+// Session configuration
+app.use(
+  session({
+    secret: config.JWT_ACCESS_TOKEN_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: config.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    },
+  }),
+);
+
+// Initialize passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Body parser, reading data from body into req.body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-  origin: [config.CLIENT_URL || 'http://localhost:5173', 'http://127.0.0.1:5173'],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      config.CLIENT_URL || "http://localhost:5173",
+      "http://127.0.0.1:5173",
+    ],
+    credentials: true,
+  }),
+);
 const limiter = rateLimit({
   max: 300,
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -62,8 +88,6 @@ const authLimiter = rateLimit({
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/signup", authLimiter);
 app.use("/api/auth/forgot-password", authLimiter);
-
-
 
 /**
  * ROUTES

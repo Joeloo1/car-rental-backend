@@ -1,4 +1,5 @@
 import { Router } from "express";
+import passport from "passport";
 import {
   resendverifyEmail,
   signup,
@@ -9,12 +10,17 @@ import {
   logOut,
   refreshAccessToken,
 } from "../../controllers/auth/auth.controller";
+import {
+  googleAuthCallback,
+  googleAuthFailure,
+  getCurrentUser,
+} from "../../controllers/auth/google.oauth.controller";
 import { validateRequest } from "../../middleware/validation_middleware";
 import { SignupSchema, LoginSchema } from "../../schema/auth.schema";
 import { adminSignup } from "../../controllers/admin/admin.controller";
 import { protect } from "../../middleware/protect.middleware";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * POST /api/auth/admin/signup
@@ -83,5 +89,46 @@ router.route("/reset-password/:token").patch(resetPassword);
  * Protection: SEMI-PROTECTED (requires valid refresh token)
  */
 router.route("/refresh-token").post(refreshAccessToken);
+
+/**
+ * GET /api/auth/google
+ * Initiate Google OAuth login flow
+ * Redirects to Google consent screen
+ */
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  }),
+);
+
+/**
+ * GET /api/auth/google/callback
+ * Google OAuth callback URL
+ * Called by Google after user grants permission
+ * Sets cookies and redirects to frontend with tokens
+ */
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/api/auth/google/failure",
+    session: true,
+  }),
+  googleAuthCallback,
+);
+
+/**
+ * GET /api/auth/google/failure
+ * Google OAuth failure redirect
+ * Redirects to frontend with error
+ */
+router.get("/google/failure", googleAuthFailure);
+
+/**
+ * GET /api/auth/me
+ * Get current authenticated user
+ * Requires: Valid session or authentication token
+ */
+router.get("/me", protect, getCurrentUser);
 
 export default router;
