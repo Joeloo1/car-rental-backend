@@ -1,0 +1,121 @@
+.review-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.review-modal-content {
+  width: 100%;
+  max-width: 500px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  position: relative;
+  box-shadow: var(--shadow-2xl);
+  border: 1px solid var(--border-primary);
+}
+
+.review-modal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(var(--accent-primary-rgb), 0.1);
+  color: var(--accent-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+.review-modal-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.review-modal-header p {
+  color: var(--text-muted);
+}
+
+.rating-selector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  flex-direction: column;
+}
+
+.star-grid {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 0;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.star-btn.active svg {
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4));
+}
+
+.rating-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--warning);
+  height: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.review-form .form-group label {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.review-form textarea {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  width: 100%;
+  resize: none;
+  transition: var(--transition-fast);
+}
+
+.review-form textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.1);
+}
