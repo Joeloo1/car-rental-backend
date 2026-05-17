@@ -31,6 +31,7 @@ const router: Router = Router();
  * Get all cars with optional filtering and pagination
  * Query: { page?: number, limit?: number, brand?: string, status?: string, etc. }
  * Protection: PUBLIC
+ * Cache: DISABLED (Redis connection issue)
  */
 router.route("/").get(getAllCars);
 
@@ -40,6 +41,7 @@ router.route("/").get(getAllCars);
  * Params: { id: string }
  * Validates request against CarParamsSchema
  * Protection: PUBLIC
+ * Cache: DISABLED (Redis connection issue)
  */
 router.route("/:id").get(validateRequest(CarParamsSchema), getCarById);
 
@@ -48,6 +50,7 @@ router.route("/:id").get(validateRequest(CarParamsSchema), getCarById);
  * Get all cars owned/listed by a specific lender
  * Params: { id: string (lender ID) }
  * Protection: PUBLIC
+ * Cache: DISABLED (Redis connection issue)
  */
 router.route("/lender/:id").get(getCarByLender);
 
@@ -56,6 +59,7 @@ router.route("/lender/:id").get(getCarByLender);
  * Get all reviews for a specific car
  * Params: { id: string (car ID) }
  * Protection: PUBLIC
+ * Cache: DISABLED (Redis connection issue)
  */
 router.route("/:id/reviews").get(getAllReviewForCar);
 
