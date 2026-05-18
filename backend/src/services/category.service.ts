@@ -3,10 +3,7 @@ import { getCache, setCache, deleteCache } from "../config/redis";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
 
-import {
-  CreateCategoryInput,
-  UpdateCategoryInput,
-} from "../schema/categorySchema";
+import { CreateCategoryInput, UpdateCategoryInput } from "../schema/categorySchema";
 
 // ─── Cache TTLs ───────────────────────────────────────────────────────────────
 const TTL_CATEGORIES = 30 * 60; // 30 minutes — categories rarely change
@@ -33,10 +30,7 @@ export const createCategoryService = async (data: CreateCategoryInput) => {
 };
 
 // Update Category
-export const UpdateCategoryService = async (
-  categoryId: number,
-  data: UpdateCategoryInput,
-) => {
+export const UpdateCategoryService = async (categoryId: number, data: UpdateCategoryInput) => {
   // Check if the category if in DB
   const category = await prisma.category.findUnique({
     where: { id: categoryId },
@@ -54,10 +48,7 @@ export const UpdateCategoryService = async (
   });
 
   // Invalidate both the list and the individual entry
-  await Promise.all([
-    deleteCache("categories:all"),
-    deleteCache(`categories:id:${categoryId}`),
-  ]);
+  await Promise.all([deleteCache("categories:all"), deleteCache(`categories:id:${categoryId}`)]);
 
   return updateData;
 };
@@ -129,10 +120,7 @@ export const deleteCategoryService = async (categoryId: number) => {
   });
 
   // Invalidate caches
-  await Promise.all([
-    deleteCache("categories:all"),
-    deleteCache(`categories:id:${categoryId}`),
-  ]);
+  await Promise.all([deleteCache("categories:all"), deleteCache(`categories:id:${categoryId}`)]);
 
   return result;
 };

@@ -8,10 +8,7 @@ import {
   UpdateBookingStatusService,
   GetDashboardStatsService,
 } from "../services/booking.service";
-import {
-  CreateBookingSchema,
-  UpdateBookingStatusSchema,
-} from "../schema/booking.schema";
+import { CreateBookingSchema, UpdateBookingStatusSchema } from "../schema/booking.schema";
 
 export const createBooking = catchAsync(async (req: AuthRequest, res: Response) => {
   const carId = req.params.carId as string;

@@ -1,9 +1,6 @@
 import cloudinary from "../config/cloudinary";
 import { prisma } from "../config/database";
-import {
-  CloudinaryUploadResult,
-  UploadedImage,
-} from "../types/carImages.types";
+import { CloudinaryUploadResult, UploadedImage } from "../types/carImages.types";
 import { Readable } from "stream";
 import { BulkReorderInput } from "../schema/carImage.schema";
 import logger from "../config/winston";
@@ -23,10 +20,7 @@ const bufferToStreams = (buffer: Buffer): Readable => {
 /**
  * Upload single image to Cloudinary
  */
-const UploadToCloudinary = (
-  buffer: Buffer,
-  folder: string,
-): Promise<CloudinaryUploadResult> => {
+const UploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryUploadResult> => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
@@ -131,9 +125,7 @@ export const uploadCarImagesService = async (
 /**
  * Get car Images
  */
-export const GetCarImagesService = async (
-  carId: string,
-): Promise<UploadedImage[]> => {
+export const GetCarImagesService = async (carId: string): Promise<UploadedImage[]> => {
   return await prisma.carImage.findMany({
     where: { carId },
     orderBy: [{ isMain: "desc" }, { order: "asc" }],
@@ -202,10 +194,7 @@ export const BulkReorderImagesService = async (
 /**
  * Delete image
  */
-export const deleteCarImageService = async (
-  carId: string,
-  imageId: string,
-): Promise<void> => {
+export const deleteCarImageService = async (carId: string, imageId: string): Promise<void> => {
   const image = await prisma.carImage.findFirst({
     where: { id: imageId, carId },
   });

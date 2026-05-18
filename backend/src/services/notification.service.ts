@@ -9,7 +9,7 @@ export const CreateNotification = async (
   title: string,
   message: string,
   type: NotificationType = "info",
-  link?: string
+  link?: string,
 ) => {
   try {
     // 1. Save to Database

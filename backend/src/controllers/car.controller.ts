@@ -32,9 +32,9 @@ export const getAllCars = catchAsync(async (req: Request, res: Response) => {
 
   res.status(200).json({
     status: "success",
-    data: { 
+    data: {
       cars: result.data,
-      pagination: result.pagination
+      pagination: result.pagination,
     },
   });
 });
@@ -50,24 +50,18 @@ export const getCarById = catchAsync(async (req: Request, res: Response) => {
 });
 
 // Get Cars By Lenders
-export const getCarByLender = catchAsync(
-  async (req: Request, res: Response) => {
-    const cars = await GetCarsByLenderService(req.params.id as string);
+export const getCarByLender = catchAsync(async (req: Request, res: Response) => {
+  const cars = await GetCarsByLenderService(req.params.id as string);
 
-    res.status(200).json({
-      status: "success",
-      data: { cars },
-    });
-  },
-);
+  res.status(200).json({
+    status: "success",
+    data: { cars },
+  });
+});
 
 // Update Cars
 export const updateCars = catchAsync(async (req: Request, res: Response) => {
-  const car = await UpdateCarService(
-    req.params.id as string,
-    req.body,
-    req.user as any,
-  );
+  const car = await UpdateCarService(req.params.id as string, req.body, req.user as any);
 
   res.status(200).json({
     status: "success",
@@ -76,22 +70,20 @@ export const updateCars = catchAsync(async (req: Request, res: Response) => {
 });
 
 // Update car status
-export const updateCarStatus = catchAsync(
-  async (req: AuthRequest, res: Response) => {
-    const { availabilityStatus } = req.body;
-    const car = await UpdateCarStatusService(
-      req.params.id as string,
-      availabilityStatus,
-      req.user!.id,
-    );
+export const updateCarStatus = catchAsync(async (req: AuthRequest, res: Response) => {
+  const { availabilityStatus } = req.body;
+  const car = await UpdateCarStatusService(
+    req.params.id as string,
+    availabilityStatus,
+    req.user!.id,
+  );
 
-    res.status(200).json({
-      status: "success",
-      message: "Car Status updated successfully",
-      data: { car },
-    });
-  },
-);
+  res.status(200).json({
+    status: "success",
+    message: "Car Status updated successfully",
+    data: { car },
+  });
+});
 
 // Delete car
 export const deleteCar = catchAsync(async (req: Request, res: Response) => {

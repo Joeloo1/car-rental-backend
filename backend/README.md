@@ -22,19 +22,20 @@ A robust, TypeScript-based backend API for a dynamic car rental platform.
 
 The codebase follows an organized structure focusing on modularity and separation of concerns:
 
-- `/src`         - Application source code (TypeScript)
-  - `/config`    - Application configuration and environment variables
-  - `/error`     - Error handling utilities
-  - `/utils`     - Helper functions and common utilities
-  - `/routes`    - Express route definitions
-- `/dist`        - Compiled JavaScript output
-- `/prisma`      - Prisma schema configurations and database migrations
+- `/src` - Application source code (TypeScript)
+  - `/config` - Application configuration and environment variables
+  - `/error` - Error handling utilities
+  - `/utils` - Helper functions and common utilities
+  - `/routes` - Express route definitions
+- `/dist` - Compiled JavaScript output
+- `/prisma` - Prisma schema configurations and database migrations
 
 ## 🛠️ Setup Instructions
 
 ### Prerequisites
 
 Ensure you have the following installed:
+
 - Node.js (v18 or higher recommended)
 - PostgreSQL
 - Redis
@@ -43,12 +44,14 @@ Ensure you have the following installed:
 ### Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone <repository-url>
    cd car-rental-backend
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
@@ -67,18 +70,21 @@ Ensure you have the following installed:
 
 - **Development Mode:**
   Runs the app with `nodemon` for hot-reloading.
+
   ```bash
   npm run dev
   ```
 
 - **Build Output:**
   Compiles TypeScript code into standard JavaScript inside the `/dist` folder.
+
   ```bash
   npm run build
   ```
 
 - **Production Mode:**
   Runs the compiled build.
+
   ```bash
   npm start
   ```

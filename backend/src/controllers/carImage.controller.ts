@@ -14,103 +14,93 @@ import {
 import { z } from "zod";
 import catchAsync from "../utils/catchAsync";
 
-export const uploadImages = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // Validate request
-    const validatedData = uploadCarImageSchema.parse({
-      carId: req.params.carId,
-      isMain: req.body.isMain,
-      order: req.body.order,
+export const uploadImages = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  // Validate request
+  const validatedData = uploadCarImageSchema.parse({
+    carId: req.params.carId,
+    isMain: req.body.isMain,
+    order: req.body.order,
+  });
+
+  const files = req.files as Express.Multer.File[];
+
+  if (!files || files.length === 0) {
+    res.status(400).json({
+      success: false,
+      message: "No images provided",
     });
+    return;
+  }
 
-    const files = req.files as Express.Multer.File[];
+  const images = await uploadCarImagesService(
+    validatedData.carId,
+    files,
+    validatedData.isMain,
+    validatedData.order,
+  );
 
-    if (!files || files.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: "No images provided",
-      });
-      return;
-    }
+  res.status(201).json({
+    success: true,
+    message: `${images.length} image(s) uploaded successfully`,
+    data: images,
+  });
+});
 
-    const images = await uploadCarImagesService(
-      validatedData.carId,
-      files,
-      validatedData.isMain,
-      validatedData.order,
-    );
+export const getImages = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
+  const images = await GetCarImagesService(carId);
 
-    res.status(201).json({
-      success: true,
-      message: `${images.length} image(s) uploaded successfully`,
-      data: images,
-    });
-  },
-);
+  res.status(200).json({
+    success: true,
+    data: images,
+  });
+});
 
-export const getImages = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
-    const images = await GetCarImagesService(carId);
+export const updateImage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { carId, imageId } = z
+    .object({
+      carId: z.string().uuid(),
+      imageId: z.string().uuid(),
+    })
+    .parse(req.params);
 
-    res.status(200).json({
-      success: true,
-      data: images,
-    });
-  },
-);
+  const updates = updateCarImageSchema.parse(req.body);
+  console.log("BODY:", req.body);
 
-export const updateImage = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { carId, imageId } = z
-      .object({
-        carId: z.string().uuid(),
-        imageId: z.string().uuid(),
-      })
-      .parse(req.params);
+  const image = await updateCarImageService(carId, imageId, updates);
 
-    const updates = updateCarImageSchema.parse(req.body);
-    console.log("BODY:", req.body);
+  res.status(200).json({
+    success: true,
+    message: "Image updated successfully",
+    data: image,
+  });
+});
 
-    const image = await updateCarImageService(carId, imageId, updates);
+export const bulkReorder = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
+  const reorderData = bulkReorderSchema.parse(req.body);
 
-    res.status(200).json({
-      success: true,
-      message: "Image updated successfully",
-      data: image,
-    });
-  },
-);
+  const images = await BulkReorderImagesService(carId, reorderData);
 
-export const bulkReorder = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
-    const reorderData = bulkReorderSchema.parse(req.body);
+  res.status(200).json({
+    success: true,
+    message: "Images reordered successfully",
+    data: images,
+  });
+});
 
-    const images = await BulkReorderImagesService(carId, reorderData);
+export const deleteImage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { carId, imageId } = z
+    .object({
+      carId: z.string().uuid(),
+      imageId: z.string().uuid(),
+    })
+    .parse(req.params);
 
-    res.status(200).json({
-      success: true,
-      message: "Images reordered successfully",
-      data: images,
-    });
-  },
-);
+  await deleteCarImageService(carId, imageId);
 
-export const deleteImage = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { carId, imageId } = z
-      .object({
-        carId: z.string().uuid(),
-        imageId: z.string().uuid(),
-      })
-      .parse(req.params);
-
-    await deleteCarImageService(carId, imageId);
-
-    res.status(200).json({
-      success: true,
-      message: "Image deleted successfully",
-    });
-  },
-);
+  res.status(200).json({
+    success: true,
+    message: "Image deleted successfully",
+  });
+});

@@ -14,11 +14,13 @@ export const registerChatSocket = (io: Server) => {
         const decoded = (await verifyAccessToken(token)) as { id: string };
 
         socket.data.userId = decoded.id;
-        
+
         // Join a global room for this user to receive notifications
         socket.join(`user_${decoded.id}`);
 
-        logger.info(`Socket ${socket.id} authenticated as ${decoded.id} and joined room user_${decoded.id}`);
+        logger.info(
+          `Socket ${socket.id} authenticated as ${decoded.id} and joined room user_${decoded.id}`,
+        );
 
         if (callback) callback({ success: true });
       } catch (err) {
@@ -26,7 +28,6 @@ export const registerChatSocket = (io: Server) => {
         if (callback) callback({ success: false });
       }
     });
-
 
     socket.on("join_chat", async (chatId: string) => {
       const userId = socket.data.userId;
@@ -70,86 +71,79 @@ export const registerChatSocket = (io: Server) => {
       }
     });
 
-    socket.on(
-      "initiate_chat",
-      async (data: { carId: string; lenderId: string }) => {
-        const userId = socket.data.userId;
-        if (!userId) return;
+    socket.on("initiate_chat", async (data: { carId: string; lenderId: string }) => {
+      const userId = socket.data.userId;
+      if (!userId) return;
 
-        try {
-          const chat = await prisma.chat.upsert({
-            where: {
-              carId_userId: { carId: data.carId, userId },
-            },
-            create: {
-              carId: data.carId,
-              userId,
-              lenderId: data.lenderId,
-            },
-            update: {},
-          });
+      try {
+        const chat = await prisma.chat.upsert({
+          where: {
+            carId_userId: { carId: data.carId, userId },
+          },
+          create: {
+            carId: data.carId,
+            userId,
+            lenderId: data.lenderId,
+          },
+          update: {},
+        });
 
-          socket.join(chat.id);
-          socket.emit("chat_initiated", { chatId: chat.id });
-        } catch (err) {
-          logger.error(err);
-          socket.emit("chat_error", "Failed to initiate chat");
-        }
-      },
-    );
+        socket.join(chat.id);
+        socket.emit("chat_initiated", { chatId: chat.id });
+      } catch (err) {
+        logger.error(err);
+        socket.emit("chat_error", "Failed to initiate chat");
+      }
+    });
 
     // Send a message inside a chat room
-    socket.on(
-      "send_message",
-      async (data: { chatId: string; messageText: string }) => {
-        const senderId = socket.data.userId;
-        if (!senderId) return;
+    socket.on("send_message", async (data: { chatId: string; messageText: string }) => {
+      const senderId = socket.data.userId;
+      if (!senderId) return;
 
-        try {
-          // Verify sender belongs to this chat before saving
-          const chat = await prisma.chat.findFirst({
-            where: {
-              id: data.chatId,
-              OR: [{ userId: senderId }, { lenderId: senderId }],
-            },
-          });
+      try {
+        // Verify sender belongs to this chat before saving
+        const chat = await prisma.chat.findFirst({
+          where: {
+            id: data.chatId,
+            OR: [{ userId: senderId }, { lenderId: senderId }],
+          },
+        });
 
-          if (!chat) {
-            socket.emit("error", "Unauthorized");
-            return;
-          }
-
-          const message = await prisma.message.create({
-            data: {
-              chatId: data.chatId,
-              senderId,
-              messageText: data.messageText,
-              status: "sent",
-            },
-            include: {
-              sender: { select: { id: true, name: true } },
-            },
-          });
-
-          // Emit only to people in this specific chat room
-          io.to(data.chatId).emit("new_message", message);
-          
-          // Emit notification to the other person in the chat
-          const recipientId = chat.userId === senderId ? chat.lenderId : chat.userId;
-          io.to(`user_${recipientId}`).emit("new_notification", {
-            type: "message",
-            chatId: data.chatId,
-            message: message.messageText,
-            senderName: message.sender.name,
-            createdAt: message.createdAt
-          });
-
-        } catch (err) {
-          logger.error(err);
-          socket.emit("chat_error", "Failed to send message");
+        if (!chat) {
+          socket.emit("error", "Unauthorized");
+          return;
         }
-      },
-    );
+
+        const message = await prisma.message.create({
+          data: {
+            chatId: data.chatId,
+            senderId,
+            messageText: data.messageText,
+            status: "sent",
+          },
+          include: {
+            sender: { select: { id: true, name: true } },
+          },
+        });
+
+        // Emit only to people in this specific chat room
+        io.to(data.chatId).emit("new_message", message);
+
+        // Emit notification to the other person in the chat
+        const recipientId = chat.userId === senderId ? chat.lenderId : chat.userId;
+        io.to(`user_${recipientId}`).emit("new_notification", {
+          type: "message",
+          chatId: data.chatId,
+          message: message.messageText,
+          senderName: message.sender.name,
+          createdAt: message.createdAt,
+        });
+      } catch (err) {
+        logger.error(err);
+        socket.emit("chat_error", "Failed to send message");
+      }
+    });
 
     // Mark messages as read when the other party opens the chat
     socket.on("mark_read", async (chatId: string) => {

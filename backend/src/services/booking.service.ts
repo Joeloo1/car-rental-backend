@@ -7,9 +7,8 @@ import { BookingStatus, CarStatus } from "../generated/prisma/client";
 import { CreateNotification } from "./notification.service";
 
 // ─── Cache TTLs ───────────────────────────────────────────────────────────────
-const TTL_BOOKINGS = 2 * 60;  // 2 minutes — bookings change frequently
-const TTL_STATS = 2 * 60;     // 2 minutes
-
+const TTL_BOOKINGS = 2 * 60; // 2 minutes — bookings change frequently
+const TTL_STATS = 2 * 60; // 2 minutes
 
 /**
  * Create a new booking (Reserve a car)
@@ -103,7 +102,7 @@ export const CreateBookingService = async (
     "New Booking Request",
     `A user has requested to book your ${car.title}.`,
     "booking",
-    "/dashboard"
+    "/dashboard",
   );
 
   await CreateNotification(
@@ -111,13 +110,12 @@ export const CreateBookingService = async (
     "Booking Pending",
     `Your request for ${car.title} is pending approval.`,
     "info",
-    "/dashboard"
+    "/dashboard",
   );
 
   logger.info(`Booking created: ${booking.id}`);
   return booking;
 };
-
 
 /**
  * Get all bookings for a user (renter)
@@ -260,20 +258,16 @@ export const UpdateBookingStatusService = async (
     "Booking Status Updated",
     `Your booking for ${booking.car.title} has been ${status}.`,
     status === "confirmed" ? "success" : status === "cancelled" ? "warning" : "info",
-    "/dashboard"
+    "/dashboard",
   );
 
   logger.info(`Booking ${bookingId} status updated to ${status}`);
 };
 
-
 /**
  * Get Dashboard Statistics
  */
-export const GetDashboardStatsService = async (
-  userId: string,
-  userRole: string,
-) => {
+export const GetDashboardStatsService = async (userId: string, userRole: string) => {
   const cacheKey = `stats:${userId}:${userRole}`;
 
   // ── Cache read ──────────────────────────────────────────────────────────────

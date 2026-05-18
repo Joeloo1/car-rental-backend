@@ -30,10 +30,7 @@ export const GetUserByIdService = async (userId: string) => {
 /**
  * Update user
  */
-export const AdminUpdateUserService = async (
-  userId: string,
-  data: AdminUpdateUserInput,
-) => {
+export const AdminUpdateUserService = async (userId: string, data: AdminUpdateUserInput) => {
   // Ensure there is actually something to update
   if (!data || Object.keys(data).length === 0) {
     throw new AppError("No data provided for update", 400);

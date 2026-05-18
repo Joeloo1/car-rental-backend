@@ -95,11 +95,7 @@ export const getCache = async <T>(key: string): Promise<T | null> => {
  * Write a value to the cache with a TTL (in seconds).
  * No-ops silently when Redis is unavailable.
  */
-export const setCache = async (
-  key: string,
-  value: unknown,
-  ttlSeconds: number,
-): Promise<void> => {
+export const setCache = async (key: string, value: unknown, ttlSeconds: number): Promise<void> => {
   const client = getRedisClient();
   if (!client || !isConnected) return;
 

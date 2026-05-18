@@ -1,11 +1,7 @@
 import { Router } from "express";
 import { uploadProfileImage } from "../../middleware/upload.middleware";
 import { resizePhoto } from "../../middleware/resize-middleware";
-import {
-  updateUser,
-  deleteUser,
-  getUser,
-} from "../../controllers/user/user.controller";
+import { updateUser, deleteUser, getUser } from "../../controllers/user/user.controller";
 import { protect } from "../../middleware/protect.middleware";
 import {
   getMyNotifications,
@@ -17,12 +13,7 @@ const router: Router = Router();
 
 router.use(protect);
 
-router.patch(
-  "/updateMe",
-  uploadProfileImage.single("profileImage"),
-  resizePhoto,
-  updateUser,
-);
+router.patch("/updateMe", uploadProfileImage.single("profileImage"), resizePhoto, updateUser);
 
 router.get("/me", getUser);
 router.delete("/deleteMe", deleteUser);

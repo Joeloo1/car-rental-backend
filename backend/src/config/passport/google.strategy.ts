@@ -1,9 +1,5 @@
 import passport from "passport";
-import {
-  Strategy as GoogleStrategy,
-  Profile,
-  VerifyCallback,
-} from "passport-google-oauth20";
+import { Strategy as GoogleStrategy, Profile, VerifyCallback } from "passport-google-oauth20";
 import logger from "../winston";
 import config from "../config.env";
 import { prisma } from "../database";
@@ -15,12 +11,7 @@ passport.use(
       clientSecret: config.GOOGLE_CLIENT_SECRET,
       callbackURL: config.GOOGLE_REDIRECT_URL,
     },
-    async (
-      _accessToken,
-      _refreshToken,
-      profile: Profile,
-      done: VerifyCallback,
-    ) => {
+    async (_accessToken, _refreshToken, profile: Profile, done: VerifyCallback) => {
       try {
         logger.info("Google OAuth Attempt", {
           provderId: profile.id,

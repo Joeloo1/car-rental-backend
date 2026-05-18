@@ -41,10 +41,7 @@ export const CreateReviewService = async (
   });
 
   // Invalidate reviews cache for this car + the car's detail page (which shows reviews)
-  await Promise.all([
-    deleteCache(`reviews:car:${carId}`),
-    deleteCache(`cars:id:${carId}`),
-  ]);
+  await Promise.all([deleteCache(`reviews:car:${carId}`), deleteCache(`cars:id:${carId}`)]);
 
   return review;
 };
@@ -67,9 +64,7 @@ export const UpdateReviewService = async (
   }
 
   if (review.userId !== userId) {
-    logger.warn(
-      `User ${userId} attempted to update review ${reviewId} they don't own`,
-    );
+    logger.warn(`User ${userId} attempted to update review ${reviewId} they don't own`);
     throw new AppError("Unauthorized", 403);
   }
 
@@ -173,9 +168,7 @@ export const DeleteReviewService = async (userId: string, reviewId: string) => {
   }
 
   if (review.userId !== userId) {
-    logger.warn(
-      `User ${userId} attempted to delete review ${reviewId} they don't own`,
-    );
+    logger.warn(`User ${userId} attempted to delete review ${reviewId} they don't own`);
     throw new AppError("Unauthorized", 403);
   }
 

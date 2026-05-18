@@ -1,10 +1,6 @@
 import { Router } from "express";
 import { validateRequest } from "../middleware/validation_middleware";
-import {
-  CreateCarSchema,
-  UpdateCarSchema,
-  CarParamsSchema,
-} from "../schema/car.schema";
+import { CreateCarSchema, UpdateCarSchema, CarParamsSchema } from "../schema/car.schema";
 import { restrictTo } from "../middleware/authorization";
 import { protect } from "../middleware/protect.middleware";
 import {
@@ -19,10 +15,7 @@ import {
 import { UserRole } from "../generated/prisma/client";
 import carImageRouter from "./carImage.routes";
 import { createReviewSchema } from "../schema/review.schema";
-import {
-  createReview,
-  getAllReviewForCar,
-} from "../controllers/review.controller";
+import { createReview, getAllReviewForCar } from "../controllers/review.controller";
 
 const router: Router = Router();
 
@@ -73,13 +66,7 @@ router.use(protect);
  * Validates request against CreateCarSchema
  * Protection: PROTECTED (Lender only)
  */
-router
-  .route("/")
-  .post(
-    restrictTo(UserRole.lender),
-    validateRequest(CreateCarSchema),
-    createCar,
-  );
+router.route("/").post(restrictTo(UserRole.lender), validateRequest(CreateCarSchema), createCar);
 
 /**
  * PATCH /api/cars/:id
@@ -91,11 +78,7 @@ router
  */
 router
   .route("/:id")
-  .patch(
-    restrictTo(UserRole.lender),
-    validateRequest(UpdateCarSchema),
-    updateCars,
-  );
+  .patch(restrictTo(UserRole.lender), validateRequest(UpdateCarSchema), updateCars);
 
 /**
  * PATCH /api/cars/:id/status
@@ -112,9 +95,7 @@ router.route("/:id/status").patch(restrictTo(UserRole.lender), updateCarStatus);
  * Params: { id: string }
  * Protection: PROTECTED (Lender who owns the car OR Admin)
  */
-router
-  .route("/:id")
-  .delete(restrictTo(UserRole.lender, UserRole.admin), deleteCar);
+router.route("/:id").delete(restrictTo(UserRole.lender, UserRole.admin), deleteCar);
 
 /**
  * POST /api/cars/:id/reviews
@@ -123,9 +104,7 @@ router
  * Body: { rating: number, comment?: string }
  * Protection: PROTECTED (Renter only - cannot review your own car)
  */
-router
-  .route("/:id/reviews")
-  .post(validateRequest(createReviewSchema), createReview);
+router.route("/:id/reviews").post(validateRequest(createReviewSchema), createReview);
 
 /**
  * MOUNT /api/cars/:carId/images

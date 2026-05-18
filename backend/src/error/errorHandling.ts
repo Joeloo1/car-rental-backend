@@ -59,8 +59,7 @@ const handlePostgresUniqueViolationError = (err: CustomError) => {
 };
 
 const handlePostgresForeignKeyViolationError = () => {
-  const message =
-    "Foreign key constraint violation: The provided value does not exist.";
+  const message = "Foreign key constraint violation: The provided value does not exist.";
   return new AppError(message, 400);
 };
 
@@ -111,16 +110,11 @@ export const globalErrorHandler = (
     return sendErrorDev(err, res);
   }
 
-  let error: AppError = new AppError(
-    err.message || "Internal Server Error",
-    err.statusCode || 500,
-  );
+  let error: AppError = new AppError(err.message || "Internal Server Error", err.statusCode || 500);
 
   // Prisma errors
-  if (err.name === "PrismaClientValidationError")
-    error = handlePrismaValidationError(err);
-  if (err.name === "PrismaClientKnownRequestError")
-    error = handlePrismaKnownRequestError(err);
+  if (err.name === "PrismaClientValidationError") error = handlePrismaValidationError(err);
+  if (err.name === "PrismaClientKnownRequestError") error = handlePrismaKnownRequestError(err);
 
   // PostgreSQL errors
   if (err.code === "23505") error = handlePostgresUniqueViolationError(err);

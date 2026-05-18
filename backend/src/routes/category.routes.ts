@@ -15,10 +15,7 @@ import {
 
 const router: Router = Router();
 
-router
-  .route("/")
-  .get(getAllCategories)
-  .post(validateRequest(CreateCategorySchema), createCategory);
+router.route("/").get(getAllCategories).post(validateRequest(CreateCategorySchema), createCategory);
 
 router
   .route("/:id")

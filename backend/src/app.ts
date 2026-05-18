@@ -102,9 +102,7 @@ app.use("/api", routes);
  */
 app.use((req: Request, _res: Response, next: NextFunction) => {
   logger.warn(`Can't find ${req.originalUrl} on this server`);
-  return next(
-    new AppError(`Can't find ${req.originalUrl} on this server`, 404),
-  );
+  return next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
 
 /*

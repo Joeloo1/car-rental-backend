@@ -1,18 +1,12 @@
 import { prisma } from "../config/database";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
-import {
-  CreateAddressInput,
-  UpdateAddressInput,
-} from "../schema/address.schema";
+import { CreateAddressInput, UpdateAddressInput } from "../schema/address.schema";
 
 /**
  * CREATE ADDRESS SERVICE
  */
-export const CreateAddressService = async (
-  userId: string,
-  data: CreateAddressInput,
-) => {
+export const CreateAddressService = async (userId: string, data: CreateAddressInput) => {
   const address = await prisma.address.create({
     data: {
       userId,
@@ -39,10 +33,7 @@ export const GetAllAddressService = async (userId: string) => {
  * GET ADDRESS BY ID SERVICE
  */
 
-export const GetAddressByIdService = async (
-  userId: string,
-  addressId: string,
-) => {
+export const GetAddressByIdService = async (userId: string, addressId: string) => {
   const address = await prisma.address.findUnique({
     where: {
       id: addressId,
@@ -51,9 +42,7 @@ export const GetAddressByIdService = async (
   });
 
   if (!address) {
-    logger.warn(
-      `Address with ID: ${addressId} not found for the user : ${userId}`,
-    );
+    logger.warn(`Address with ID: ${addressId} not found for the user : ${userId}`);
     throw new AppError("Address not found", 404);
   }
 
@@ -93,10 +82,7 @@ export const UpdateAddressService = async (
  * DELETE ADDRESS SERVICE
  */
 
-export const DeleteAddressService = async (
-  userId: string,
-  addressId: string,
-) => {
+export const DeleteAddressService = async (userId: string, addressId: string) => {
   const address = await prisma.address.findFirst({
     where: {
       id: addressId,
@@ -105,9 +91,7 @@ export const DeleteAddressService = async (
   });
 
   if (!address) {
-    logger.warn(
-      `Delete failed. Address ${addressId} not found for user ${userId}`,
-    );
+    logger.warn(`Delete failed. Address ${addressId} not found for user ${userId}`);
     throw new AppError("Address not found", 404);
   }
 

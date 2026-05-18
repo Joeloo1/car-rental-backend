@@ -6,12 +6,11 @@ import logger from "../config/winston";
 import { CarStatus } from "../generated/prisma/client";
 
 // ─── Cache TTLs (seconds) ─────────────────────────────────────────────────────
-const TTL_CAR_LIST = 5 * 60;   // 5 minutes
+const TTL_CAR_LIST = 5 * 60; // 5 minutes
 const TTL_CAR_DETAIL = 10 * 60; // 10 minutes
 
 /** Build a stable cache key from a CarQuery filter object */
-const buildListKey = (filter: CarQuery) =>
-  `cars:list:${JSON.stringify(filter)}`;
+const buildListKey = (filter: CarQuery) => `cars:list:${JSON.stringify(filter)}`;
 
 /**
  * CREATE CAR SERVICE
@@ -67,10 +66,7 @@ export const CreateCarService = async (data: CreateCarInput, user: any) => {
   });
 
   // Invalidate all car list caches (lender's list + global lists)
-  await Promise.all([
-    deleteCacheByPattern("cars:list:*"),
-    deleteCache(`cars:lender:${user.id}`),
-  ]);
+  await Promise.all([deleteCacheByPattern("cars:list:*"), deleteCache(`cars:lender:${user.id}`)]);
 
   logger.info(`Car created: ${car.id}`);
   return car;
@@ -118,15 +114,13 @@ export const GetAllCarsService = async (filter: CarQuery) => {
   const where: any = {};
   if (brand) where.brand = { contains: brand, mode: "insensitive" };
   if (model) where.model = { contains: model, mode: "insensitive" };
-  if (locationCity)
-    where.locationCity = { contains: locationCity, mode: "insensitive" };
+  if (locationCity) where.locationCity = { contains: locationCity, mode: "insensitive" };
   if (availabilityStatus) where.availabilityStatus = availabilityStatus;
   if (categoryId) where.categoryId = categoryId;
   if (lenderId) where.lenderId = lenderId;
   if (fuelType) where.fuelType = fuelType;
   if (transmission) where.transmission = transmission;
   if (seats) where.seats = seats;
-
 
   if (minYear || maxYear) {
     where.year = {};
@@ -187,8 +181,7 @@ export const GetAllCarsService = async (filter: CarQuery) => {
   let carsWithRating = cars.map((car) => {
     const avgRating =
       car.reviews.length > 0
-        ? car.reviews.reduce((sum, review) => sum + review.rating, 0) /
-          car.reviews.length
+        ? car.reviews.reduce((sum, review) => sum + review.rating, 0) / car.reviews.length
         : 0;
     return {
       ...car,
@@ -217,12 +210,7 @@ export const GetAllCarsService = async (filter: CarQuery) => {
 };
 
 // Helper to keep return type consistent for TS inference
-function buildResult(
-  data: any[],
-  total: number,
-  page: number,
-  limit: number,
-) {
+function buildResult(data: any[], total: number, page: number, limit: number) {
   return {
     data,
     pagination: {
@@ -292,8 +280,7 @@ export const GetCarByIdService = async (id: string) => {
   // Calculating the average rating
   const avgRating =
     car.reviews.length > 0
-      ? car.reviews.reduce((sum, review) => sum + review.rating, 0) /
-        car.reviews.length
+      ? car.reviews.reduce((sum, review) => sum + review.rating, 0) / car.reviews.length
       : 0;
 
   // Calculating host stats (total trips across all their cars)
@@ -321,15 +308,10 @@ export const GetCarByIdService = async (id: string) => {
   return result;
 };
 
-
 /**
  * Update Car
  */
-export const UpdateCarService = async (
-  id: string,
-  data: UpdateCarInput,
-  user: any,
-) => {
+export const UpdateCarService = async (id: string, data: UpdateCarInput, user: any) => {
   const car = await prisma.car.findUnique({
     where: { id },
   });
@@ -448,8 +430,7 @@ export const GetCarsByLenderService = async (lenderId: string) => {
   const carsWithRating = cars.map((car) => {
     const avgRating =
       car.reviews.length > 0
-        ? car.reviews.reduce((sum, review) => sum + review.rating, 0) /
-          car.reviews.length
+        ? car.reviews.reduce((sum, review) => sum + review.rating, 0) / car.reviews.length
         : 0;
     return {
       ...car,
@@ -469,11 +450,7 @@ export const GetCarsByLenderService = async (lenderId: string) => {
 /**
  * Update Car Availability Status
  */
-export const UpdateCarStatusService = async (
-  id: string,
-  status: CarStatus,
-  lenderId?: string,
-) => {
+export const UpdateCarStatusService = async (id: string, status: CarStatus, lenderId?: string) => {
   const car = await prisma.car.findUnique({
     where: { id },
   });

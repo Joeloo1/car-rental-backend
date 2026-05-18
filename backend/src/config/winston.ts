@@ -33,9 +33,7 @@ const consoleFormat = combine(
   colorize({ all: true }),
   printf((info) => {
     const { timestamp, level, message, ...meta } = info;
-    const metaStr = Object.keys(meta).length
-      ? JSON.stringify(meta, null, 2)
-      : "";
+    const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : "";
     return `[${timestamp}] ${level}: ${message} ${metaStr}`;
   }),
 );

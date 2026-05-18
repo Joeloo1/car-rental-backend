@@ -9,45 +9,34 @@ import {
 import { AuthRequest } from "../types/authRequest";
 
 // Get User Chat
-export const GetUserChat = catchAsync(
-  async (req: AuthRequest, res: Response) => {
-    const chat = await GetUsersChatService(req.user!.id);
+export const GetUserChat = catchAsync(async (req: AuthRequest, res: Response) => {
+  const chat = await GetUsersChatService(req.user!.id);
 
-    res.json(chat);
-  },
-);
+  res.json(chat);
+});
 
 // Get message for user
-export const GetChatMessages = catchAsync(
-  async (req: AuthRequest, res: Response) => {
-    const message = await GetChatMessagesServices(
-      req.params.id as string,
-      req.user!.id,
-    );
+export const GetChatMessages = catchAsync(async (req: AuthRequest, res: Response) => {
+  const message = await GetChatMessagesServices(req.params.id as string, req.user!.id);
 
-    res.json(message);
-  },
-);
+  res.json(message);
+});
 
 // Create chat
-export const InitiateChat = catchAsync(
-  async (req: AuthRequest, res: Response) => {
-    const userId = req.user!.id;
-    const { carId, lenderId } = req.body;
-    const chat = await InitiateChatService(carId, userId, lenderId);
+export const InitiateChat = catchAsync(async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const { carId, lenderId } = req.body;
+  const chat = await InitiateChatService(carId, userId, lenderId);
 
-    res.json(chat);
-  },
-);
+  res.json(chat);
+});
 
 // Delete Chat
-export const DeleteChat = catchAsync(
-  async (req: AuthRequest, res: Response) => {
-    const userId = req.user!.id;
-    const chatId = req.params.id as string;
+export const DeleteChat = catchAsync(async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const chatId = req.params.id as string;
 
-    await DeleteChatService(chatId, userId);
+  await DeleteChatService(chatId, userId);
 
-    res.json({ message: "Chat deleted successfully" });
-  },
-);
+  res.json({ message: "Chat deleted successfully" });
+});

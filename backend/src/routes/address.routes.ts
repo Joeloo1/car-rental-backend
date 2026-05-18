@@ -18,10 +18,7 @@ const router: Router = Router();
 
 router.use(protect);
 
-router
-  .route("/")
-  .get(getAllAddress)
-  .post(validateRequest(CreateAddressSchema), createAddress);
+router.route("/").get(getAllAddress).post(validateRequest(CreateAddressSchema), createAddress);
 
 router
   .route("/:id")

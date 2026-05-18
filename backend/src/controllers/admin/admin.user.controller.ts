@@ -10,59 +10,48 @@ import logger from "../../config/winston";
 import { AuthRequest } from "../../types/authRequest";
 
 // Get All user
-export const getAllUsers = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const users = await GetAllUserService();
+export const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const users = await GetAllUserService();
 
-    logger.info("Fetching all users", { users });
-    res.status(200).json({
-      status: "success",
-      result: users.length,
-      data: { users },
-    });
-  },
-);
+  logger.info("Fetching all users", { users });
+  res.status(200).json({
+    status: "success",
+    result: users.length,
+    data: { users },
+  });
+});
 
 // Create user
-export const createUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    logger.error("Attempt to create user via undefined route");
-    res.status(500).json({
-      status: "error",
-      message: "This route is not defined! Please use /signup instead",
-    });
-  },
-);
+export const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  logger.error("Attempt to create user via undefined route");
+  res.status(500).json({
+    status: "error",
+    message: "This route is not defined! Please use /signup instead",
+  });
+});
 
 // Get User by ID
-export const getUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = await GetUserByIdService(req.params.id as string);
+export const getUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const user = await GetUserByIdService(req.params.id as string);
 
-    logger.info(`Fetching User with ID: ${user.id}`);
-    res.status(200).json({
-      status: "success",
-      data: { user },
-    });
-  },
-);
+  logger.info(`Fetching User with ID: ${user.id}`);
+  res.status(200).json({
+    status: "success",
+    data: { user },
+  });
+});
 
 // Update user
-export const updateUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = await AdminUpdateUserService(
-      req.params.id as string,
-      req.body,
-    );
+export const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const user = await AdminUpdateUserService(req.params.id as string, req.body);
 
-    logger.info(`Updating user with ID: ${user.id}`);
-    res.status(200).json({
-      status: "success",
-      message: "User Updated successfully",
-      data: { user },
-    });
-  },
-);
+  logger.info(`Updating user with ID: ${user.id}`);
+  res.status(200).json({
+    status: "success",
+    message: "User Updated successfully",
+    data: { user },
+  });
+});
 
 // Delete User
 export const deleteUser = catchAsync(
