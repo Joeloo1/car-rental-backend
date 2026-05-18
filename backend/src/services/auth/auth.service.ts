@@ -15,11 +15,7 @@ import {
   verifyEmailToken,
   verifyRefreshToken,
 } from "../../utils/jwt";
-import {
-  sendEmail,
-  getVerificationEmailHtml,
-  generatePasswordResetEmail,
-} from "../../utils/email";
+import { sendEmail, getVerificationEmailHtml, generatePasswordResetEmail } from "../../utils/email";
 import config from "../../config/config.env";
 import { UserRole } from "../../generated/prisma/client";
 import { JwtPayload } from "jsonwebtoken";
@@ -278,13 +274,8 @@ export const forgotPasswordServices = async (email: string) => {
   }
 
   // Check if a recent reset token was already sent (rate limiting)
-  if (
-    user.passwordResetTokenExpiry &&
-    user.passwordResetTokenExpiry > new Date()
-  ) {
-    const timeRemaining = Math.ceil(
-      (user.passwordResetTokenExpiry.getTime() - Date.now()) / 60000,
-    );
+  if (user.passwordResetTokenExpiry && user.passwordResetTokenExpiry > new Date()) {
+    const timeRemaining = Math.ceil((user.passwordResetTokenExpiry.getTime() - Date.now()) / 60000);
     logger.warn(`Password reset rate limit hit for email: ${email}`);
     throw new AppError(
       `A password reset link was already sent. Please wait ${timeRemaining} minute(s) before requesting again.`,
@@ -293,8 +284,7 @@ export const forgotPasswordServices = async (email: string) => {
   }
 
   // Generate password reset token
-  const { passwordResetToken, resetToken, resetTokenExpiry } =
-    createPasswordResetToken();
+  const { passwordResetToken, resetToken, resetTokenExpiry } = createPasswordResetToken();
 
   // save the hashed token to database
   await prisma.user.update({
@@ -306,7 +296,6 @@ export const forgotPasswordServices = async (email: string) => {
   });
 
   const resetURL = `${config.CLIENT_URL}/reset-password/${passwordResetToken}`;
-
 
   try {
     await sendEmail({
@@ -387,8 +376,7 @@ export const resetPasswordService = async (
   logger.info("Password reset successful", { userId: user.id });
 
   return {
-    message:
-      "Password reset successful. You can now login with your new password.",
+    message: "Password reset successful. You can now login with your new password.",
   };
 };
 

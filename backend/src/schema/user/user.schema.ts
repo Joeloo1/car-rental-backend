@@ -10,10 +10,7 @@ export const updateUserSchema = z.object({
     name: z.string().optional(),
     phoneNumber: z.string().optional(),
     email: z.string().email().optional(),
-    profileImage: z
-      .string()
-      .url({ message: "Invalid URL format for profile image" })
-      .optional(),
+    profileImage: z.string().url({ message: "Invalid URL format for profile image" }).optional(),
   }),
 });
 
@@ -35,6 +32,4 @@ export const adminUpdateUserSchema = z.object({
  * Type Inference
  */
 export type UpdateUserInput = z.infer<typeof updateUserSchema>["body"];
-export type AdminUpdateUserInput = z.infer<
-  typeof adminUpdateUserSchema
->["body"];
+export type AdminUpdateUserInput = z.infer<typeof adminUpdateUserSchema>["body"];

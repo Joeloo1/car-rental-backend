@@ -12,15 +12,8 @@ import logger from "../config/winston";
  * @param keyFn       Optional function to derive the cache key from the request.
  *                    Defaults to the full original URL (path + query string).
  */
-export const cacheMiddleware = (
-  ttlSeconds: number,
-  keyFn?: (req: Request) => string,
-) => {
-  return async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
+export const cacheMiddleware = (ttlSeconds: number, keyFn?: (req: Request) => string) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     // Only cache GET requests
     if (req.method !== "GET") {
       return next();

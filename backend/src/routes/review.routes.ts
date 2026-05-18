@@ -6,11 +6,7 @@ import {
   updateReviewSchema,
 } from "../schema/review.schema";
 import { protect } from "../middleware/protect.middleware";
-import {
-  getReview,
-  updateReview,
-  deleteReview,
-} from "../controllers/review.controller";
+import { getReview, updateReview, deleteReview } from "../controllers/review.controller";
 
 const router: Router = Router();
 

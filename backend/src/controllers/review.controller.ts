@@ -13,11 +13,7 @@ import { AuthRequest } from "../types/authRequest";
 // Create Review
 export const createReview = catchAsync(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const review = await CreateReviewService(
-      req.user!.id,
-      req.params.id as string,
-      req.body,
-    );
+    const review = await CreateReviewService(req.user!.id, req.params.id as string, req.body);
 
     logger.info(`User with ID: ${req.user!.id} creating a review`);
     res.status(201).json({
@@ -33,11 +29,7 @@ export const createReview = catchAsync(
 // Update Review
 export const updateReview = catchAsync(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const review = await UpdateReviewService(
-      req.user!.id,
-      req.params.id as string,
-      req.body,
-    );
+    const review = await UpdateReviewService(req.user!.id, req.params.id as string, req.body);
 
     logger.info(`Review with ID: ${review.id} is been Updated`);
     res.status(200).json({
@@ -60,26 +52,22 @@ export const getAllReviewForCar = catchAsync(
       results: reviews.length,
       data: { reviews },
     });
-    logger.info(
-      `Fetched all reviews for car with ID: ${req.params.id} successfully`,
-    );
+    logger.info(`Fetched all reviews for car with ID: ${req.params.id} successfully`);
   },
 );
 
 // Get Review
-export const getReview = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const reviewID = req.params.id as string;
-    const review = await GetReviewService(reviewID);
+export const getReview = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const reviewID = req.params.id as string;
+  const review = await GetReviewService(reviewID);
 
-    logger.info(`Fetching Review ${reviewID} from database`);
-    res.status(200).json({
-      status: "success",
-      data: { review },
-    });
-    logger.info("Fetched Review Successfully");
-  },
-);
+  logger.info(`Fetching Review ${reviewID} from database`);
+  res.status(200).json({
+    status: "success",
+    data: { review },
+  });
+  logger.info("Fetched Review Successfully");
+});
 
 // Delete Review
 export const deleteReview = catchAsync(

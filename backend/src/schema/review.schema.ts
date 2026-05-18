@@ -25,12 +25,7 @@ export const createReviewSchema = z.object({
 export const updateReviewSchema = z.object({
   body: z
     .object({
-      rating: z
-        .number()
-        .int("Rating must be an integer")
-        .min(1)
-        .max(5)
-        .optional(),
+      rating: z.number().int("Rating must be an integer").min(1).max(5).optional(),
       comment: z.string().trim().min(3).max(500).optional(),
     })
     .refine((data) => data.rating !== undefined || data.comment !== undefined, {

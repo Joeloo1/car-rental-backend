@@ -19,10 +19,7 @@ export const updateUser = catchAsync(
     if (req.body.Password || req.body.passwordConfirm) {
       logger.warn("User attempt to update password with update User routes");
       return next(
-        new AppError(
-          "This route is not for password Update, Please use the /updatePassword",
-          400,
-        ),
+        new AppError("This route is not for password Update, Please use the /updatePassword", 400),
       );
     }
 
@@ -70,17 +67,15 @@ export const updateUser = catchAsync(
 );
 
 // Get user
-export const getUser = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const user = await GetUserService(req.user!.id);
+export const getUser = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const user = await GetUserService(req.user!.id);
 
-    logger.info(`User getting there profile UserID: ${req.user!.id}`);
-    res.status(200).json({
-      status: "success",
-      data: { user },
-    });
-  },
-);
+  logger.info(`User getting there profile UserID: ${req.user!.id}`);
+  res.status(200).json({
+    status: "success",
+    data: { user },
+  });
+});
 
 // delete user
 export const deleteUser = catchAsync(
@@ -92,9 +87,7 @@ export const deleteUser = catchAsync(
       return next(new AppError("User not found", 404));
     }
 
-    logger.info(
-      `User with ID: ${req.user!.id} successfully deactivated their account`,
-    );
+    logger.info(`User with ID: ${req.user!.id} successfully deactivated their account`);
 
     res.status(200).json({
       status: "success",

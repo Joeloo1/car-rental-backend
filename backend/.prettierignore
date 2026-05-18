@@ -1,0 +1,8 @@
+dist
+node_modules
+package-lock.json
+pnpm-lock.yaml
+prisma/
+logs/
+.env
+.env.example

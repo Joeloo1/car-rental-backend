@@ -257,11 +257,7 @@
       <!-- Right: active chat window -->
       <div id="chat-widget">
         <div id="chat-header">
-          <img
-            id="borrower-avatar"
-            src="https://placehold.co/40x40"
-            alt="Borrower avatar"
-          />
+          <img id="borrower-avatar" src="https://placehold.co/40x40" alt="Borrower avatar" />
           <div>
             <div id="borrower-name">Select a conversation</div>
             <div id="chat-status">—</div>
@@ -327,8 +323,7 @@
       socket.on("lender_chats", (chats) => {
         chatList.innerHTML = "";
         if (!chats.length) {
-          chatList.innerHTML =
-            '<div class="chat-list-empty">No conversations yet.</div>';
+          chatList.innerHTML = '<div class="chat-list-empty">No conversations yet.</div>';
           return;
         }
         chats.forEach((chat) => {
@@ -348,9 +343,7 @@
         // Highlight active item
         document
           .querySelectorAll(".chat-list-item")
-          .forEach((el) =>
-            el.classList.toggle("active", el.dataset.chatId === chat.id),
-          );
+          .forEach((el) => el.classList.toggle("active", el.dataset.chatId === chat.id));
 
         // Leave old room
         if (currentChatId) socket.emit("leave_chat", currentChatId);
@@ -358,8 +351,7 @@
         currentChatId = chat.id;
         borrowerName.textContent = chat.user?.name ?? "Borrower";
         chatStatus.textContent = "Loading...";
-        messagesDiv.innerHTML =
-          '<div class="system-message">Loading messages...</div>';
+        messagesDiv.innerHTML = '<div class="system-message">Loading messages...</div>';
         messageInput.disabled = true;
         document.getElementById("send-button").disabled = true;
 
@@ -371,8 +363,7 @@
       socket.on("message_history", (messages) => {
         messagesDiv.innerHTML = "";
         if (!messages.length) {
-          messagesDiv.innerHTML =
-            '<div class="system-message">No messages yet. Say hello!</div>';
+          messagesDiv.innerHTML = '<div class="system-message">No messages yet. Say hello!</div>';
         } else {
           messages.forEach(renderMessage);
         }
@@ -404,9 +395,7 @@
       socket.on("new_message", (message) => {
         if (message.chatId !== currentChatId) {
           // Flash the inbox item to show unread
-          const item = chatList.querySelector(
-            `[data-chat-id="${message.chatId}"]`,
-          );
+          const item = chatList.querySelector(`[data-chat-id="${message.chatId}"]`);
           if (item) item.style.fontWeight = "700";
           return;
         }
@@ -435,15 +424,11 @@
         if (!currentChatId) return;
         socket.emit("typing", currentChatId);
         clearTimeout(typingTimer);
-        typingTimer = setTimeout(
-          () => socket.emit("stop_typing", currentChatId),
-          1000,
-        );
+        typingTimer = setTimeout(() => socket.emit("stop_typing", currentChatId), 1000);
       });
 
       socket.on("typing", ({ chatId }) => {
-        if (chatId === currentChatId)
-          typingIndicator.textContent = "Borrower is typing...";
+        if (chatId === currentChatId) typingIndicator.textContent = "Borrower is typing...";
       });
 
       socket.on("stop_typing", ({ chatId }) => {
@@ -453,9 +438,7 @@
       // ── Errors ──────────────────────────────────────────────────────────────
 
       socket.on("error", (msg) => console.error("Chat error:", msg));
-      socket.on("connect_error", (err) =>
-        console.error("Connection failed:", err.message),
-      );
+      socket.on("connect_error", (err) => console.error("Connection failed:", err.message));
       socket.on("reconnect", () => {
         if (currentChatId) socket.emit("join_chat", currentChatId);
       });

@@ -3,12 +3,7 @@ import { z } from "zod";
 /**
  * Car Status Enum
  */
-export const CarStatusEnum = z.enum([
-  "available",
-  "rented",
-  "maintenance",
-  "unavailable",
-]);
+export const CarStatusEnum = z.enum(["available", "rented", "maintenance", "unavailable"]);
 
 /**
  * CREATE CAR SCHEMA
@@ -40,7 +35,6 @@ export const CreateCarSchema = z.object({
   }),
 });
 
-
 /**
  * UPDATE CAR SCHEMA
  */
@@ -57,7 +51,6 @@ export const UpdateCarSchema = z.object({
     categoryId: z.number().int().positive("Invalid category ID").optional(),
   }),
 });
-
 
 /**
  * CAR PARAMS SCHEMA
@@ -91,14 +84,7 @@ export const CarQuerySchema = z.object({
 
     sortBy: z
 
-      .enum([
-        "createdAt",
-        "pricePerDay",
-        "title",
-        "year",
-        "brand",
-        "averageRating",
-      ])
+      .enum(["createdAt", "pricePerDay", "title", "year", "brand", "averageRating"])
       .optional()
       .default("createdAt"),
 
@@ -107,7 +93,6 @@ export const CarQuerySchema = z.object({
     limit: z.coerce.number().int().positive().max(100).optional().default(10),
   }),
 });
-
 
 /**
  * Types Inference

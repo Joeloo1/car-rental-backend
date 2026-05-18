@@ -3,11 +3,7 @@ import { Request } from "express";
 
 const storage = multer.memoryStorage();
 
-const fileFilter = (
-  req: Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback,
-) => {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
   if (allowedMimes.includes(file.mimetype)) {

@@ -17,10 +17,7 @@ export const CreateAddressSchema = z.object({
  */
 export const UpdateAddressSchema = z.object({
   body: z.object({
-    street: z
-      .string()
-      .min(2, "Street must be at least 2 characters")
-      .optional(),
+    street: z.string().min(2, "Street must be at least 2 characters").optional(),
     city: z.string().min(2, "City must be at least 2 characters").optional(),
     state: z.string().optional(),
     country: z.string().min(2, "Country is required").optional(),

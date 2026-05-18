@@ -37,10 +37,7 @@ export const sendEmail = async function (options: EmailOptions): Promise<void> {
 };
 
 // ─── Pre-built: Verification Email Template ────────────────────────────────
-export const getVerificationEmailHtml = (
-  verifyUrl: string,
-  firstName: string,
-): string => `
+export const getVerificationEmailHtml = (verifyUrl: string, firstName: string): string => `
   <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 40px 24px; background: #f9fafb; border-radius: 12px;">
     <h2 style="color: #1e293b; text-align: center;">🔐 Verify Your Email</h2>
     <p style="color: #475569; text-align: center;">

@@ -26,10 +26,7 @@ export const GetUsersChatService = async (userId: string) => {
 /**
  * Get messages for a chat
  */
-export const GetChatMessagesServices = async (
-  chatId: string,
-  userId: string,
-) => {
+export const GetChatMessagesServices = async (chatId: string, userId: string) => {
   const chat = await prisma.chat.findFirst({
     where: { id: chatId, OR: [{ userId }, { lenderId: userId }] },
   });
@@ -51,11 +48,7 @@ export const GetChatMessagesServices = async (
 /**
  * Create a Chat
  */
-export const InitiateChatService = async (
-  carId: string,
-  userId: string,
-  lenderId: string,
-) => {
+export const InitiateChatService = async (carId: string, userId: string, lenderId: string) => {
   const chat = await prisma.chat.upsert({
     where: {
       carId_userId: { carId, userId },

@@ -30,29 +30,26 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
   logger.info(`User with email: ${newUser.email} Signed Up successfully`);
   res.status(201).json({
     status: "success",
-    message:
-      "Account created successfully. Please check your email to verify your account.",
+    message: "Account created successfully. Please check your email to verify your account.",
     data: { newUser },
     token: { refreshToken, accessToken },
   });
 });
 
 // email verification
-export const verifyEmail = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.query.token as string;
+export const verifyEmail = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const token = req.query.token as string;
 
-    if (!token) {
-      return next(new AppError("verification token missing", 400));
-    }
+  if (!token) {
+    return next(new AppError("verification token missing", 400));
+  }
 
-    await verifyEmailService(token);
+  await verifyEmailService(token);
 
-    res.status(200).json({
-      message: "Email Verified Successfully",
-    });
-  },
-);
+  res.status(200).json({
+    message: "Email Verified Successfully",
+  });
+});
 
 // Re-send verification name
 export const resendverifyEmail = catchAsync(
@@ -74,9 +71,7 @@ export const resendverifyEmail = catchAsync(
 
 // Login
 export const login = catchAsync(async (req: Request, res: Response) => {
-  const { sanitizedUser, accessToken, refreshToken } = await loginService(
-    req.body,
-  );
+  const { sanitizedUser, accessToken, refreshToken } = await loginService(req.body);
 
   // Set refresh token cookie
   res.cookie("refreshToken", refreshToken, {
@@ -116,34 +111,26 @@ export const forgotPassword = catchAsync(
 );
 
 // Reset Password
-export const resetPassword = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { token } = req.params;
-    const { password, passwordConfirm } = req.body;
+export const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { token } = req.params;
+  const { password, passwordConfirm } = req.body;
 
-    // Validation
-    if (!token) {
-      return next(new AppError("Reset token is required", 400));
-    }
+  // Validation
+  if (!token) {
+    return next(new AppError("Reset token is required", 400));
+  }
 
-    if (!password || !passwordConfirm) {
-      return next(
-        new AppError("Please provide password and password confirmation", 400),
-      );
-    }
+  if (!password || !passwordConfirm) {
+    return next(new AppError("Please provide password and password confirmation", 400));
+  }
 
-    const result = await resetPasswordService(
-      token as string,
-      password,
-      passwordConfirm,
-    );
+  const result = await resetPasswordService(token as string, password, passwordConfirm);
 
-    res.status(200).json({
-      status: "success",
-      message: result.message,
-    });
-  },
-);
+  res.status(200).json({
+    status: "success",
+    message: result.message,
+  });
+});
 
 // log out
 export const logOut = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -175,24 +162,22 @@ export const logOut = catchAsync(async (req: AuthRequest, res: Response) => {
 });
 
 // REFRESH ACCESS token
-export const refreshAccessToken = catchAsync(
-  async (req: Request, res: Response) => {
-    const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+export const refreshAccessToken = catchAsync(async (req: Request, res: Response) => {
+  const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
 
-    if (!refreshToken) {
-      res.status(401).json({
-        success: false,
-        message: "Refresh token is required",
-      });
-      return;
-    }
-    const result = await refreshAccessTokenService(refreshToken);
-
-    res.status(200).json({
-      status: "success",
-      message: "Access token refreshed successfully",
-      accessToken: result.accessToken,
-      user: result.user,
+  if (!refreshToken) {
+    res.status(401).json({
+      success: false,
+      message: "Refresh token is required",
     });
-  },
-);
+    return;
+  }
+  const result = await refreshAccessTokenService(refreshToken);
+
+  res.status(200).json({
+    status: "success",
+    message: "Access token refreshed successfully",
+    accessToken: result.accessToken,
+    user: result.user,
+  });
+});

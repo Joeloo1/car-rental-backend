@@ -44,10 +44,7 @@ export const createPasswordResetToken = () => {
   const passwordResetToken = crypto.randomBytes(32).toString("hex");
 
   // Hash the reset token
-  const resetToken = crypto
-    .createHash("sha256")
-    .update(passwordResetToken)
-    .digest("hex");
+  const resetToken = crypto.createHash("sha256").update(passwordResetToken).digest("hex");
 
   const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
