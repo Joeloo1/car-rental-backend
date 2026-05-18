@@ -45,7 +45,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ carId, lenderId, lenderName, on
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:4000';
+    const socketUrl = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:3000';
     const socket = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],

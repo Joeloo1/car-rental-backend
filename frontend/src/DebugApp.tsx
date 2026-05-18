@@ -26,7 +26,7 @@ function DebugApp() {
 
       // Test 2: Check if components exist
       try {
-        const Navbar = await import("./components/common/Navbar");
+        await import("./components/common/Navbar");
         results.push({ name: "Navbar Import", status: "success" });
       } catch (err: any) {
         results.push({
@@ -37,7 +37,7 @@ function DebugApp() {
       }
 
       try {
-        const Footer = await import("./components/common/Footer");
+        await import("./components/common/Footer");
         results.push({ name: "Footer Import", status: "success" });
       } catch (err: any) {
         results.push({
@@ -48,7 +48,7 @@ function DebugApp() {
       }
 
       try {
-        const LandingPage = await import("./pages/LandingPage");
+        await import("./pages/LandingPage");
         results.push({ name: "LandingPage Import", status: "success" });
       } catch (err: any) {
         results.push({

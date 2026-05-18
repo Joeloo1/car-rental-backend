@@ -1,12 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import type { Car } from '../../types';
-import CarCard from '../ui/CarCard';
-import LoadingSkeleton from '../ui/LoadingSkeleton';
-import EmptyState from '../ui/EmptyState';
-import { Car as CarIcon } from 'lucide-react';
-import '../ui/CarCard.css';
-import './FeaturedCars.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import type { Car } from "../../types";
+import { useFavorites } from "../../hooks/useFavorites.ts";
+import CarCard from "../ui/CarCard";
+import LoadingSkeleton from "../ui/LoadingSkeleton";
+import EmptyState from "../ui/EmptyState";
+import { Car as CarIcon } from "lucide-react";
+import "../ui/CarCard.css";
+import "./FeaturedCars.css";
 
 interface FeaturedCarsProps {
   cars?: Car[];
@@ -15,12 +16,13 @@ interface FeaturedCarsProps {
   isLoading?: boolean;
 }
 
-const FeaturedCars: React.FC<FeaturedCarsProps> = ({ 
-  cars, 
-  title = "Featured Premium Fleet", 
+const FeaturedCars: React.FC<FeaturedCarsProps> = ({
+  cars,
+  title = "Featured Premium Fleet",
   subtitle = "Experience the finest selection of luxury vehicles.",
-  isLoading 
+  isLoading,
 }) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
   if (isLoading) {
     return (
       <section className="featured-cars section-padding bg-alt">
@@ -35,7 +37,7 @@ const FeaturedCars: React.FC<FeaturedCarsProps> = ({
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="car-card-skeleton">
                 <LoadingSkeleton variant="custom" height="240px" />
-                <div style={{ padding: '1.25rem' }}>
+                <div style={{ padding: "1.25rem" }}>
                   <LoadingSkeleton variant="title" width="70%" />
                   <LoadingSkeleton variant="text" count={3} />
                 </div>
@@ -66,19 +68,28 @@ const FeaturedCars: React.FC<FeaturedCarsProps> = ({
       <div className="container">
         <div className="section-header justify-between flex items-center">
           <div className="header-text">
-            <h2 className="section-title" dangerouslySetInnerHTML={{ __html: title }}></h2>
+            <h2
+              className="section-title"
+              dangerouslySetInnerHTML={{ __html: title }}
+            ></h2>
             <p className="section-subtitle">{subtitle}</p>
           </div>
-          <Link to="/browse" className="btn-secondary desktop-only">View All Cars</Link>
+          <Link to="/browse" className="btn-secondary desktop-only">
+            View All Cars
+          </Link>
         </div>
-        
+
         <div className="cars-grid animate-fade-in">
           {cars.map((car, index) => (
-            <div 
-              key={car.id} 
+            <div
+              key={car.id}
               className={`animate-fade-in-up stagger-${Math.min(index + 1, 5)}`}
             >
-              <CarCard car={car} />
+              <CarCard
+                car={car}
+                isFavorite={isFavorite(String(car.id))}
+                onFavorite={() => toggleFavorite(String(car.id))}
+              />
             </div>
           ))}
         </div>

@@ -30,6 +30,6 @@ export const getImageUrl = (url: string, width: number = 800): string => {
   // If it's a relative URL, prepend the API base URL
   const apiUrl =
     import.meta.env.VITE_API_URL?.replace("/api", "") ||
-    "http://localhost:4000";
+    "http://localhost:3000";
   return optimizeImage(`${apiUrl}${url}`, width);
 };

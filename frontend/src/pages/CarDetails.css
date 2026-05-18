@@ -43,6 +43,11 @@
   border-color: var(--text-primary);
 }
 
+.action-btn-circle.favorite-active {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
 /* Gallery */
 .details-gallery {
   display: grid;
@@ -239,11 +244,11 @@
   .details-gallery {
     height: 400px;
   }
-  
+
   .details-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .specs-grid {
     grid-template-columns: repeat(2, 1fr);
   }
