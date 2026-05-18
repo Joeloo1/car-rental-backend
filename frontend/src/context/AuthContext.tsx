@@ -1,15 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
-import type { User } from "../types";
+import type { User, LoginCredentials, RegisterData } from "../types";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: any) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
+  setToken: (token: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,7 +41,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     checkAuth();
   }, []);
 
-  const login = async (credentials: any) => {
+  const setToken = async (token: string) => {
+    localStorage.setItem("accessToken", token);
+    try {
+      const res = await api.get("/users/me");
+      setUser(res.data.data.user);
+    } catch (error) {
+      localStorage.removeItem("accessToken");
+      setUser(null);
+      throw error;
+    }
+  };
+
+  const login = async (credentials: LoginCredentials) => {
     // Backend returns: { status, message, data: { sanitizedUser }, tokens: { accessToken, refreshToken } }
     const res = await api.post("/auth/login", credentials);
     const { data, tokens } = res.data;
@@ -48,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setUser(data.sanitizedUser);
   };
 
-  const register = async (userData: any) => {
+  const register = async (userData: RegisterData) => {
     // Backend returns: { status, message, data: { newUser }, token: { accessToken, refreshToken } }
     const res = await api.post("/auth/signup", userData);
     const { data, token } = res.data;
@@ -76,6 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         login,
         register,
         logout,
+        setToken,
       }}
     >
       {children}

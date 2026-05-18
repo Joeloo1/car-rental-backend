@@ -1,4 +1,4 @@
-export type UserRole = 'User' | 'lender' | 'admin';
+export type UserRole = "User" | "lender" | "admin";
 
 export interface User {
   id: string;
@@ -11,12 +11,12 @@ export interface User {
 }
 
 export interface ApiResponse<T> {
-  status: 'success' | 'error';
+  status: "success" | "error";
   message?: string;
   data: T;
 }
 
-export type CarStatus = 'available' | 'rented' | 'maintenance' | 'unavailable';
+export type CarStatus = "available" | "rented" | "maintenance" | "unavailable";
 
 export interface Car {
   id: string;
@@ -59,7 +59,6 @@ export interface Car {
   };
 }
 
-
 export interface Booking {
   id: string;
   userId: string;
@@ -67,7 +66,7 @@ export interface Booking {
   startDate: string;
   endDate: string;
   totalPrice: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: "pending" | "confirmed" | "cancelled" | "completed";
   createdAt: string;
   car?: Car;
 }
@@ -78,4 +77,26 @@ export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
   };
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData extends LoginCredentials {
+  name: string;
+  phoneNumber?: string;
+  role?: UserRole;
+}
+
+export interface ApiError {
+  response?: {
+    status: number;
+    data?: {
+      message?: string;
+      error?: string;
+    };
+  };
+  message?: string;
 }
