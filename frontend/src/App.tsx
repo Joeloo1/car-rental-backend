@@ -4,7 +4,6 @@ import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
 import Toast from "./components/ui/Toast";
 import LandingPagePro from "./pages/LandingPagePro.tsx";
-import "./pages/LandingPagePro.css";
 import Login from "./pages/auth/Login.tsx";
 import Register from "./pages/auth/Register.tsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.tsx";
@@ -13,6 +12,7 @@ import AuthSuccess from "./pages/auth/AuthSuccess.tsx";
 import BrowseCars from "./pages/BrowseCars.tsx";
 import CarDetails from "./pages/CarDetails.tsx";
 import Dashboard from "./pages/dashboard/Dashboard.tsx";
+import HowItWorks from "./pages/HowItWorks.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +45,7 @@ function App() {
               <Route path="/browse" element={<BrowseCars />} />
               <Route path="/car/:id" element={<CarDetails />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
             </Routes>
           </main>
           <Footer />

@@ -12,6 +12,9 @@ import {
   Star,
   ChevronRight,
   TrendingUp,
+  CheckCircle,
+  Quote,
+  ArrowRight,
 } from "lucide-react";
 import { carService } from "../services/car.service.ts";
 import { getImageUrl } from "../utils/image";
@@ -167,6 +170,37 @@ const LandingPagePro: React.FC = () => {
           </motion.div>
         </section>
 
+        {/* STATS SECTION */}
+        <section className="py-16 px-6 md:px-12 lg:px-24">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={staggerContainer}
+              className="grid grid-cols-2 md:grid-cols-4 gap-6"
+            >
+              {[
+                { value: "500+", label: "Premium Cars", color: "from-blue-400 to-indigo-400" },
+                { value: "12k+", label: "Happy Renters", color: "from-purple-400 to-pink-400" },
+                { value: "4.9★", label: "Average Rating", color: "from-yellow-400 to-orange-400" },
+                { value: "$2k+", label: "Avg Host Earnings", color: "from-emerald-400 to-teal-400" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+                >
+                  <p className={`text-4xl font-display font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-sm text-gray-400 font-medium">{stat.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
         {/* FEATURES SECTION */}
         <section className="py-24 px-6 md:px-12 lg:px-24">
           <div className="max-w-7xl mx-auto">
@@ -293,6 +327,177 @@ const LandingPagePro: React.FC = () => {
                 <p className="text-gray-400">Please check back later or modify your search.</p>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section className="py-24 px-6 md:px-12 lg:px-24 relative">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={staggerContainer}
+              className="text-center mb-16"
+            >
+              <motion.span variants={fadeUp} className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold text-blue-400 bg-blue-400/10 border border-blue-400/20 mb-6">
+                Simple Process
+              </motion.span>
+              <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-display font-bold mb-4">
+                How It Works
+              </motion.h2>
+              <motion.p variants={fadeUp} className="text-gray-400 text-lg max-w-xl mx-auto">
+                Get behind the wheel of your dream car in three effortless steps.
+              </motion.p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 relative"
+            >
+              {/* Connector line */}
+              <div className="hidden md:block absolute top-12 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+
+              {[
+                {
+                  step: "01",
+                  icon: Search,
+                  color: "text-blue-400",
+                  bg: "bg-blue-400/10",
+                  title: "Browse & Choose",
+                  desc: "Explore hundreds of verified premium vehicles. Filter by location, dates, type, and budget to find your perfect match.",
+                },
+                {
+                  step: "02",
+                  icon: CheckCircle,
+                  color: "text-purple-400",
+                  bg: "bg-purple-400/10",
+                  title: "Instant Booking",
+                  desc: "Book your chosen car in seconds. No paperwork, no waiting. Get instant confirmation and directions to pickup.",
+                },
+                {
+                  step: "03",
+                  icon: Car,
+                  color: "text-emerald-400",
+                  bg: "bg-emerald-400/10",
+                  title: "Hit the Road",
+                  desc: "Unlock via the app, fuel up, and drive. Return anytime within your booking window. That's it.",
+                },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  className="relative flex flex-col items-center text-center p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] transition-all group"
+                >
+                  <span className="absolute top-4 right-6 text-5xl font-display font-black text-white/[0.04] select-none">
+                    {item.step}
+                  </span>
+                  <div className={`w-16 h-16 rounded-2xl ${item.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
+                    <item.icon size={30} className={item.color} />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-3">{item.title}</h3>
+                  <p className="text-gray-400 leading-relaxed">{item.desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mt-14"
+            >
+              <button
+                onClick={() => navigate("/browse")}
+                className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold hover:shadow-[0_8px_30px_rgba(79,70,229,0.4)] hover:-translate-y-0.5 transition-all"
+              >
+                Start Browsing
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* TESTIMONIALS */}
+        <section className="py-24 px-6 md:px-12 lg:px-24">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={staggerContainer}
+              className="text-center mb-16"
+            >
+              <motion.span variants={fadeUp} className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold text-purple-400 bg-purple-400/10 border border-purple-400/20 mb-6">
+                Testimonials
+              </motion.span>
+              <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-display font-bold mb-4">
+                Loved by Drivers
+              </motion.h2>
+              <motion.p variants={fadeUp} className="text-gray-400 text-lg max-w-xl mx-auto">
+                Don't just take our word for it — hear from those who've experienced LuxeDrive.
+              </motion.p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            >
+              {[
+                {
+                  name: "Marcus T.",
+                  role: "Business Traveler",
+                  avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
+                  rating: 5,
+                  text: "Booked a Porsche 911 for a weekend drive. The whole process took 3 minutes. The car was immaculate. Absolutely unreal experience.",
+                },
+                {
+                  name: "Sophia R.",
+                  role: "Weekend Explorer",
+                  avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b9e5?auto=format&fit=crop&q=80&w=200",
+                  rating: 5,
+                  text: "I was skeptical at first but LuxeDrive exceeded every expectation. The host was fantastic and the car was even better in person.",
+                },
+                {
+                  name: "James K.",
+                  role: "Luxury Lender",
+                  avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200",
+                  rating: 5,
+                  text: "I've been listing my BMW M5 for 6 months and consistently earn $2,400+ monthly. The platform is seamless and the clientele is top-tier.",
+                },
+              ].map((review, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  className="p-7 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] transition-all flex flex-col gap-5"
+                >
+                  <Quote size={28} className="text-blue-500/40" />
+                  <p className="text-gray-300 leading-relaxed flex-1">"{review.text}"</p>
+                  <div className="flex items-center gap-4 pt-4 border-t border-white/5">
+                    <img
+                      src={review.avatar}
+                      alt={review.name}
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-white/10"
+                    />
+                    <div>
+                      <p className="font-bold text-white">{review.name}</p>
+                      <p className="text-sm text-gray-500">{review.role}</p>
+                    </div>
+                    <div className="ml-auto flex items-center gap-0.5">
+                      {Array.from({ length: review.rating }).map((_, j) => (
+                        <Star key={j} size={14} fill="currentColor" className="text-yellow-400" />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </section>
 
