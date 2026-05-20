@@ -12,6 +12,8 @@ import {
   Heart,
   Settings,
   ChevronDown,
+  Crown,
+  LayoutDashboard,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
@@ -112,6 +114,16 @@ const Navbar: React.FC = () => {
               >
                 How it Works
               </NavLink>
+              {isAuthenticated && user?.role === 'lender' && (
+                <NavLink to="/lender" active={isActivePath("/lender")}>
+                  Host Hub
+                </NavLink>
+              )}
+              {isAuthenticated && user?.role === 'admin' && (
+                <NavLink to="/admin" active={isActivePath("/admin")}>
+                  Admin
+                </NavLink>
+              )}
               {isAuthenticated && (
                 <NavLink to="/dashboard" active={isActivePath("/dashboard")}>
                   Dashboard
@@ -205,25 +217,30 @@ const Navbar: React.FC = () => {
                           </div>
                           <div className="p-2">
                             <button
-                              onClick={() => {
-                                navigate("/dashboard");
-                                setIsUserMenuOpen(false);
-                              }}
+                              onClick={() => { navigate("/dashboard"); setIsUserMenuOpen(false); }}
                               className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                             >
-                              <UserIcon size={16} />
-                              My Profile
+                              <LayoutDashboard size={16} />
+                              Dashboard
                             </button>
-                            <button
-                              onClick={() => {
-                                navigate("/settings");
-                                setIsUserMenuOpen(false);
-                              }}
-                              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                            >
-                              <Settings size={16} />
-                              Settings
-                            </button>
+                            {user?.role === 'lender' && (
+                              <button
+                                onClick={() => { navigate("/lender"); setIsUserMenuOpen(false); }}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-all"
+                              >
+                                <Car size={16} />
+                                Host Hub
+                              </button>
+                            )}
+                            {user?.role === 'admin' && (
+                              <button
+                                onClick={() => { navigate("/admin"); setIsUserMenuOpen(false); }}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-all"
+                              >
+                                <Crown size={16} />
+                                Admin Panel
+                              </button>
+                            )}
                           </div>
                           <div className="p-2 border-t border-white/10">
                             <button
@@ -339,20 +356,21 @@ const Navbar: React.FC = () => {
                   </MobileNavLink>
                   {isAuthenticated && (
                     <>
-                      <MobileNavLink
-                        to="/dashboard"
-                        icon={<UserIcon size={20} />}
-                      >
+                      <MobileNavLink to="/dashboard" icon={<LayoutDashboard size={20} />}>
                         Dashboard
                       </MobileNavLink>
+                      {user?.role === 'lender' && (
+                        <MobileNavLink to="/lender" icon={<Car size={20} />}>
+                          Host Hub
+                        </MobileNavLink>
+                      )}
+                      {user?.role === 'admin' && (
+                        <MobileNavLink to="/admin" icon={<Crown size={20} />}>
+                          Admin Panel
+                        </MobileNavLink>
+                      )}
                       <MobileNavLink to="/favorites" icon={<Heart size={20} />}>
                         Favorites
-                      </MobileNavLink>
-                      <MobileNavLink
-                        to="/settings"
-                        icon={<Settings size={20} />}
-                      >
-                        Settings
                       </MobileNavLink>
                     </>
                   )}

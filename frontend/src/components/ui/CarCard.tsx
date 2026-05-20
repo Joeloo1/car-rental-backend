@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   MapPin,
   Users,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getImageUrl } from "../../utils/image";
+import { carService } from "../../services/car.service";
 import Badge from "./Badge";
 import { clsx } from "clsx";
 
@@ -47,6 +49,7 @@ const CarCard: React.FC<CarCardProps> = ({
   index = 0,
 }) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -56,6 +59,17 @@ const CarCard: React.FC<CarCardProps> = ({
     navigate(`/car/${car.id}`);
   };
 
+  // Start loading car detail data the moment the user hovers — by the time
+  // they click, the fetch is already in flight (or complete).
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
+    queryClient.prefetchQuery({
+      queryKey: ["car", String(car.id)],
+      queryFn: () => carService.getById(String(car.id)),
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [car.id, queryClient]);
+
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onFavorite) {
@@ -63,16 +77,20 @@ const CarCard: React.FC<CarCardProps> = ({
     }
   };
 
-  const imageUrl =
+  const imgSrc =
     car.images && car.images.length > 0
-      ? getImageUrl(car.images[0].imageUrl)
+      ? getImageUrl(car.images[0].imageUrl, 800)
+      : "/placeholder-car.jpg";
+  const imgSrcSmall =
+    car.images && car.images.length > 0
+      ? getImageUrl(car.images[0].imageUrl, 400)
       : "/placeholder-car.jpg";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
+      transition={{ duration: 0.35, delay: Math.min(index, 5) * 0.05 }}
       whileHover={{ y: -8 }}
       className="group relative"
     >
@@ -83,7 +101,7 @@ const CarCard: React.FC<CarCardProps> = ({
           "hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/20",
         )}
         onClick={handleCardClick}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setIsHovered(false)}
         role="button"
         tabIndex={0}
@@ -101,18 +119,19 @@ const CarCard: React.FC<CarCardProps> = ({
           {!imageLoaded && <div className="absolute inset-0 skeleton" />}
 
           {/* Car Image */}
-          <motion.img
-            src={imageUrl}
+          <img
+            src={imgSrc}
+            srcSet={`${imgSrcSmall} 400w, ${imgSrc} 800w`}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             alt={`${car.brand} ${car.model}`}
             className={clsx(
               "w-full h-full object-cover transition-all duration-700",
-              imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-110",
+              imageLoaded ? "opacity-100" : "opacity-0",
             )}
-            style={{
-              transform: isHovered ? "scale(1.1)" : "scale(1)",
-            }}
+            style={{ transform: isHovered ? "scale(1.08)" : "scale(1)" }}
             onLoad={() => setImageLoaded(true)}
             loading="lazy"
+            decoding="async"
           />
 
           {/* Gradient Overlay */}

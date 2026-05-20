@@ -57,17 +57,17 @@ const LandingPagePro: React.FC = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.2 },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-white overflow-hidden font-sans">
-      {/* Dynamic Background Effects */}
+      {/* Background ambient — intentionally small to avoid GPU overload on mobile */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[120px] rounded-full mix-blend-screen" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 blur-[120px] rounded-full mix-blend-screen" />
-        <div className="absolute top-[40%] left-[60%] w-[30%] h-[30%] bg-emerald-500/10 blur-[100px] rounded-full mix-blend-screen" />
+        <div className="absolute top-0 left-[-5%] w-[35%] h-[35%] bg-blue-600/15 blur-[80px] rounded-full" />
+        <div className="absolute bottom-0 right-[-5%] w-[35%] h-[35%] bg-purple-600/15 blur-[80px] rounded-full" />
+        <div className="hidden md:block absolute top-[40%] left-[60%] w-[20%] h-[20%] bg-emerald-500/8 blur-[70px] rounded-full" />
       </div>
 
       <div className="relative z-10">
@@ -85,7 +85,7 @@ const LandingPagePro: React.FC = () => {
             </motion.div>
 
             <motion.div variants={fadeUp}>
-              <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-bold tracking-tight mb-6 leading-tight">
                 Drive Your Dream Car <br className="hidden md:block" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
                   Without Limits
@@ -252,13 +252,13 @@ const LandingPagePro: React.FC = () => {
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-96 rounded-3xl bg-white/5 animate-pulse" />
                 ))}
               </div>
             ) : cars.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {cars.map((car: any, idx: number) => (
                   <motion.div
                     key={car.id}
@@ -274,8 +274,10 @@ const LandingPagePro: React.FC = () => {
                       <motion.img
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.7 }}
-                        src={car.images?.[0]?.imageUrl ? getImageUrl(car.images[0].imageUrl) : "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800"}
+                        src={car.images?.[0]?.imageUrl ? getImageUrl(car.images[0].imageUrl, 600) : "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=70"}
                         alt={car.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute top-4 left-4 z-20">
