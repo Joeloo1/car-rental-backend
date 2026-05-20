@@ -135,25 +135,12 @@ export const resetPassword = catchAsync(async (req: Request, res: Response, next
 // log out
 export const logOut = catchAsync(async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+  // req.body may be undefined when the client sends no body — use optional chaining
+  const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
 
-  if (!userId) {
-    res.status(401).json({
-      success: false,
-      message: "User not authenticated",
-    });
-    return;
-  }
-
-  if (!refreshToken) {
-    res.status(400).json({
-      success: false,
-      message: "Refresh token is required",
-    });
-    return;
-  }
-
-  await logOutService(userId, refreshToken);
+  // If no specific token is available, revoke all sessions for this user so
+  // logout always succeeds regardless of what the client sends.
+  await logOutService(userId, refreshToken ?? null);
 
   res.status(200).json({
     status: "success",
@@ -163,7 +150,7 @@ export const logOut = catchAsync(async (req: AuthRequest, res: Response) => {
 
 // REFRESH ACCESS token
 export const refreshAccessToken = catchAsync(async (req: Request, res: Response) => {
-  const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+  const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
 
   if (!refreshToken) {
     res.status(401).json({
