@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { Search, SlidersHorizontal, Car as CarIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +31,8 @@ const BrowseCars: React.FC = () => {
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: () => categoryService.getAll(),
+    staleTime: Infinity,   // categories almost never change
+    gcTime: Infinity,
   });
 
   useEffect(() => {
@@ -67,6 +69,7 @@ const BrowseCars: React.FC = () => {
         seats: seats || undefined,
         sortBy,
       }),
+    placeholderData: keepPreviousData,
   });
 
   const cars: Car[] = Array.isArray(carsData)
@@ -338,9 +341,9 @@ const BrowseCars: React.FC = () => {
 
         {/* Car Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="rounded-2xl bg-white/5 animate-pulse" style={{ height: "360px" }} />
+              <CarCardSkeleton key={i} />
             ))}
           </div>
         ) : cars.length === 0 ? (
@@ -367,7 +370,7 @@ const BrowseCars: React.FC = () => {
             </button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {cars.map((car, index) => (
               <CarCard
                 key={car.id}
@@ -383,5 +386,42 @@ const BrowseCars: React.FC = () => {
     </div>
   );
 };
+
+// Content-shaped skeleton so users see familiar proportions while data loads
+const CarCardSkeleton: React.FC = () => (
+  <div className="rounded-2xl bg-[#111115] border border-white/8 overflow-hidden animate-pulse">
+    {/* image area */}
+    <div className="h-56 bg-white/5" />
+    {/* content */}
+    <div className="p-5 space-y-4">
+      {/* title row */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 space-y-2">
+          <div className="h-5 w-3/4 rounded-lg bg-white/8" />
+          <div className="h-3.5 w-1/2 rounded-lg bg-white/5" />
+        </div>
+        <div className="h-8 w-16 rounded-lg bg-white/5" />
+      </div>
+      {/* specs */}
+      <div className="grid grid-cols-3 gap-3">
+        {[1,2,3].map(i => (
+          <div key={i} className="h-14 rounded-lg bg-white/5" />
+        ))}
+      </div>
+      {/* location */}
+      <div className="h-4 w-1/2 rounded-full bg-white/5" />
+      {/* divider */}
+      <div className="h-px bg-white/5" />
+      {/* footer */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1.5">
+          <div className="h-7 w-20 rounded-lg bg-white/8" />
+          <div className="h-3 w-28 rounded-full bg-white/5" />
+        </div>
+        <div className="h-10 w-28 rounded-lg bg-white/8" />
+      </div>
+    </div>
+  </div>
+);
 
 export default BrowseCars;

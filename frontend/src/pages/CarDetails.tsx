@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Star,
   Zap,
@@ -26,6 +26,7 @@ import { getImageUrl } from "../utils/image";
 const CarDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [dates, setDates] = useState({ startDate: "", endDate: "" });
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
@@ -35,6 +36,19 @@ const CarDetails: React.FC = () => {
     queryKey: ["car", id],
     queryFn: () => carService.getById(id!),
     enabled: !!id,
+    // If the user came from the browse page the car is already in cache — use it
+    // immediately so the page renders without any spinner.
+    placeholderData: () => {
+      const allCarQueries = queryClient.getQueriesData<any>({ queryKey: ["cars"] });
+      for (const [, data] of allCarQueries) {
+        const list: any[] = Array.isArray(data)
+          ? data
+          : data?.data?.cars || data?.cars || [];
+        const found = list.find((c: any) => String(c.id) === id);
+        if (found) return found;
+      }
+      return undefined;
+    },
   });
 
   const bookingMutation = useMutation({
@@ -84,11 +98,41 @@ const CarDetails: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] pt-24 flex items-center justify-center">
-        <div className="space-y-4 w-full max-w-6xl px-6">
-          <div className="h-96 rounded-3xl bg-white/5 animate-pulse" />
-          <div className="grid grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />)}
+      <div className="min-h-screen bg-[#0a0a0b] text-white pt-24 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 animate-pulse">
+          {/* back button */}
+          <div className="h-8 w-36 rounded-full bg-white/5 mb-8" />
+          {/* title row */}
+          <div className="flex justify-between items-end mb-8 gap-4">
+            <div className="space-y-3 flex-1">
+              <div className="h-4 w-24 rounded-full bg-white/5" />
+              <div className="h-10 w-2/3 rounded-xl bg-white/8" />
+              <div className="h-4 w-40 rounded-full bg-white/5" />
+            </div>
+            <div className="flex gap-2">
+              <div className="w-11 h-11 rounded-full bg-white/5" />
+              <div className="w-11 h-11 rounded-full bg-white/5" />
+            </div>
+          </div>
+          {/* gallery */}
+          <div className="h-[260px] md:h-[480px] rounded-3xl bg-white/5 mb-10" />
+          {/* content */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10">
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-2xl bg-white/5" />)}
+              </div>
+              <div className="space-y-3">
+                <div className="h-6 w-40 rounded-lg bg-white/5" />
+                <div className="h-4 rounded-lg bg-white/5" />
+                <div className="h-4 w-4/5 rounded-lg bg-white/5" />
+                <div className="h-4 w-3/5 rounded-lg bg-white/5" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[1,2,3].map(i => <div key={i} className="h-20 rounded-xl bg-white/5" />)}
+              </div>
+            </div>
+            <div className="h-96 rounded-3xl bg-white/5" />
           </div>
         </div>
       </div>
@@ -191,37 +235,65 @@ const CarDetails: React.FC = () => {
           </motion.div>
 
           {/* Gallery */}
+          {/* Mobile gallery */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-3 grid-rows-2 gap-3 h-[480px] mb-12 rounded-3xl overflow-hidden"
+            className="mb-8 md:mb-12"
           >
-            <div
-              className="col-span-2 row-span-2 relative overflow-hidden cursor-pointer group"
-              onClick={() => setActiveImage(0)}
-            >
+            {/* Mobile: stacked hero + dot nav */}
+            <div className="md:hidden rounded-2xl overflow-hidden h-[260px] relative">
               <img
                 src={getCarImage(activeImage)}
                 alt={car.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover"
+                loading="eager"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                {[0, 1, 2].map((idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImage(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      activeImage === idx ? "w-5 bg-white" : "w-2 bg-white/40"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-            {[1, 2].map((idx) => (
+
+            {/* Desktop: grid gallery */}
+            <div className="hidden md:grid grid-cols-3 grid-rows-2 gap-3 h-[480px] rounded-3xl overflow-hidden">
               <div
-                key={idx}
-                className="relative overflow-hidden cursor-pointer group"
-                onClick={() => setActiveImage(idx)}
+                className="col-span-2 row-span-2 relative overflow-hidden cursor-pointer group"
+                onClick={() => setActiveImage(0)}
               >
                 <img
-                  src={getCarImage(idx)}
-                  alt={`${car.title} ${idx + 1}`}
+                  src={getCarImage(activeImage)}
+                  alt={car.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  loading="eager"
                 />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
               </div>
-            ))}
+              {[1, 2].map((idx) => (
+                <div
+                  key={idx}
+                  className="relative overflow-hidden cursor-pointer group"
+                  onClick={() => setActiveImage(idx)}
+                >
+                  <img
+                    src={getCarImage(idx)}
+                    alt={`${car.title} ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all" />
+                </div>
+              ))}
+            </div>
           </motion.div>
 
           {/* Content Grid */}

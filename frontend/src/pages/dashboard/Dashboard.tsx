@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
       <div className="min-h-screen bg-[#0a0a0b] pt-24 flex items-center justify-center">
         <div className="space-y-4 w-full max-w-6xl px-6">
           <div className="h-10 w-48 rounded-xl bg-white/5 animate-pulse" />
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-28 rounded-2xl bg-white/5 animate-pulse" />
             ))}
