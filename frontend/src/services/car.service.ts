@@ -56,11 +56,6 @@ export const carService = {
     const res = await api.post<ApiResponse<any>>(
       `/cars/${carId}/images`,
       formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      },
     );
     return res.data.data;
   },

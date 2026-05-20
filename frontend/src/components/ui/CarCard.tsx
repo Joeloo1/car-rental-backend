@@ -19,11 +19,13 @@ import { clsx } from "clsx";
 interface CarCardProps {
   car: {
     id: number | string;
+    title?: string;
     brand: string;
     model: string;
     year: number;
     pricePerDay: number;
     location?: string;
+    locationCity?: string;
     seats?: number;
     fuelType?: string;
     transmission?: string;
@@ -47,6 +49,8 @@ const CarCard: React.FC<CarCardProps> = ({
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  const displayLocation = car.locationCity || car.location;
 
   const handleCardClick = () => {
     navigate(`/car/${car.id}`);
@@ -203,9 +207,9 @@ const CarCard: React.FC<CarCardProps> = ({
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <h3 className="text-xl font-bold text-white truncate group-hover:text-blue-400 transition-colors">
-                {car.brand} {car.model}
+                {car.title || `${car.brand} ${car.model}`}
               </h3>
-              <p className="text-sm text-gray-400 mt-0.5">{car.year}</p>
+              <p className="text-sm text-gray-400 mt-0.5">{car.brand} {car.model} · {car.year}</p>
             </div>
 
             {/* Rating */}
@@ -253,10 +257,10 @@ const CarCard: React.FC<CarCardProps> = ({
           </div>
 
           {/* Location */}
-          {car.location && (
+          {displayLocation && (
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <MapPin size={16} className="text-blue-400 flex-shrink-0" />
-              <span className="truncate">{car.location}</span>
+              <span className="truncate">{displayLocation}</span>
             </div>
           )}
 
