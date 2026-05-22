@@ -99,9 +99,9 @@ const sendErrorProd = (err: AppError, res: Response) => {
 // Global Error Handling Middleware
 export const globalErrorHandler = (
   err: CustomError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";

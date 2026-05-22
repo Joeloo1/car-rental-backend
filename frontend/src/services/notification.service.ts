@@ -9,6 +9,7 @@ export interface Notification {
   type: 'booking' | 'message' | 'info' | 'success' | 'warning';
   isRead: boolean;
   createdAt: string;
+  link?: string;
 }
 
 export const notificationService = {

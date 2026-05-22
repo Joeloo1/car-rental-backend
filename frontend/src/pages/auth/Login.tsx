@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -12,8 +12,22 @@ import type { ApiError } from "../../types";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+
+  // Show error from Google OAuth redirect failure
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      const messages: Record<string, string> = {
+        google_auth_failed: "Google sign-in failed. Please try again.",
+        authentication_failed: "Authentication failed. Please try again.",
+        token_generation_failed: "Login failed. Please try again.",
+      };
+      toast.error(messages[error] ?? "Sign-in failed. Please try again.");
+    }
+  }, [searchParams]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [formData, setFormData] = useState({
@@ -216,7 +230,8 @@ const Login: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => {
-                  window.location.href = "http://localhost:3000/api/auth/google";
+                  const apiUrl = import.meta.env.VITE_API_URL || "/api";
+                  window.location.href = `${apiUrl}/auth/google`;
                 }}
                 className="flex items-center justify-center gap-2.5 py-3 border border-white/10 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] text-gray-300 hover:text-white font-medium text-sm transition-all cursor-pointer"
               >

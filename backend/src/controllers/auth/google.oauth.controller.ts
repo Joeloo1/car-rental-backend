@@ -4,7 +4,7 @@ import config from "../../config/config.env";
 import logger from "../../config/winston";
 import catchAsync from "../../utils/catchAsync";
 import { AuthRequest } from "../../types/authRequest";
-import { generateAccessToken } from "@/utils/jwt";
+import { generateAccessToken, generateRefreshToken } from "@/utils/jwt";
 
 /**
  * Google OAuth Callback Handler
@@ -20,39 +20,18 @@ export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Respo
   }
 
   try {
-    // // Generate JWT tokens
-    // const accessToken = jwt.sign(
-    //   {
-    //     id: user.id,
-    //     email: user.email,
-    //     role: user.role,
-    //   },
-    //   config.JWT_ACCESS_TOKEN_SECRET,
-    //   {
-    //     expiresIn: String(config.ACCESS_TOKEN_EXPIRY),
-    //   },
-    // );
-    //
-    // const refreshToken = jwt.sign(
-    //   {
-    //     id: user.id,
-    //   },
-    //   config.JWT_REFRESH_TOKEN_SECRET,
-    //   {
-    //     expiresIn: String(config.REFRESH_TOKEN_EXPIRY),
-    //   },
-    // );
-
+    // Fix: use generateRefreshToken for the refresh token (was incorrectly using generateAccessToken)
     const accessToken = await generateAccessToken({
       id: user.id,
       role: user.role,
     });
 
-    const refreshToken = await generateAccessToken({
+    const refreshToken = await generateRefreshToken({
       id: user.id,
       role: user.role,
     });
 
+    // Refresh token goes in an httpOnly cookie only — never in the URL
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: config.NODE_ENV === "production",
@@ -65,9 +44,9 @@ export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Respo
       email: user.email,
     });
 
-    // Redirect to frontend with tokens
+    // Redirect to frontend with access token only — refresh token is in the cookie
     res.redirect(
-      `${config.CLIENT_URL}/auth-success?accessToken=${accessToken}&refreshToken=${refreshToken}&userId=${user.id}`,
+      `${config.CLIENT_URL}/auth-success?accessToken=${accessToken}&userId=${user.id}`,
     );
   } catch (error) {
     logger.error("Google OAuth token generation failed", {

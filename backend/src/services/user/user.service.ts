@@ -97,9 +97,21 @@ export const updateUserService = async (
  * Get user
  */
 export const GetUserService = async (userId: string) => {
-  // Check is the user exists
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+      profileImage: true,
+      role: true,
+      provider: true,
+      isVerified: true,
+      active: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   if (!user) {

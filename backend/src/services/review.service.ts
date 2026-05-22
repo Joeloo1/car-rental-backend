@@ -1,4 +1,5 @@
 import { prisma } from "../config/database";
+import { Prisma } from "../generated/prisma/client";
 import { getCache, setCache, deleteCache } from "../config/redis";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
@@ -30,15 +31,22 @@ export const CreateReviewService = async (
     throw new AppError("You cannot review your own car", 400);
   }
 
+  if (!car.lenderId) {
+    throw new AppError("Car has no associated lender", 500);
+  }
+
   // Create Review
-  const review = await prisma.review.create({
-    data: {
-      ...data,
-      userId,
-      carId,
-      lenderId: car.lenderId,
-    },
-  });
+  let review;
+  try {
+    review = await prisma.review.create({
+      data: { ...data, userId, carId, lenderId: car.lenderId },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      throw new AppError("You have already reviewed this car", 409);
+    }
+    throw err;
+  }
 
   // Invalidate reviews cache for this car + the car's detail page (which shows reviews)
   await Promise.all([deleteCache(`reviews:car:${carId}`), deleteCache(`cars:id:${carId}`)]);
@@ -112,7 +120,6 @@ export const GetAllReviewForCarService = async (carId: string) => {
         select: {
           id: true,
           name: true,
-          email: true,
         },
       },
     },
@@ -135,7 +142,6 @@ export const GetReviewService = async (reviewId: string) => {
         select: {
           id: true,
           name: true,
-          email: true,
         },
       },
       car: {

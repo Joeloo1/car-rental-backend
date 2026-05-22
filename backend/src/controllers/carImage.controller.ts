@@ -14,7 +14,7 @@ import {
 import { z } from "zod";
 import catchAsync from "../utils/catchAsync";
 
-export const uploadImages = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const uploadImages = catchAsync(async (req: Request, res: Response) => {
   // Validate request
   const validatedData = uploadCarImageSchema.parse({
     carId: req.params.carId,
@@ -46,7 +46,7 @@ export const uploadImages = catchAsync(async (req: Request, res: Response, next:
   });
 });
 
-export const getImages = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const getImages = catchAsync(async (req: Request, res: Response) => {
   const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
   const images = await GetCarImagesService(carId);
 
@@ -56,7 +56,7 @@ export const getImages = catchAsync(async (req: Request, res: Response, next: Ne
   });
 });
 
-export const updateImage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const updateImage = catchAsync(async (req: Request, res: Response) => {
   const { carId, imageId } = z
     .object({
       carId: z.string().uuid(),
@@ -65,7 +65,6 @@ export const updateImage = catchAsync(async (req: Request, res: Response, next: 
     .parse(req.params);
 
   const updates = updateCarImageSchema.parse(req.body);
-  console.log("BODY:", req.body);
 
   const image = await updateCarImageService(carId, imageId, updates);
 
@@ -76,7 +75,7 @@ export const updateImage = catchAsync(async (req: Request, res: Response, next: 
   });
 });
 
-export const bulkReorder = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const bulkReorder = catchAsync(async (req: Request, res: Response) => {
   const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
   const reorderData = bulkReorderSchema.parse(req.body);
 
@@ -89,7 +88,7 @@ export const bulkReorder = catchAsync(async (req: Request, res: Response, next: 
   });
 });
 
-export const deleteImage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const deleteImage = catchAsync(async (req: Request, res: Response) => {
   const { carId, imageId } = z
     .object({
       carId: z.string().uuid(),

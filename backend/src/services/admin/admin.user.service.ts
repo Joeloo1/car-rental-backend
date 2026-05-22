@@ -3,13 +3,42 @@ import logger from "../../config/winston";
 import AppError from "../../utils/AppError";
 import { AdminUpdateUserInput } from "../../schema/user/user.schema";
 
-/**
- * Get All Users Service
- */
-export const GetAllUserService = async () => {
-  const users = await prisma.user.findMany();
+const safeUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  phoneNumber: true,
+  role: true,
+  provider: true,
+  isVerified: true,
+  active: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
-  return users;
+/**
+ * Get All Users Service (paginated)
+ */
+export const GetAllUserService = async (page = 1, limit = 20) => {
+  const skip = (page - 1) * limit;
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      select: safeUserSelect,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.user.count(),
+  ]);
+
+  return {
+    users,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
 };
 
 /**
@@ -18,6 +47,7 @@ export const GetAllUserService = async () => {
 export const GetUserByIdService = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    select: safeUserSelect,
   });
   if (!user) {
     logger.info("User not found", { userId });
@@ -31,7 +61,6 @@ export const GetUserByIdService = async (userId: string) => {
  * Update user
  */
 export const AdminUpdateUserService = async (userId: string, data: AdminUpdateUserInput) => {
-  // Ensure there is actually something to update
   if (!data || Object.keys(data).length === 0) {
     throw new AppError("No data provided for update", 400);
   }
@@ -46,6 +75,7 @@ export const AdminUpdateUserService = async (userId: string, data: AdminUpdateUs
   const updateUser = await prisma.user.update({
     where: { id: userId },
     data,
+    select: safeUserSelect,
   });
 
   return updateUser;

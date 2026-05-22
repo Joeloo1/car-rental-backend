@@ -207,8 +207,13 @@ export const loginService = async (data: LoginInput) => {
     throw new AppError("Invalid email or password", 401);
   }
 
+  // Google OAuth users have no password
+  if (!user.passwordHash) {
+    throw new AppError("This account uses Google sign-in. Please use the Google button to log in.", 400);
+  }
+
   // Compare the passwords
-  const isValid = await ComparePassword(password, user.passwordHash as string);
+  const isValid = await ComparePassword(password, user.passwordHash);
   if (!isValid) {
     logger.warn(`Incorrect password attempt for email: ${email}`);
     throw new AppError("Invalid email or password", 401);
@@ -383,12 +388,12 @@ export const resetPasswordService = async (
 /**
  *  Log Out
  */
-export const logOutService = async (userId: string, refreshToken: string) => {
+export const logOutService = async (userId: string, refreshToken: string | null) => {
+  // If a specific token is provided, revoke only that session (single-device logout).
+  // If no token is available (e.g. client sent no body/cookie), revoke all sessions
+  // for this user so logout always succeeds.
   await prisma.refreshToken.deleteMany({
-    where: {
-      userId,
-      token: refreshToken,
-    },
+    where: refreshToken ? { userId, token: refreshToken } : { userId },
   });
 
   logger.info(`User logged out: ${userId}`);

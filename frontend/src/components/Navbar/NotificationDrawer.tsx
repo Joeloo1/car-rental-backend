@@ -7,7 +7,9 @@ import {
   AlertTriangle,
   MessageSquare,
 } from "lucide-react";
-// import { useSocket } from '../../context/SocketContext';
+import { useNavigate } from "react-router-dom";
+import { useSocket } from "../../context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
 import { notificationService } from "../../services/notification.service";
 import type { Notification } from "../../services/notification.service";
 
@@ -21,7 +23,9 @@ interface NotificationDrawerProps {
 const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  // const { socket } = useSocket();
+  const { socket } = useSocket();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const fetchNotifications = async () => {
     try {
@@ -36,19 +40,25 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
 
   useEffect(() => {
     fetchNotifications();
-
-    // Socket integration temporarily disabled
-    // if (socket) {
-    //   const handleNewNotification = (notif: Notification) => {
-    //     setNotifications(prev => [notif, ...prev]);
-    //   };
-
-    //   socket.on('new_notification', handleNewNotification);
-    //   return () => {
-    //     socket.off('new_notification', handleNewNotification);
-    //   };
-    // }
   }, []);
+
+  // Prepend incoming real-time notifications while drawer is open
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotification = (notif: Notification) => {
+      setNotifications((prev) => {
+        // Avoid duplicates if REST poll already picked it up
+        if (prev.some((n) => n.id === notif.id)) return prev;
+        return [notif, ...prev];
+      });
+    };
+
+    socket.on("new_notification", handleNewNotification);
+    return () => {
+      socket.off("new_notification", handleNewNotification);
+    };
+  }, [socket]);
 
   const markRead = async (id: string) => {
     try {
@@ -67,6 +77,23 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleNotifClick = (notif: Notification) => {
+    if (!notif.isRead) markRead(notif.id);
+
+    const destination =
+      notif.link ??
+      (notif.type === "message"
+        ? user?.role === "lender"
+          ? "/lender"
+          : "/dashboard"
+        : null);
+
+    if (destination) {
+      navigate(destination);
+      onClose();
     }
   };
 
@@ -128,8 +155,10 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
             notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`notif-item ${!notif.isRead ? "unread" : ""}`}
-                onClick={() => !notif.isRead && markRead(notif.id)}
+                className={`notif-item ${!notif.isRead ? "unread" : ""} ${
+                  notif.type === "message" || notif.link ? "cursor-pointer" : ""
+                }`}
+                onClick={() => handleNotifClick(notif)}
               >
                 <div className="notif-icon-wrapper">{getIcon(notif.type)}</div>
                 <div className="notif-content">

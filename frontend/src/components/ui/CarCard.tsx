@@ -114,7 +114,7 @@ const CarCard: React.FC<CarCardProps> = ({
         aria-label={`View details for ${car.brand} ${car.model}`}
       >
         {/* Image Section */}
-        <div className="relative h-56 overflow-hidden bg-dark-400">
+        <div className="relative h-52 overflow-hidden bg-dark-400">
           {/* Skeleton loader */}
           {!imageLoaded && <div className="absolute inset-0 skeleton" />}
 
@@ -145,21 +145,24 @@ const CarCard: React.FC<CarCardProps> = ({
 
           {/* Top Badges Row */}
           <div className="absolute top-3 left-3 right-3 flex items-start justify-between z-10">
-            {/* Category Badge */}
-            {car.category && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Badge
-                  variant="neutral"
-                  className="backdrop-blur-md bg-black/40"
-                >
+            {/* Category + Year Badges */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-1.5"
+            >
+              {car.category && (
+                <Badge variant="neutral" className="backdrop-blur-md bg-black/40">
                   {car.category.name}
                 </Badge>
-              </motion.div>
-            )}
+              )}
+              {car.year && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 border border-white/20 backdrop-blur-md text-gray-200">
+                  {car.year}
+                </span>
+              )}
+            </motion.div>
 
             {/* Favorite Button */}
             <motion.button
@@ -247,32 +250,26 @@ const CarCard: React.FC<CarCardProps> = ({
             )}
           </div>
 
-          {/* Specifications Grid */}
-          <div className="grid grid-cols-3 gap-3">
-            {car.seats && (
-              <div className="flex flex-col items-center gap-1.5 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/50 transition-colors">
-                <Users size={18} className="text-blue-400" />
-                <span className="text-xs font-medium text-gray-300">
-                  {car.seats} Seats
-                </span>
-              </div>
-            )}
-            {car.fuelType && (
-              <div className="flex flex-col items-center gap-1.5 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/50 transition-colors">
-                <Fuel size={18} className="text-blue-400" />
-                <span className="text-xs font-medium text-gray-300">
-                  {car.fuelType}
-                </span>
-              </div>
-            )}
-            {car.transmission && (
-              <div className="flex flex-col items-center gap-1.5 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/50 transition-colors">
-                <Gauge size={18} className="text-blue-400" />
-                <span className="text-xs font-medium text-gray-300 truncate">
-                  {car.transmission}
-                </span>
-              </div>
-            )}
+          {/* Specifications Grid — always 3 chips */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col items-center gap-1 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/40 transition-colors">
+              <Users size={16} className="text-blue-400" />
+              <span className="text-[11px] font-medium text-gray-300 leading-tight">
+                {car.seats ? `${car.seats} Seats` : "—"}
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-1 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/40 transition-colors">
+              <Fuel size={16} className="text-blue-400" />
+              <span className="text-[11px] font-medium text-gray-300 truncate leading-tight">
+                {car.fuelType || "Petrol"}
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-1 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/40 transition-colors">
+              <Gauge size={16} className="text-blue-400" />
+              <span className="text-[11px] font-medium text-gray-300 truncate leading-tight">
+                {car.transmission || "Auto"}
+              </span>
+            </div>
           </div>
 
           {/* Location */}

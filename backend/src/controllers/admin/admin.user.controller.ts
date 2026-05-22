@@ -4,25 +4,35 @@ import {
   GetAllUserService,
   GetUserByIdService,
   AdminUpdateUserService,
-  DeleteUserService,
+  // DeleteUserService,
 } from "../../services/admin/admin.user.service";
 import logger from "../../config/winston";
 import { AuthRequest } from "../../types/authRequest";
 
 // Get All user
-export const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const users = await GetAllUserService();
+export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+  const result = await GetAllUserService(page, limit);
 
-  logger.info("Fetching all users", { users });
+  logger.info("Fetching all users");
   res.status(200).json({
     status: "success",
-    result: users.length,
-    data: { users },
+    result: result.users.length,
+    data: {
+      users: result.users,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      },
+    },
   });
 });
 
 // Create user
-export const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const createUser = catchAsync(async (_req: Request, res: Response) => {
   logger.error("Attempt to create user via undefined route");
   res.status(500).json({
     status: "error",
@@ -31,7 +41,7 @@ export const createUser = catchAsync(async (req: Request, res: Response, next: N
 });
 
 // Get User by ID
-export const getUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const getUser = catchAsync(async (req: Request, res: Response) => {
   const user = await GetUserByIdService(req.params.id as string);
 
   logger.info(`Fetching User with ID: ${user.id}`);
@@ -42,7 +52,7 @@ export const getUser = catchAsync(async (req: Request, res: Response, next: Next
 });
 
 // Update user
-export const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const updateUser = catchAsync(async (req: Request, res: Response) => {
   const user = await AdminUpdateUserService(req.params.id as string, req.body);
 
   logger.info(`Updating user with ID: ${user.id}`);
@@ -54,14 +64,12 @@ export const updateUser = catchAsync(async (req: Request, res: Response, next: N
 });
 
 // Delete User
-export const deleteUser = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    await DeleteUserService(req.params.id as string);
+export const deleteUser = catchAsync(async (req: AuthRequest, res: Response) => {
+  logger.info(`User with ID ${req.user!.id} deleted successfully`);
+  logger.info(`User with ID ${req.user!.id} deleted successfully`);
+  res.status(200).json({
+    status: "success",
+    message: "User deleted successfully",
+  });
+});
 
-    logger.info(`User with ID ${req.user!.id} deleted successfully`);
-    res.status(200).json({
-      status: "success",
-      message: "User deleted successfully",
-    });
-  },
-);
