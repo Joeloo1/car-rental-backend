@@ -404,6 +404,107 @@ const CarDetails: React.FC = () => {
                   />
                 </div>
               </section>
+
+              {/* Reviews */}
+              {car.reviews && car.reviews.length > 0 && (
+                <section>
+                  <div className="flex flex-wrap items-center gap-4 mb-6">
+                    <h2 className="text-2xl font-display font-bold">Guest Reviews</h2>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                      <Star size={13} fill="#fbbf24" className="text-yellow-400" />
+                      <span className="text-sm font-bold text-yellow-400">
+                        {Number(car.averageRating).toFixed(1)}
+                      </span>
+                      <span className="text-sm text-gray-400">· {car.totalReviews} review{car.totalReviews !== 1 ? "s" : ""}</span>
+                    </div>
+                  </div>
+
+                  {/* Rating overview */}
+                  <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-6 mb-8 p-6 rounded-2xl bg-white/[0.03] border border-white/8">
+                    <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
+                      <p className="text-5xl font-black text-white leading-none mb-2">
+                        {Number(car.averageRating).toFixed(1)}
+                      </p>
+                      <div className="flex items-center gap-0.5 mb-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            size={14}
+                            fill={s <= Math.round(car.averageRating) ? "#fbbf24" : "none"}
+                            className={s <= Math.round(car.averageRating) ? "text-yellow-400" : "text-gray-600"}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500">{car.totalReviews} reviews</p>
+                    </div>
+
+                    <div className="space-y-2 flex-1">
+                      {[5, 4, 3, 2, 1].map((star) => {
+                        const count = car.reviews.filter((r: any) => r.rating === star).length;
+                        const pct = car.reviews.length > 0 ? (count / car.reviews.length) * 100 : 0;
+                        return (
+                          <div key={star} className="flex items-center gap-3 text-sm">
+                            <span className="text-gray-400 w-3 text-right text-xs">{star}</span>
+                            <Star size={11} fill="#fbbf24" className="text-yellow-400 flex-shrink-0" />
+                            <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                              <div
+                                className="h-full bg-yellow-400/60 rounded-full transition-all duration-700"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="text-gray-600 w-5 text-right text-xs">{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Individual review cards */}
+                  <div className="space-y-4">
+                    {car.reviews.map((review: any, i: number) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="p-6 rounded-2xl bg-white/[0.03] border border-white/8 hover:bg-white/[0.05] transition-colors"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm ring-2 ring-white/10">
+                            {review.user?.name?.[0]?.toUpperCase() || "?"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                              <div>
+                                <p className="font-semibold text-white text-sm">{review.user?.name || "Anonymous"}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  {new Date(review.createdAt).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star
+                                    key={s}
+                                    size={13}
+                                    fill={s <= review.rating ? "#fbbf24" : "none"}
+                                    className={s <= review.rating ? "text-yellow-400" : "text-gray-700"}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            {review.comment && (
+                              <p className="text-gray-300 text-sm leading-relaxed">{review.comment}</p>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </motion.div>
 
             {/* Booking Widget */}
@@ -414,10 +515,17 @@ const CarDetails: React.FC = () => {
               className="lg:sticky lg:top-28"
             >
               <div className="p-7 rounded-3xl bg-[#111115] border border-white/8 shadow-2xl">
-                {/* Price */}
-                <div className="flex items-baseline gap-1 mb-7">
-                  <span className="text-4xl font-bold text-white">${car.pricePerDay}</span>
-                  <span className="text-gray-400 font-medium">/ day</span>
+                {/* Price header */}
+                <div className="flex items-start justify-between mb-7">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-white">${car.pricePerDay}</span>
+                    <span className="text-gray-400 font-medium">/ day</span>
+                  </div>
+                  {car.averageRating > 4.5 && (
+                    <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1">
+                      <Star size={10} fill="currentColor" /> Top Rated
+                    </span>
+                  )}
                 </div>
 
                 {/* Date Inputs */}

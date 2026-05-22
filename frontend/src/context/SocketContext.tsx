@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-hot-toast';
@@ -11,52 +11,47 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-      return;
-    }
+    if (!user) return;
 
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
     const socketUrl = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:3000';
-    const socket = io(socketUrl, {
+    const s = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
     });
 
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      socket.emit('authenticate', token, (res: { success: boolean }) => {
+    s.on('connect', () => {
+      s.emit('authenticate', token, (res: { success: boolean }) => {
         if (res.success) {
           console.log('Global socket authenticated');
         }
       });
     });
 
-    socket.on('new_notification', (data: any) => {
+    s.on('new_notification', (data: { type: string; title: string; message: string }) => {
       if (data.type === 'message') {
-        toast.success(`${data.senderName}: ${data.message}`, {
+        toast.success(data.title, {
           duration: 4000,
           icon: '💬',
         });
       }
     });
 
+    setSocket(s);
+
     return () => {
-      socket.disconnect();
+      s.disconnect();
+      setSocket(null);
     };
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current }}>
+    <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>
   );

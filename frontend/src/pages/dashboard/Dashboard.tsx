@@ -448,9 +448,7 @@ const Dashboard: React.FC = () => {
                         Manage <ChevronRight size={14} />
                       </button>
                     </div>
-                    <div className="rounded-2xl bg-[#111115] border border-white/8 overflow-hidden p-4">
-                      <CarsList lenderId={user.id} />
-                    </div>
+                    <CarsList lenderId={user.id} limit={3} />
                   </motion.section>
                 )}
               </>
@@ -471,7 +469,7 @@ const Dashboard: React.FC = () => {
               <motion.section
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl bg-[#111115] border border-white/8 overflow-hidden p-4"
+                className=""
               >
                 <CarsList lenderId={user.id} />
               </motion.section>

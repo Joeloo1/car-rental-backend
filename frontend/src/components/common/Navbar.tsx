@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
 import { notificationService } from "../../services/notification.service.ts";
 import NotificationDrawer from "../Navbar/NotificationDrawer.tsx";
 import { clsx } from "clsx";
@@ -25,6 +26,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
+  const { socket } = useSocket();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -62,6 +64,16 @@ const Navbar: React.FC = () => {
         });
     }
   }, [isAuthenticated]);
+
+  // Increment badge count when a new notification arrives via socket
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewNotif = () => setUnreadCount((c) => c + 1);
+    socket.on("new_notification", handleNewNotif);
+    return () => {
+      socket.off("new_notification", handleNewNotif);
+    };
+  }, [socket]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -261,6 +273,14 @@ const Navbar: React.FC = () => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate("/register")}
+                    className="flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/8 rounded-lg transition-all font-medium text-sm"
+                  >
+                    List your car
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => navigate("/login")}
                     className="flex items-center gap-2 px-4 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-medium"
                   >
@@ -273,7 +293,7 @@ const Navbar: React.FC = () => {
                     onClick={() => navigate("/register")}
                     className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 transition-all"
                   >
-                    Sign Up
+                    Sign Up Free
                   </motion.button>
                 </>
               )}
