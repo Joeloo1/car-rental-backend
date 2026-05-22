@@ -10,7 +10,7 @@ import { AuthRequest } from "../types/authRequest";
  * RESIZE MIDDLEWARE
  */
 export const resizePhoto = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, _res: Response, next: NextFunction) => {
     if (!req.file) return next();
 
     if (!req.user || !req.user.id) {

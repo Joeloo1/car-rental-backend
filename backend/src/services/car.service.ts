@@ -246,9 +246,13 @@ export const GetCarByIdService = async (id: string) => {
           phoneNumber: true,
           profileImage: true,
           createdAt: true,
+          cars: {
+            select: {
+              _count: { select: { bookings: { where: { status: "completed" } } } },
+            },
+          },
         },
       },
-
       category: true,
       images: {
         orderBy: [{ isMain: "desc" }, { order: "asc" }],
@@ -277,26 +281,22 @@ export const GetCarByIdService = async (id: string) => {
     throw new AppError("Car not Found", 404);
   }
 
-  // Calculating the average rating
   const avgRating =
     car.reviews.length > 0
       ? car.reviews.reduce((sum, review) => sum + review.rating, 0) / car.reviews.length
       : 0;
 
-  // Calculating host stats (total trips across all their cars)
-  const totalTrips = await prisma.booking.count({
-    where: {
-      car: { lenderId: car.lenderId },
-      status: "completed",
-    },
-  });
+  // Sum completed booking counts across all lender cars (already fetched — no extra query)
+  const totalTrips = car.lender.cars.reduce((sum, c) => sum + c._count.bookings, 0);
+
+  const { cars: _cars, ...lenderWithoutCars } = car.lender;
 
   const result = {
     ...car,
     averageRating: Number(avgRating.toFixed(1)),
     totalReviews: car.reviews.length,
     lender: {
-      ...car.lender,
+      ...lenderWithoutCars,
       totalTrips,
     },
   };

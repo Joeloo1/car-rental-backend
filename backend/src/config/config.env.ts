@@ -2,6 +2,19 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const REQUIRED_VARS = [
+  "JWT_ACCESS_TOKEN_SECRET",
+  "JWT_REFRESH_TOKEN_SECRET",
+  "VERIFICATION_SECRET",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+] as const;
+
+const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
+if (missing.length > 0) {
+  throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+}
+
 const config = {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,

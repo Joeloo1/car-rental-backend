@@ -12,7 +12,7 @@ import { AuthRequest } from "../types/authRequest";
 
 // Create Review
 export const createReview = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const review = await CreateReviewService(req.user!.id, req.params.id as string, req.body);
 
     logger.info(`User with ID: ${req.user!.id} creating a review`);
@@ -28,7 +28,7 @@ export const createReview = catchAsync(
 
 // Update Review
 export const updateReview = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const review = await UpdateReviewService(req.user!.id, req.params.id as string, req.body);
 
     logger.info(`Review with ID: ${review.id} is been Updated`);
@@ -43,7 +43,7 @@ export const updateReview = catchAsync(
 
 // Get All Reviews for a Car
 export const getAllReviewForCar = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, _next: NextFunction) => {
     const reviews = await GetAllReviewForCarService(req.params.id as string);
 
     logger.info(`Fetching all reviews for car with ID: ${req.params.id}`);
@@ -57,7 +57,7 @@ export const getAllReviewForCar = catchAsync(
 );
 
 // Get Review
-export const getReview = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const getReview = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
   const reviewID = req.params.id as string;
   const review = await GetReviewService(reviewID);
 
@@ -71,7 +71,7 @@ export const getReview = catchAsync(async (req: Request, res: Response, next: Ne
 
 // Delete Review
 export const deleteReview = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     await DeleteReviewService(req.user!.id, req.params.id as string);
 
     res.status(200).json({

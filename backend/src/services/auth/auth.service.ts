@@ -207,8 +207,13 @@ export const loginService = async (data: LoginInput) => {
     throw new AppError("Invalid email or password", 401);
   }
 
+  // Google OAuth users have no password
+  if (!user.passwordHash) {
+    throw new AppError("This account uses Google sign-in. Please use the Google button to log in.", 400);
+  }
+
   // Compare the passwords
-  const isValid = await ComparePassword(password, user.passwordHash as string);
+  const isValid = await ComparePassword(password, user.passwordHash);
   if (!isValid) {
     logger.warn(`Incorrect password attempt for email: ${email}`);
     throw new AppError("Invalid email or password", 401);

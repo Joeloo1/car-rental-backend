@@ -21,7 +21,6 @@ connectDB();
 connectRedis();
 server.listen(port, () => {
   logger.info(`Server running on PORT: ${port}...`);
-  console.log(`Server running on PORT: ${port}... `);
 });
 
 let isShuttingDown = false;

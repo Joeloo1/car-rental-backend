@@ -13,8 +13,8 @@ import { CarQuerySchema } from "../schema/car.schema";
 import { AuthRequest } from "../types/authRequest";
 
 // create car
-export const createCar = catchAsync(async (req: Request, res: Response) => {
-  const car = await CreateCarService(req.body, req.user);
+export const createCar = catchAsync(async (req: AuthRequest, res: Response) => {
+  const car = await CreateCarService(req.body, req.user!);
 
   res.status(201).json({
     status: "success",
@@ -60,8 +60,8 @@ export const getCarByLender = catchAsync(async (req: Request, res: Response) => 
 });
 
 // Update Cars
-export const updateCars = catchAsync(async (req: Request, res: Response) => {
-  const car = await UpdateCarService(req.params.id as string, req.body, req.user as any);
+export const updateCars = catchAsync(async (req: AuthRequest, res: Response) => {
+  const car = await UpdateCarService(req.params.id as string, req.body, req.user!);
 
   res.status(200).json({
     status: "success",

@@ -3,7 +3,7 @@ import { getCache, setCache, deleteCache } from "../config/redis";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
 import { CreateBookingInput } from "../schema/booking.schema";
-import { BookingStatus, CarStatus } from "../generated/prisma/client";
+import { Prisma, BookingStatus } from "../generated/prisma/client";
 import { CreateNotification } from "./notification.service";
 
 // ─── Cache TTLs ───────────────────────────────────────────────────────────────
@@ -18,25 +18,6 @@ export const CreateBookingService = async (
   data: CreateBookingInput,
   userId: string,
 ) => {
-  const car = await prisma.car.findUnique({
-    where: { id: carId },
-  });
-
-  if (!car) {
-    logger.warn(`Car with ID: ${carId} not found`);
-    throw new AppError("Car not found", 404);
-  }
-
-  if (car.availabilityStatus !== "available") {
-    logger.warn(`Car with ID: ${carId} is not available`);
-    throw new AppError("Car is not currently available for rent", 400);
-  }
-
-  if (car.lenderId === userId) {
-    logger.warn(`User ${userId} attempted to book their own car ${carId}`);
-    throw new AppError("You cannot book your own car", 400);
-  }
-
   const startDate = new Date(data.startDate);
   const endDate = new Date(data.endDate);
 
@@ -44,48 +25,59 @@ export const CreateBookingService = async (
     throw new AppError("End date must be after start date", 400);
   }
 
-  // Check for overlapping bookings
-  const overlappingBookings = await prisma.booking.findFirst({
-    where: {
-      carId,
-      status: { in: ["pending", "confirmed"] },
-      OR: [{ startDate: { lte: endDate }, endDate: { gte: startDate } }],
+  // All availability checks and the booking creation run inside a serializable
+  // transaction so concurrent requests cannot double-book the same dates.
+  const booking = await prisma.$transaction(
+    async (tx) => {
+      const car = await tx.car.findUnique({ where: { id: carId } });
+
+      if (!car) {
+        logger.warn(`Car with ID: ${carId} not found`);
+        throw new AppError("Car not found", 404);
+      }
+
+      if (car.availabilityStatus !== "available") {
+        logger.warn(`Car with ID: ${carId} is not available`);
+        throw new AppError("Car is not currently available for rent", 400);
+      }
+
+      if (car.lenderId === userId) {
+        logger.warn(`User ${userId} attempted to book their own car ${carId}`);
+        throw new AppError("You cannot book your own car", 400);
+      }
+
+      const overlappingBooking = await tx.booking.findFirst({
+        where: {
+          carId,
+          status: { in: ["pending", "confirmed"] },
+          OR: [{ startDate: { lte: endDate }, endDate: { gte: startDate } }],
+        },
+      });
+
+      if (overlappingBooking) {
+        throw new AppError("Car is already booked for these dates", 400);
+      }
+
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+      const totalPrice = car.pricePerDay * diffDays + 65;
+
+      const newBooking = await tx.booking.create({
+        data: { userId, carId, startDate, endDate, totalPrice, status: "pending" },
+        include: { car: true },
+      });
+
+      await tx.car.update({
+        where: { id: carId },
+        data: { availabilityStatus: "rented" },
+      });
+
+      return newBooking;
     },
-  });
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+  );
 
-  if (overlappingBookings) {
-    throw new AppError("Car is already booked for these dates", 400);
-  }
-
-  // Calculate total price
-  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-  const totalPrice = car.pricePerDay * diffDays + 65; // Fixed $65 service fee
-
-  // Create booking and update car status transaction
-  const booking = await prisma.$transaction(async (tx) => {
-    const newBooking = await tx.booking.create({
-      data: {
-        userId,
-        carId,
-        startDate,
-        endDate,
-        totalPrice,
-        status: "pending",
-      },
-      include: {
-        car: true,
-      },
-    });
-
-    // We can mark car as rented right away or later. Let's mark as rented for pending.
-    await tx.car.update({
-      where: { id: carId },
-      data: { availabilityStatus: "rented" },
-    });
-
-    return newBooking;
-  });
+  const { car } = booking;
 
   // Invalidate caches: renter's bookings, lender's bookings, stats, and car caches
   await Promise.all([
@@ -96,7 +88,6 @@ export const CreateBookingService = async (
     deleteCache(`cars:id:${carId}`),
   ]);
 
-  // 3. Send Notifications
   await CreateNotification(
     car.lenderId,
     "New Booking Request",

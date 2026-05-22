@@ -10,7 +10,7 @@ import { changePasswordAfter } from "../utils/password";
 /**
  * Protect Middleware
  */
-export const protect = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const protect = catchAsync(async (req: Request, _res: Response, next: NextFunction) => {
   // Check if token exists
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
@@ -27,7 +27,6 @@ export const protect = catchAsync(async (req: Request, res: Response, next: Next
 
   // verify Access Token
   const decoded = (await verifyAccessToken(token)) as Jwtpayload;
-  console.log("Decoded token:", decoded);
 
   if (!decoded.id) {
     logger.warn("Invalid token - missing user ID", { token });

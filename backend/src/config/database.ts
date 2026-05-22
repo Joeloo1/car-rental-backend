@@ -19,7 +19,7 @@ dns.lookup = function (hostname, options, callback) {
     options = {};
   }
   options.family = 4;
-  return originalLookup(hostname, options, callback);
+  return (originalLookup as (...args: unknown[]) => void)(hostname, options, callback);
 };
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
