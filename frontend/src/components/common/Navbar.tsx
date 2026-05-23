@@ -10,7 +10,6 @@ import {
   Bell,
   Search,
   Heart,
-  Settings,
   ChevronDown,
   Crown,
   LayoutDashboard,

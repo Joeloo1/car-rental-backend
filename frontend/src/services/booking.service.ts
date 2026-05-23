@@ -1,5 +1,5 @@
 import api from '../api/axios';
-import type { Booking, ApiResponse } from '../types';
+import type { Booking, ApiResponse } from '../types/index';
 
 interface DashboardStats {
   totalTrips: number;

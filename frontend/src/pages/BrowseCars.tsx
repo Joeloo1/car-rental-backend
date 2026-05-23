@@ -7,7 +7,8 @@ import {
   Car as CarIcon,
   MapPin,
   X,
-  ChevronDown,
+  LayoutGrid,
+  Map as MapIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { carService } from "../services/car.service.ts";
@@ -15,9 +16,15 @@ import { categoryService } from "../services/category.service.ts";
 import { useDebounce } from "../hooks/useDebounce.ts";
 import { useFavorites } from "../hooks/useFavorites.ts";
 import CarCard from "../components/ui/CarCard.tsx";
-import type { Car } from "../types";
+import { CarCardSkeleton } from "../components/ui/LoadingSkeleton.tsx";
+import MapView from "../components/Browse/MapView.tsx";
+import Button from "../components/ui/Button.tsx";
+import Input from "../components/ui/Input.tsx";
+import Select from "../components/ui/Select.tsx";
+import { cn } from "../utils/cn";
+import type { Car } from "../types/index";
 
-// ── Filter section component (used in both sidebar and mobile panel) ──────────
+// ── Filter section component ────────────────────────────────────────────────
 interface FilterPanelProps {
   minPrice: number | "";
   maxPrice: number | "";
@@ -35,40 +42,15 @@ interface FilterPanelProps {
   onLocationCity: (v: string) => void;
   onClear: () => void;
   hasActive: boolean;
-  compact?: boolean;
 }
 
 const FilterSection: React.FC<{ title: string; children: React.ReactNode }> = ({
   title,
   children,
 }) => (
-  <div className="pb-5 border-b border-white/5 last:border-0 last:pb-0">
-    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">{title}</p>
+  <div className="space-y-3 pb-6 border-b border-border last:border-0 last:pb-0">
+    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{title}</p>
     {children}
-  </div>
-);
-
-const SelectField: React.FC<{
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}> = ({ value, onChange, options }) => (
-  <div className="relative">
-    <select
-      className="w-full bg-black/30 border border-white/8 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500/40 appearance-none transition-colors pr-8"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value} className="bg-[#111115]">
-          {opt.label}
-        </option>
-      ))}
-    </select>
-    <ChevronDown
-      size={14}
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-    />
   </div>
 );
 
@@ -90,31 +72,33 @@ const FiltersPanel: React.FC<FilterPanelProps> = ({
   onClear,
   hasActive,
 }) => (
-  <div className="space-y-5">
+  <div className="space-y-6">
     {hasActive && (
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={onClear}
-        className="w-full flex items-center justify-center gap-2 text-xs text-blue-400 hover:text-blue-300 font-semibold py-2 rounded-xl bg-blue-500/5 border border-blue-500/15 hover:bg-blue-500/10 transition-all"
+        className="w-full text-xs text-primary"
+        leftIcon={<X size={12} />}
       >
-        <X size={12} />
         Clear all filters
-      </button>
+      </Button>
     )}
 
-    <FilterSection title="Price / Day">
+    <FilterSection title="Price Range / Day">
       <div className="flex items-center gap-2">
-        <input
+        <Input
           type="number"
-          placeholder="Min $"
-          className="w-full bg-black/30 border border-white/8 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500/40 transition-colors"
+          placeholder="Min"
+          className="h-10 text-xs"
           value={minPrice}
           onChange={(e) => onMinPrice(e.target.value ? Number(e.target.value) : "")}
         />
-        <span className="text-gray-600 flex-shrink-0">—</span>
-        <input
+        <span className="text-muted-foreground">—</span>
+        <Input
           type="number"
-          placeholder="Max $"
-          className="w-full bg-black/30 border border-white/8 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500/40 transition-colors"
+          placeholder="Max"
+          className="h-10 text-xs"
           value={maxPrice}
           onChange={(e) => onMaxPrice(e.target.value ? Number(e.target.value) : "")}
         />
@@ -122,9 +106,10 @@ const FiltersPanel: React.FC<FilterPanelProps> = ({
     </FilterSection>
 
     <FilterSection title="Fuel Type">
-      <SelectField
+      <Select
         value={fuelType}
-        onChange={onFuelType}
+        onChange={(e) => onFuelType(e.target.value)}
+        className="h-10 text-xs"
         options={[
           { value: "", label: "Any Fuel" },
           { value: "Petrol", label: "Petrol" },
@@ -136,21 +121,29 @@ const FiltersPanel: React.FC<FilterPanelProps> = ({
     </FilterSection>
 
     <FilterSection title="Transmission">
-      <SelectField
-        value={transmission}
-        onChange={onTransmission}
-        options={[
-          { value: "", label: "Any" },
-          { value: "Automatic", label: "Automatic" },
-          { value: "Manual", label: "Manual" },
-        ]}
-      />
+      <div className="flex gap-2">
+        {["", "Automatic", "Manual"].map((type) => (
+          <button
+            key={type}
+            onClick={() => onTransmission(type)}
+            className={cn(
+              "flex-1 py-2 text-[10px] font-bold rounded-lg border transition-all",
+              transmission === type
+                ? "bg-primary/10 border-primary text-primary shadow-sm"
+                : "bg-background border-border text-muted-foreground hover:border-muted-foreground"
+            )}
+          >
+            {type || "Any"}
+          </button>
+        ))}
+      </div>
     </FilterSection>
 
     <FilterSection title="Seats">
-      <SelectField
+      <Select
         value={String(seats)}
-        onChange={(v) => onSeats(v ? Number(v) : "")}
+        onChange={(e) => onSeats(e.target.value ? Number(e.target.value) : "")}
+        className="h-10 text-xs"
         options={[
           { value: "", label: "Any" },
           { value: "2", label: "2 Seats" },
@@ -161,29 +154,26 @@ const FiltersPanel: React.FC<FilterPanelProps> = ({
       />
     </FilterSection>
 
-    <FilterSection title="City">
-      <SelectField
+    <FilterSection title="Location">
+      <Select
         value={locationCity}
-        onChange={onLocationCity}
+        onChange={(e) => onLocationCity(e.target.value)}
+        className="h-10 text-xs"
         options={[
           { value: "", label: "Any City" },
           { value: "Lagos", label: "Lagos" },
           { value: "Abuja", label: "Abuja" },
-          { value: "Lekki", label: "Lekki" },
-          { value: "Ikeja", label: "Ikeja" },
-          { value: "Victoria Island", label: "Victoria Island" },
           { value: "Port Harcourt", label: "Port Harcourt" },
           { value: "Ibadan", label: "Ibadan" },
-          { value: "Kano", label: "Kano" },
-          { value: "Enugu", label: "Enugu" },
         ]}
       />
     </FilterSection>
 
     <FilterSection title="Sort By">
-      <SelectField
+      <Select
         value={sortBy}
-        onChange={onSortBy}
+        onChange={(e) => onSortBy(e.target.value)}
+        className="h-10 text-xs"
         options={[
           { value: "createdAt", label: "Newest First" },
           { value: "pricePerDay", label: "Price: Low → High" },
@@ -194,7 +184,6 @@ const FiltersPanel: React.FC<FilterPanelProps> = ({
   </div>
 );
 
-// ── Main component ────────────────────────────────────────────────────────────
 const BrowseCars: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -206,6 +195,7 @@ const BrowseCars: React.FC = () => {
   const [transmission, setTransmission] = useState("");
   const [seats, setSeats] = useState<number | "">("");
   const [locationCity, setLocationCity] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   const debouncedSearch = useDebounce(searchTerm, 500);
   const debouncedMinPrice = useDebounce(minPrice, 300);
@@ -218,7 +208,6 @@ const BrowseCars: React.FC = () => {
     queryKey: ["categories"],
     queryFn: () => categoryService.getAll(),
     staleTime: Infinity,
-    gcTime: Infinity,
   });
 
   useEffect(() => {
@@ -300,229 +289,165 @@ const BrowseCars: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white font-sans relative overflow-hidden">
-
-      {/* ── Hero banner ──────────────────────────────────────────────────────── */}
-      <div className="relative h-56 md:h-72 overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-sans relative overflow-hidden">
+      
+      {/* ── Hero section ─────────────────────────────────────────────────── */}
+      <div className="relative h-64 md:h-80 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1800"
           alt=""
-          aria-hidden="true"
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0b]/70 via-[#0a0a0b]/50 to-[#0a0a0b]" />
-        <div className="absolute inset-0 bg-blue-900/15" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-16">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/25 text-blue-300 text-xs font-semibold mb-4"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider mb-4"
           >
             <MapPin size={12} />
-            Premium vehicles from verified hosts
+            Verified Hosts & Premium Vehicles
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="text-3xl md:text-5xl font-display font-bold mb-2"
+            className="text-4xl md:text-6xl font-display font-bold mb-4 tracking-tight"
           >
-            Browse Our{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-              Collection
-            </span>
+            Browse Our <span className="text-primary">Collection</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-400 text-sm max-w-md"
+            className="text-muted-foreground text-sm md:text-base max-w-lg"
           >
-            Find and book the perfect vehicle for your next journey
+            From electric sedans to luxury SUVs, find the perfect match for your journey.
           </motion.p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl pt-6 pb-20">
-
-        {/* ── Category tabs ─────────────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 overflow-x-auto hide-scrollbar"
-        >
-          <div className="flex gap-2 pb-1 justify-start md:justify-center">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all border text-sm flex-shrink-0 ${
-                selectedCategory === null
-                  ? "bg-blue-500/20 border-blue-500/60 text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.2)]"
-                  : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              All Vehicles
-            </button>
-            {categories?.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all border text-sm flex-shrink-0 ${
-                  selectedCategory === cat.id
-                    ? "bg-blue-500/20 border-blue-500/60 text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.2)]"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24">
+        
+        {/* ── Toolbar: Search & View Toggle ────────────────────────────────── */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <input
+              type="text"
+              placeholder="Search by brand or model..."
+              className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        </motion.div>
+          <div className="flex gap-2">
+            <div className="bg-card border border-border rounded-2xl p-1 flex shadow-sm">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-3 rounded-xl transition-all font-medium text-sm",
+                  viewMode === "grid" ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:bg-muted/50"
+                )}
+              >
+                <LayoutGrid size={18} />
+                Grid
+              </button>
+              <button
+                onClick={() => setViewMode("map")}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-3 rounded-xl transition-all font-medium text-sm",
+                  viewMode === "map" ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:bg-muted/50"
+                )}
+              >
+                <MapIcon size={18} />
+                Map
+              </button>
+            </div>
+            <Button
+              variant="outline"
+              className="md:hidden"
+              onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+            >
+              <SlidersHorizontal size={18} />
+            </Button>
+          </div>
+        </div>
 
-        {/* ── Main layout: sidebar + content ───────────────────────────────── */}
-        <div className="flex gap-6 items-start">
-
-          {/* Desktop filter sidebar */}
-          <motion.aside
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="hidden lg:block w-64 xl:w-72 flex-shrink-0 sticky top-28"
+        {/* ── Category filtering ─────────────────────────────────────────── */}
+        <div className="flex gap-2 mb-10 overflow-x-auto hide-scrollbar pb-2">
+          <Button
+            variant={selectedCategory === null ? "primary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setSelectedCategory(null)}
           >
-            <div className="p-5 rounded-2xl bg-[#111115] border border-white/8">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                  <SlidersHorizontal size={15} className="text-blue-400" />
+            All Vehicles
+          </Button>
+          {categories?.map((cat) => (
+            <Button
+              key={cat.id}
+              variant={selectedCategory === cat.id ? "primary" : "outline"}
+              size="sm"
+              className="rounded-full whitespace-nowrap"
+              onClick={() => setSelectedCategory(cat.id)}
+            >
+              {cat.name}
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex gap-10 items-start">
+          {/* ── Sidebar Filters (Desktop) ────────────────────────────────── */}
+          <aside className="hidden lg:block w-72 sticky top-28">
+            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-display font-bold text-lg flex items-center gap-2">
+                  <SlidersHorizontal size={20} className="text-primary" />
                   Filters
                 </h3>
-                {hasActiveFilters && (
-                  <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold">
-                    Active
-                  </span>
-                )}
               </div>
               <FiltersPanel {...filterProps} />
             </div>
-          </motion.aside>
+          </aside>
 
-          {/* Right side content */}
+          {/* ── Main Content Area ────────────────────────────────────────── */}
           <div className="flex-1 min-w-0">
-
-            {/* Search bar + mobile filter button */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 }}
-              className="flex gap-3 mb-4"
-            >
-              <div className="relative flex-1">
-                <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  placeholder="Search by brand or model…"
-                  className="w-full bg-[#111115] border border-white/8 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/40 transition-colors text-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              {/* Mobile filter toggle */}
-              <button
-                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-                className={`lg:hidden flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-all flex-shrink-0 border ${
-                  isMobileFilterOpen || hasActiveFilters
-                    ? "bg-blue-500/20 border-blue-500/60 text-blue-400"
-                    : "bg-[#111115] border-white/8 text-gray-300 hover:text-white"
-                }`}
-              >
-                <SlidersHorizontal size={16} />
-                Filters
-                {hasActiveFilters && (
-                  <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
-                )}
-              </button>
-            </motion.div>
-
-            {/* Mobile filter panel */}
+            {/* Mobile Filters */}
             <AnimatePresence>
               {isMobileFilterOpen && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden lg:hidden mb-5"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="lg:hidden mb-8 overflow-hidden bg-card border border-border rounded-3xl p-6"
                 >
-                  <div className="p-5 rounded-2xl bg-[#111115] border border-white/8">
-                    <FiltersPanel {...filterProps} />
-                    <div className="mt-5 pt-4 border-t border-white/5">
-                      <button
-                        onClick={() => setIsMobileFilterOpen(false)}
-                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/20 transition-all"
-                      >
-                        Apply Filters
-                      </button>
-                    </div>
-                  </div>
+                  <FiltersPanel {...filterProps} />
+                  <Button className="w-full mt-6" onClick={() => setIsMobileFilterOpen(false)}>
+                    Show Results
+                  </Button>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Results count */}
-            {!isLoading && (
-              <div className="flex items-center justify-between mb-5">
-                <p className="text-sm text-gray-400">
-                  {cars.length === 0 ? (
-                    "No vehicles found"
-                  ) : (
-                    <>
-                      <span className="text-white font-semibold">{cars.length}</span>{" "}
-                      vehicle{cars.length !== 1 ? "s" : ""} available
-                    </>
-                  )}
-                </p>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors flex items-center gap-1"
-                  >
-                    <X size={12} />
-                    Clear filters
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Car grid */}
+            {/* View Mode Content */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <CarCardSkeleton key={i} />
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => <CarCardSkeleton key={i} />)}
               </div>
+            ) : viewMode === "map" ? (
+              <MapView cars={cars} />
             ) : cars.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-24 bg-white/[0.02] rounded-3xl border border-white/5"
-              >
-                <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-5">
-                  <CarIcon size={36} className="text-gray-500" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">No vehicles found</h3>
-                <p className="text-gray-400 mb-8 max-w-sm mx-auto">
+              <div className="text-center py-32 bg-card border border-border rounded-3xl shadow-sm">
+                <CarIcon size={48} className="mx-auto text-muted-foreground mb-4 opacity-20" />
+                <h3 className="text-xl font-display font-bold mb-2">No vehicles found</h3>
+                <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
                   Try adjusting your filters or search terms to find the perfect vehicle.
                 </p>
-                <button
-                  onClick={clearFilters}
-                  className="px-6 py-2.5 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/20 font-semibold text-sm hover:bg-blue-500/25 transition-all"
-                >
+                <Button onClick={clearFilters} variant="outline">
                   Clear All Filters
-                </button>
-              </motion.div>
+                </Button>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {cars.map((car, index) => (
                   <CarCard
                     key={car.id}
@@ -540,35 +465,5 @@ const BrowseCars: React.FC = () => {
     </div>
   );
 };
-
-// Content-shaped skeleton so users see familiar proportions while data loads
-const CarCardSkeleton: React.FC = () => (
-  <div className="rounded-2xl bg-[#111115] border border-white/8 overflow-hidden animate-pulse">
-    <div className="h-52 bg-white/5" />
-    <div className="p-5 space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 space-y-2">
-          <div className="h-5 w-3/4 rounded-lg bg-white/8" />
-          <div className="h-3.5 w-1/2 rounded-lg bg-white/5" />
-        </div>
-        <div className="h-8 w-16 rounded-lg bg-white/5" />
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 rounded-lg bg-white/5" />
-        ))}
-      </div>
-      <div className="h-4 w-1/2 rounded-full bg-white/5" />
-      <div className="h-px bg-white/5" />
-      <div className="flex items-center justify-between">
-        <div className="space-y-1.5">
-          <div className="h-7 w-20 rounded-lg bg-white/8" />
-          <div className="h-3 w-28 rounded-full bg-white/5" />
-        </div>
-        <div className="h-10 w-28 rounded-lg bg-white/8" />
-      </div>
-    </div>
-  </div>
-);
 
 export default BrowseCars;

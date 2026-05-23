@@ -1,12 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AnimatePresence } from "framer-motion";
 import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
 import Toast from "./components/ui/Toast";
+import PageTransition from "./components/common/PageTransition";
 
-// Lazy-load every page so only the current route's code downloads on first visit.
-// Auth pages bundled together (small, always visited together).
+// Lazy-load pages
 const LandingPagePro = lazy(() => import("./pages/LandingPagePro.tsx"));
 const BrowseCars     = lazy(() => import("./pages/BrowseCars.tsx"));
 const CarDetails     = lazy(() => import("./pages/CarDetails.tsx"));
@@ -25,40 +26,49 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,   // 5 min default
-      gcTime: 15 * 60 * 1000,     // keep cache 15 min so navigating back is instant
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
     },
   },
 });
 
-// Minimal full-screen fallback — no layout shift, no spinner flash
 const PageSkeleton = () => (
-  <div className="min-h-screen bg-[#0a0a0b]" />
+  <div className="min-h-screen bg-background" />
 );
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/"                    element={<PageTransition><LandingPagePro /></PageTransition>} />
+        <Route path="/login"               element={<PageTransition><Login /></PageTransition>} />
+        <Route path="/register"            element={<PageTransition><Register /></PageTransition>} />
+        <Route path="/auth-success"        element={<PageTransition><AuthSuccess /></PageTransition>} />
+        <Route path="/forgot-password"     element={<PageTransition><ForgotPassword /></PageTransition>} />
+        <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
+        <Route path="/browse"              element={<PageTransition><BrowseCars /></PageTransition>} />
+        <Route path="/car/:id"             element={<PageTransition><CarDetails /></PageTransition>} />
+        <Route path="/dashboard"           element={<PageTransition><Dashboard /></PageTransition>} />
+        <Route path="/lender"              element={<PageTransition><LenderDashboard /></PageTransition>} />
+        <Route path="/admin"               element={<PageTransition><AdminDashboard /></PageTransition>} />
+        <Route path="/how-it-works"        element={<PageTransition><HowItWorks /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toast />
       <Router>
-        <div className="min-h-screen flex flex-col bg-dark-600">
+        <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30 selection:text-primary">
           <Navbar />
-          <main className="flex-1 pt-20">
+          <main className="flex-1">
             <Suspense fallback={<PageSkeleton />}>
-              <Routes>
-                <Route path="/"                    element={<LandingPagePro />} />
-                <Route path="/login"               element={<Login />} />
-                <Route path="/register"            element={<Register />} />
-                <Route path="/auth-success"        element={<AuthSuccess />} />
-                <Route path="/forgot-password"     element={<ForgotPassword />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
-                <Route path="/browse"              element={<BrowseCars />} />
-                <Route path="/car/:id"             element={<CarDetails />} />
-                <Route path="/dashboard"           element={<Dashboard />} />
-                <Route path="/lender"              element={<LenderDashboard />} />
-                <Route path="/admin"               element={<AdminDashboard />} />
-                <Route path="/how-it-works"        element={<HowItWorks />} />
-              </Routes>
+              <AnimatedRoutes />
             </Suspense>
           </main>
           <Footer />

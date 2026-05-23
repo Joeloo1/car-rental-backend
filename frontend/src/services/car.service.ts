@@ -1,5 +1,5 @@
 import api from "../api/axios";
-import type { Car, ApiResponse } from "../types";
+import type { Car, ApiResponse } from "../types/index";
 
 export const carService = {
   getAll: async (params?: Record<string, any>) => {

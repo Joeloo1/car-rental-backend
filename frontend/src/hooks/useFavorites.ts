@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 const FAVORITES_KEY = "car_favorites";
 
@@ -33,8 +34,16 @@ export const useFavorites = () => {
   const toggleFavorite = (carId: string): void => {
     setFavorites((prev) => {
       if (prev.includes(carId)) {
+        toast.success("Removed from wishlist", {
+          icon: "🗑️",
+          id: `fav-${carId}`,
+        });
         return prev.filter((id) => id !== carId);
       } else {
+        toast.success("Added to wishlist", {
+          icon: "❤️",
+          id: `fav-${carId}`,
+        });
         return [...prev, carId];
       }
     });
@@ -43,15 +52,26 @@ export const useFavorites = () => {
   const addFavorite = (carId: string): void => {
     if (!favorites.includes(carId)) {
       setFavorites((prev) => [...prev, carId]);
+      toast.success("Added to wishlist", {
+        icon: "❤️",
+        id: `fav-${carId}`,
+      });
     }
   };
 
   const removeFavorite = (carId: string): void => {
-    setFavorites((prev) => prev.filter((id) => id !== carId));
+    if (favorites.includes(carId)) {
+      setFavorites((prev) => prev.filter((id) => id !== carId));
+      toast.success("Removed from wishlist", {
+        icon: "🗑️",
+        id: `fav-${carId}`,
+      });
+    }
   };
 
   const clearFavorites = (): void => {
     setFavorites([]);
+    toast.success("Wishlist cleared");
   };
 
   return {

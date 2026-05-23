@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import type { SelectHTMLAttributes } from "react";
-import { clsx } from "clsx";
+import { cn } from "../../utils/cn";
 import { ChevronDown } from "lucide-react";
 
 export interface SelectOption {
@@ -34,28 +34,24 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ref,
   ) => {
     return (
-      <div className={clsx("flex flex-col gap-1.5", fullWidth && "w-full")}>
+      <div className={cn("flex flex-col gap-2", fullWidth && "w-full")}>
         {label && (
           <label
             htmlFor={props.id}
-            className="text-sm font-semibold text-gray-300 uppercase tracking-wide"
+            className="text-sm font-medium text-foreground/80"
           >
             {label}
-            {props.required && <span className="text-red-500 ml-1">*</span>}
+            {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
 
         <div className="relative">
           <select
             ref={ref}
-            className={clsx(
-              "w-full px-4 py-3 pr-10 bg-dark-300 border rounded-lg text-white appearance-none transition-all duration-300 cursor-pointer",
-              "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-600",
-              error
-                ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/50"
-                : "border-white/10 focus:border-primary-500 focus:ring-primary-500/50",
-              disabled && "opacity-60 cursor-not-allowed bg-dark-400",
-              className,
+            className={cn(
+              "flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none transition-all",
+              error && "border-destructive focus:ring-destructive",
+              className
             )}
             disabled={disabled}
             aria-invalid={error ? "true" : "false"}
@@ -78,25 +74,26 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
+                className="bg-card text-foreground"
               >
                 {option.label}
               </option>
             ))}
           </select>
 
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            <ChevronDown size={20} />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            <ChevronDown size={18} />
           </div>
         </div>
 
         {error && (
           <p
             id={`${props.id}-error`}
-            className="text-sm text-red-400 flex items-center gap-1"
+            className="text-xs font-medium text-destructive flex items-center gap-1"
             role="alert"
           >
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
@@ -112,7 +109,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
 
         {helperText && !error && (
-          <p id={`${props.id}-helper`} className="text-sm text-gray-400">
+          <p id={`${props.id}-helper`} className="text-xs text-muted-foreground">
             {helperText}
           </p>
         )}

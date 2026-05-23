@@ -1,5 +1,5 @@
 import api from '../api/axios';
-import type { ApiResponse } from '../types';
+import type { ApiResponse } from '../types/index';
 
 export interface Notification {
   id: string;

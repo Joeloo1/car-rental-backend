@@ -9,14 +9,15 @@ import {
   Star,
   Heart,
   ArrowRight,
-  Calendar,
-  Shield,
+  Zap,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getImageUrl } from "../../utils/image";
 import { carService } from "../../services/car.service";
 import Badge from "./Badge";
-import { clsx } from "clsx";
+import Button from "./Button";
+import { Card, CardContent } from "./Card";
+import { cn } from "../../utils/cn";
 
 interface CarCardProps {
   car: {
@@ -59,8 +60,6 @@ const CarCard: React.FC<CarCardProps> = ({
     navigate(`/car/${car.id}`);
   };
 
-  // Start loading car detail data the moment the user hovers — by the time
-  // they click, the fetch is already in flight (or complete).
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
     queryClient.prefetchQuery({
@@ -81,257 +80,131 @@ const CarCard: React.FC<CarCardProps> = ({
     car.images && car.images.length > 0
       ? getImageUrl(car.images[0].imageUrl, 800)
       : "/placeholder-car.jpg";
-  const imgSrcSmall =
-    car.images && car.images.length > 0
-      ? getImageUrl(car.images[0].imageUrl, 400)
-      : "/placeholder-car.jpg";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: Math.min(index, 5) * 0.05 }}
-      whileHover={{ y: -8 }}
-      className="group relative"
+      transition={{ duration: 0.4, delay: Math.min(index, 6) * 0.05 }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group"
     >
-      <div
-        className={clsx(
-          "relative bg-dark-500 rounded-2xl overflow-hidden cursor-pointer",
-          "border border-white/10 transition-all duration-500",
-          "hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/20",
-        )}
+      <Card 
+        className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm group-hover:border-primary/50 group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500"
         onClick={handleCardClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => setIsHovered(false)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleCardClick();
-          }
-        }}
-        aria-label={`View details for ${car.brand} ${car.model}`}
       >
         {/* Image Section */}
-        <div className="relative h-52 overflow-hidden bg-dark-400">
-          {/* Skeleton loader */}
-          {!imageLoaded && <div className="absolute inset-0 skeleton" />}
-
-          {/* Car Image */}
+        <div className="relative h-56 overflow-hidden bg-muted">
+          {!imageLoaded && <div className="absolute inset-0 animate-pulse bg-muted" />}
+          
           <img
             src={imgSrc}
-            srcSet={`${imgSrcSmall} 400w, ${imgSrc} 800w`}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             alt={`${car.brand} ${car.model}`}
-            className={clsx(
+            className={cn(
               "w-full h-full object-cover transition-all duration-700",
               imageLoaded ? "opacity-100" : "opacity-0",
+              isHovered ? "scale-110" : "scale-100"
             )}
-            style={{ transform: isHovered ? "scale(1.08)" : "scale(1)" }}
             onLoad={() => setImageLoaded(true)}
-            loading="lazy"
-            decoding="async"
           />
 
-          {/* Gradient Overlay */}
-          <div
-            className={clsx(
-              "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent",
-              "transition-opacity duration-300",
-              isHovered ? "opacity-100" : "opacity-60",
-            )}
-          />
-
-          {/* Top Badges Row */}
-          <div className="absolute top-3 left-3 right-3 flex items-start justify-between z-10">
-            {/* Category + Year Badges */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-1.5"
-            >
-              {car.category && (
-                <Badge variant="neutral" className="backdrop-blur-md bg-black/40">
-                  {car.category.name}
+          {/* Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60" />
+          
+          {/* Top Actions */}
+          <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+            <div className="flex flex-col gap-2">
+              <Badge variant="secondary" className="backdrop-blur-md bg-background/40 uppercase tracking-widest text-[8px]">
+                {car.category?.name || "Premium"}
+              </Badge>
+              {car.isAvailable !== false ? (
+                <Badge variant="success" className="backdrop-blur-md bg-background/40">
+                   <Zap size={10} className="mr-1 fill-current" /> Available
                 </Badge>
+              ) : (
+                <Badge variant="destructive" className="backdrop-blur-md bg-background/40">Booked</Badge>
               )}
-              {car.year && (
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 border border-white/20 backdrop-blur-md text-gray-200">
-                  {car.year}
-                </span>
-              )}
-            </motion.div>
-
-            {/* Favorite Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={clsx(
-                "p-2.5 rounded-full backdrop-blur-md transition-all duration-300",
-                isFavorite
-                  ? "bg-red-500 text-white shadow-lg shadow-red-500/50"
-                  : "bg-black/40 text-white hover:bg-black/60",
-              )}
+            </div>
+            
+            <button
               onClick={handleFavoriteClick}
-              aria-label={
-                isFavorite ? "Remove from favorites" : "Add to favorites"
-              }
+              className={cn(
+                "p-2.5 rounded-full backdrop-blur-md transition-all duration-300",
+                isFavorite 
+                  ? "bg-primary text-white shadow-lg shadow-primary/30" 
+                  : "bg-background/40 text-white hover:bg-background/60"
+              )}
             >
-              <Heart
-                size={18}
-                fill={isFavorite ? "currentColor" : "none"}
-                className="transition-all"
-              />
-            </motion.button>
+              <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
+            </button>
           </div>
 
-          {/* Availability Badge */}
-          {car.isAvailable !== undefined && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
-              <Badge
-                variant={car.isAvailable ? "success" : "danger"}
-                className="backdrop-blur-md"
-              >
-                <span className="flex items-center gap-1.5">
-                  <span
-                    className={clsx(
-                      "w-1.5 h-1.5 rounded-full animate-pulse",
-                      car.isAvailable ? "bg-green-400" : "bg-red-400",
-                    )}
-                  />
-                  {car.isAvailable ? "Available" : "Booked"}
-                </span>
-              </Badge>
+          {/* Quick View indicator */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-500 pointer-events-none",
+            isHovered ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="bg-primary/90 text-white px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+              EXPLORE DETAILS <ArrowRight size={14} />
             </div>
-          )}
-
-          {/* Quick View Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          >
-            <div className="glass-strong px-6 py-3 rounded-full text-white font-semibold flex items-center gap-2">
-              View Details
-              <ArrowRight
-                size={18}
-                className="group-hover:translate-x-1 transition-transform"
-              />
-            </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Content Section */}
-        <div className="p-5 space-y-4">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold text-white truncate group-hover:text-blue-400 transition-colors">
-                {car.title || `${car.brand} ${car.model}`}
+        <CardContent className="p-5 space-y-5">
+          <div className="flex justify-between items-start gap-4">
+            <div className="min-w-0">
+              <h3 className="text-lg font-display font-bold leading-tight truncate group-hover:text-primary transition-colors">
+                {car.brand} {car.model}
               </h3>
-              <p className="text-sm text-gray-400 mt-0.5">{car.brand} {car.model} · {car.year}</p>
-            </div>
-
-            {/* Rating */}
-            {car.averageRating !== undefined && car.averageRating > 0 && (
-              <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1.5 rounded-lg border border-yellow-500/20">
-                <Star size={14} fill="#fbbf24" className="text-yellow-400" />
-                <span className="text-sm font-semibold text-yellow-400">
-                  {car.averageRating.toFixed(1)}
-                </span>
-                {car.totalReviews !== undefined && car.totalReviews > 0 && (
-                  <span className="text-xs text-gray-400">
-                    ({car.totalReviews})
-                  </span>
-                )}
+              <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
+                <MapPin size={12} className="text-primary" />
+                <span className="text-xs truncate">{displayLocation}</span>
               </div>
-            )}
+            </div>
+            
+            {car.averageRating ? (
+              <div className="flex items-center gap-1 bg-primary/5 px-2 py-1 rounded-lg border border-primary/10">
+                <Star size={12} className="text-primary fill-primary" />
+                <span className="text-xs font-bold">{car.averageRating.toFixed(1)}</span>
+              </div>
+            ) : null}
           </div>
 
-          {/* Specifications Grid — always 3 chips */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col items-center gap-1 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/40 transition-colors">
-              <Users size={16} className="text-blue-400" />
-              <span className="text-[11px] font-medium text-gray-300 leading-tight">
-                {car.seats ? `${car.seats} Seats` : "—"}
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/40 transition-colors">
-              <Fuel size={16} className="text-blue-400" />
-              <span className="text-[11px] font-medium text-gray-300 truncate leading-tight">
-                {car.fuelType || "Petrol"}
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-2.5 bg-white/5 rounded-lg border border-white/10 hover:border-blue-500/40 transition-colors">
-              <Gauge size={16} className="text-blue-400" />
-              <span className="text-[11px] font-medium text-gray-300 truncate leading-tight">
-                {car.transmission || "Auto"}
-              </span>
-            </div>
+          {/* Features Grid */}
+          <div className="grid grid-cols-3 gap-2 py-1">
+             {[
+               { icon: Users, label: car.seats ? `${car.seats} Seats` : '5 Seats' },
+               { icon: Fuel, label: car.fuelType || 'Petrol' },
+               { icon: Gauge, label: car.transmission || 'Auto' }
+             ].map((feature, i) => (
+               <div key={i} className="flex flex-col items-center justify-center p-2 rounded-xl bg-muted/30 border border-border/50 group-hover:bg-primary/5 transition-colors">
+                 <feature.icon size={14} className="text-primary mb-1" />
+                 <span className="text-[10px] font-medium text-muted-foreground truncate w-full text-center">{feature.label}</span>
+               </div>
+             ))}
           </div>
 
-          {/* Location */}
-          {displayLocation && (
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <MapPin size={16} className="text-blue-400 flex-shrink-0" />
-              <span className="truncate">{displayLocation}</span>
-            </div>
-          )}
-
-          {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-          {/* Footer */}
-          <div className="flex items-center justify-between gap-4">
-            {/* Price */}
-            <div className="flex flex-col">
+          {/* Pricing & CTA */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Daily Rate</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-white">
-                  ${car.pricePerDay}
-                </span>
-                <span className="text-sm text-gray-400">/day</span>
+                <span className="text-2xl font-display font-black text-foreground">${car.pricePerDay}</span>
+                <span className="text-xs text-muted-foreground">/day</span>
               </div>
-              <span className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                <Shield size={12} />
-                Insurance included
-              </span>
             </div>
-
-            {/* Book Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={clsx(
-                "px-5 py-2.5 rounded-lg font-semibold text-sm",
-                "bg-gradient-to-r from-blue-500 to-indigo-600",
-                "text-white shadow-lg shadow-blue-500/30",
-                "hover:shadow-xl hover:shadow-blue-500/50",
-                "transition-all duration-300",
-                "flex items-center gap-2",
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCardClick();
-              }}
+            <Button 
+              size="sm" 
+              className="h-10 px-5 rounded-xl shadow-md group-hover:shadow-primary/20 transition-all"
+              onClick={handleCardClick}
             >
-              <Calendar size={16} />
               Book Now
-            </motion.button>
+            </Button>
           </div>
-        </div>
-
-        {/* Shine effect on hover */}
-        <div
-          className={clsx(
-            "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none",
-            "bg-gradient-to-r from-transparent via-white/5 to-transparent",
-            "-translate-x-full group-hover:translate-x-full",
-          )}
-          style={{ transition: "transform 1s" }}
-        />
-      </div>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 };

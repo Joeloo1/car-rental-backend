@@ -15,7 +15,7 @@ import {
   Car as CarIcon,
   Plus,
 } from "lucide-react";
-import type { ApiError } from "../../types";
+import type { ApiError } from "../../types/index";
 import { carService } from "../../services/car.service.ts";
 import { getImageUrl } from "../../utils/image";
 

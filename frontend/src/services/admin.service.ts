@@ -1,5 +1,5 @@
 import api from '../api/axios';
-import type { ApiResponse, User, Car } from '../types';
+import type { ApiResponse, User, Car } from '../types/index';
 
 export const adminService = {
   getAllUsers: async (): Promise<User[]> => {
