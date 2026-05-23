@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import type { Car } from "../../types";
+import type { Car } from "../../types/index";
 import { useFavorites } from "../../hooks/useFavorites.ts";
 import CarCard from "../ui/CarCard";
 import LoadingSkeleton from "../ui/LoadingSkeleton";

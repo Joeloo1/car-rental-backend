@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Star, X, Loader2, MessageSquare } from "lucide-react";
 import { toast } from "react-hot-toast";
-import type { ApiError } from "../../types";
+import type { ApiError } from "../../types/index";
 import { reviewService } from "../../services/review.service.ts";
 import "./ReviewModal.css";
 

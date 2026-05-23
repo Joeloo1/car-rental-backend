@@ -1,10 +1,10 @@
 import { forwardRef } from "react";
 import type { ButtonHTMLAttributes } from "react";
-import { clsx } from "clsx";
+import { cn } from "../../utils/cn";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
-  size?: "sm" | "md" | "lg";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "link";
+  size?: "sm" | "md" | "lg" | "icon";
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -27,33 +27,32 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-    const baseStyles =
-      "inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-600 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden";
-
     const variants = {
       primary:
-        "bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-glow focus:ring-primary-500 hover:-translate-y-0.5 active:translate-y-0",
+        "bg-primary text-white hover:bg-primary/90 shadow-accent hover:shadow-accent-lg hover:-translate-y-0.5 active:translate-y-0",
       secondary:
-        "bg-dark-300 text-white border border-white/10 hover:bg-dark-400 hover:border-white/20 hover:shadow-lg focus:ring-dark-300 hover:-translate-y-0.5",
+        "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg hover:-translate-y-0.5",
       outline:
-        "bg-transparent text-white border-2 border-white/20 hover:border-primary-500 hover:text-primary-500 hover:bg-white/5 focus:ring-primary-500",
+        "bg-transparent text-foreground border border-input hover:bg-accent hover:text-accent-foreground",
       ghost:
-        "bg-transparent text-gray-300 hover:bg-white/5 hover:text-white focus:ring-white/20",
+        "bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground",
       danger:
-        "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:shadow-lg focus:ring-red-500 hover:-translate-y-0.5",
+        "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg hover:-translate-y-0.5",
+      link: "text-primary underline-offset-4 hover:underline",
     };
 
     const sizes = {
-      sm: "px-4 py-2 text-sm",
-      md: "px-6 py-3 text-base",
-      lg: "px-8 py-4 text-lg",
+      sm: "h-9 px-3 text-xs",
+      md: "h-11 px-6 text-sm",
+      lg: "h-12 px-8 text-base",
+      icon: "h-10 w-10",
     };
 
     return (
       <button
         ref={ref}
-        className={clsx(
-          baseStyles,
+        className={cn(
+          "inline-flex items-center justify-center gap-2 font-semibold rounded-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none relative overflow-hidden",
           variants[variant],
           sizes[size],
           fullWidth && "w-full",
@@ -62,13 +61,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         {...props}
       >
-        {/* Shimmer effect */}
-        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
         {isLoading ? (
-          <>
+          <div className="flex items-center gap-2">
             <svg
-              className="animate-spin h-5 w-5"
+              className="animate-spin h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -87,8 +83,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span>Loading...</span>
-          </>
+            <span>Please wait...</span>
+          </div>
         ) : (
           <>
             {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}

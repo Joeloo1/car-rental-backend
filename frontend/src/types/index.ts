@@ -18,7 +18,7 @@ export interface ApiResponse<T> {
 
 export type CarStatus = "available" | "rented" | "maintenance" | "unavailable";
 
-export interface Car {
+export type Car = {
   id: string;
   title: string;
   brand: string;
@@ -39,7 +39,6 @@ export interface Car {
   latitude?: number;
   longitude?: number;
   averageRating?: number;
-
   totalReviews?: number;
   images: Array<{
     id: string;
@@ -57,7 +56,7 @@ export interface Car {
     createdAt?: string;
     totalTrips?: number;
   };
-}
+};
 
 export interface Booking {
   id: string;

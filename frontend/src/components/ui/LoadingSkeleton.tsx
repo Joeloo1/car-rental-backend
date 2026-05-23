@@ -1,7 +1,7 @@
 import React from "react";
-import { clsx } from "clsx";
+import { cn } from "../../utils/cn";
 
-interface LoadingSkeletonProps {
+interface LoadingSkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?:
     | "text"
     | "title"
@@ -10,18 +10,19 @@ interface LoadingSkeletonProps {
     | "button"
     | "image"
     | "custom";
+  count?: number;
   width?: string;
   height?: string;
-  count?: number;
-  className?: string;
 }
 
 const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   variant = "text",
-  width,
-  height,
   count = 1,
   className = "",
+  width,
+  height,
+  style,
+  ...props
 }) => {
   const variants = {
     text: "h-4 w-full rounded",
@@ -33,20 +34,17 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
     custom: "",
   };
 
-  const skeletonClass = clsx(
-    "skeleton bg-gradient-to-r from-dark-500 via-dark-400 to-dark-500 bg-[length:200%_100%]",
+  const skeletonClass = cn(
+    "animate-pulse bg-muted rounded-md",
     variants[variant],
-    className,
+    className
   );
 
-  const style = {
-    ...(width && { width }),
-    ...(height && { height }),
-  };
+  const inlineStyle = { ...(width ? { width } : {}), ...(height ? { height } : {}), ...style };
 
   if (count === 1) {
     return (
-      <div className={skeletonClass} style={style} aria-label="Loading..." />
+      <div className={skeletonClass} aria-label="Loading..." style={inlineStyle} {...props} />
     );
   }
 
@@ -56,8 +54,9 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
         <div
           key={index}
           className={skeletonClass}
-          style={style}
           aria-label="Loading..."
+          style={inlineStyle}
+          {...props}
         />
       ))}
     </div>
@@ -66,55 +65,70 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
 
 // Preset skeleton layouts for common use cases
 export const CarCardSkeleton: React.FC = () => (
-  <div className="bg-dark-500 rounded-2xl overflow-hidden border border-white/10 animate-fade-in">
-    <LoadingSkeleton variant="image" height="14rem" />
+  <div className="bg-card rounded-2xl overflow-hidden border border-border animate-fade-in shadow-sm">
+    <LoadingSkeleton variant="image" className="h-[240px]" />
     <div className="p-5 space-y-4">
-      <LoadingSkeleton variant="title" />
-      <div className="grid grid-cols-3 gap-3">
-        <LoadingSkeleton height="3rem" />
-        <LoadingSkeleton height="3rem" />
-        <LoadingSkeleton height="3rem" />
+      <div className="flex justify-between items-start">
+        <LoadingSkeleton variant="title" className="h-6 w-2/3" />
+        <LoadingSkeleton width="40px" height="20px" className="rounded-full" />
       </div>
-      <LoadingSkeleton variant="text" />
-      <div className="flex items-center justify-between pt-4">
-        <LoadingSkeleton width="6rem" height="2rem" />
-        <LoadingSkeleton variant="button" />
+      <div className="grid grid-cols-3 gap-2">
+        <LoadingSkeleton className="h-8 rounded-lg" />
+        <LoadingSkeleton className="h-8 rounded-lg" />
+        <LoadingSkeleton className="h-8 rounded-lg" />
+      </div>
+      <div className="flex items-center gap-2 pt-2">
+        <LoadingSkeleton variant="avatar" className="h-4 w-4" />
+        <LoadingSkeleton className="h-3 w-1/3" />
+      </div>
+      <div className="flex items-center justify-between pt-4 border-t border-border">
+        <LoadingSkeleton className="h-8 w-24" />
+        <LoadingSkeleton className="h-10 w-28 rounded-xl" />
       </div>
     </div>
   </div>
 );
 
 export const CarDetailsSkeleton: React.FC = () => (
-  <div className="container-custom py-12 space-y-8 animate-fade-in">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <LoadingSkeleton height="24rem" className="rounded-2xl" />
-      <div className="space-y-6">
-        <LoadingSkeleton variant="title" width="80%" />
-        <LoadingSkeleton variant="text" count={3} />
-        <div className="grid grid-cols-2 gap-4">
-          <LoadingSkeleton height="4rem" />
-          <LoadingSkeleton height="4rem" />
-          <LoadingSkeleton height="4rem" />
-          <LoadingSkeleton height="4rem" />
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 animate-fade-in">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <LoadingSkeleton className="h-[400px] lg:h-[500px] rounded-3xl" />
+      <div className="space-y-8">
+        <div className="space-y-4">
+          <LoadingSkeleton variant="title" className="h-12 w-3/4" />
+          <div className="flex gap-4">
+            <LoadingSkeleton className="h-6 w-24 rounded-full" />
+            <LoadingSkeleton className="h-6 w-24 rounded-full" />
+          </div>
         </div>
-        <LoadingSkeleton height="3rem" />
+        <div className="space-y-4">
+          <LoadingSkeleton className="h-4 w-full" count={4} />
+        </div>
+        <div className="grid grid-cols-2 gap-6">
+          <LoadingSkeleton className="h-20 rounded-2xl" />
+          <LoadingSkeleton className="h-20 rounded-2xl" />
+          <LoadingSkeleton className="h-20 rounded-2xl" />
+          <LoadingSkeleton className="h-20 rounded-2xl" />
+        </div>
+        <LoadingSkeleton className="h-14 w-full rounded-2xl" />
       </div>
     </div>
   </div>
 );
 
 export const DashboardSkeleton: React.FC = () => (
-  <div className="container-custom py-12 space-y-8 animate-fade-in">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 animate-fade-in">
     <div className="flex items-center justify-between">
-      <LoadingSkeleton variant="title" width="12rem" />
-      <LoadingSkeleton variant="button" />
+      <LoadingSkeleton className="h-10 w-48" />
+      <LoadingSkeleton className="h-11 w-36" />
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <LoadingSkeleton height="8rem" className="rounded-xl" />
-      <LoadingSkeleton height="8rem" className="rounded-xl" />
-      <LoadingSkeleton height="8rem" className="rounded-xl" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <LoadingSkeleton className="h-32 rounded-2xl" />
+      <LoadingSkeleton className="h-32 rounded-2xl" />
+      <LoadingSkeleton className="h-32 rounded-2xl" />
+      <LoadingSkeleton className="h-32 rounded-2xl" />
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <CarCardSkeleton />
       <CarCardSkeleton />
       <CarCardSkeleton />
