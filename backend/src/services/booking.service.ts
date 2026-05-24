@@ -2,6 +2,7 @@ import { prisma } from "../config/database";
 import { getCache, setCache, deleteCache } from "../config/redis";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
+import config from "../config/config.env";
 import { CreateBookingInput } from "../schema/booking.schema";
 import { Prisma, BookingStatus } from "../generated/prisma/client";
 import { CreateNotification } from "./notification.service";
@@ -60,7 +61,7 @@ export const CreateBookingService = async (
 
       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-      const totalPrice = car.pricePerDay * diffDays + 65;
+      const totalPrice = car.pricePerDay * diffDays + config.SERVICE_FEE;
 
       const newBooking = await tx.booking.create({
         data: { userId, carId, startDate, endDate, totalPrice, status: "pending" },

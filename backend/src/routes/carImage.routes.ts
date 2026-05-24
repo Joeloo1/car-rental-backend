@@ -10,7 +10,7 @@ import { uploadMiddleware } from "../middleware/upload.middleware";
 import { protect } from "../middleware/protect.middleware";
 import { restrictTo } from "../middleware/authorization";
 import { Role } from "../types/role.types";
-import { UserRole } from "../generated/prisma/enums";
+import { UserRole } from "../generated/prisma";
 
 const router: Router = Router({ mergeParams: true });
 

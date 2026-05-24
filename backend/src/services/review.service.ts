@@ -5,6 +5,19 @@ import AppError from "../utils/AppError";
 import logger from "../config/winston";
 import { CreateReviewInput, UpdateReviewInput } from "../schema/review.schema";
 
+async function syncCarAverageRating(carId: string) {
+  const result = await prisma.review.aggregate({
+    where: { carId },
+    _avg: { rating: true },
+    _count: { id: true },
+  });
+  const avg = result._avg.rating ?? 0;
+  await prisma.car.update({
+    where: { id: carId },
+    data: { averageRating: Number(avg.toFixed(1)) },
+  });
+}
+
 // ─── Cache TTL ────────────────────────────────────────────────────────────────
 const TTL_REVIEWS = 5 * 60; // 5 minutes
 
@@ -41,12 +54,14 @@ export const CreateReviewService = async (
     review = await prisma.review.create({
       data: { ...data, userId, carId, lenderId: car.lenderId },
     });
-  } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+  } catch (err: any) {
+    if (err?.code === "P2002") {
       throw new AppError("You have already reviewed this car", 409);
     }
     throw err;
   }
+
+  await syncCarAverageRating(carId);
 
   // Invalidate reviews cache for this car + the car's detail page (which shows reviews)
   await Promise.all([deleteCache(`reviews:car:${carId}`), deleteCache(`cars:id:${carId}`)]);
@@ -81,6 +96,8 @@ export const UpdateReviewService = async (
     where: { id: reviewId },
     data: { ...data },
   });
+
+  await syncCarAverageRating(review.carId);
 
   // Invalidate caches
   await Promise.all([
@@ -181,6 +198,8 @@ export const DeleteReviewService = async (userId: string, reviewId: string) => {
   const result = await prisma.review.delete({
     where: { id: reviewId },
   });
+
+  await syncCarAverageRating(review.carId);
 
   // Invalidate caches
   await Promise.all([

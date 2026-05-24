@@ -244,14 +244,8 @@ export const loginService = async (data: LoginInput) => {
    * Save Refresh Token into DB
    */
 
-  await prisma.refreshToken.upsert({
-    where: { userId: user.id },
-    update: {
-      token: refreshToken,
-      revoked: false,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    },
-    create: {
+  await prisma.refreshToken.create({
+    data: {
       userId: user.id,
       token: refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),

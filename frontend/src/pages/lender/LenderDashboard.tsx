@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -31,7 +31,9 @@ import Button from '../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import { cn } from '../../utils/cn';
-import { EarningsChart } from '../../components/Dashboard/DashboardCharts';
+const EarningsChart = lazy(() =>
+  import('../../components/Dashboard/DashboardCharts').then((m) => ({ default: m.EarningsChart }))
+);
 
 const statusVariants: Record<string, "success" | "destructive" | "warning" | "primary" | "secondary"> = {
   completed: 'success',
@@ -274,7 +276,9 @@ const LenderDashboard: React.FC = () => {
                       <CardTitle className="text-lg">Earnings Performance</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <EarningsChart />
+                      <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}>
+                        <EarningsChart />
+                      </Suspense>
                     </CardContent>
                   </Card>
                   

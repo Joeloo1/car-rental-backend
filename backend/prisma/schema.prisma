@@ -36,11 +36,12 @@ model User {
   chatsAsLender            Chat[]        @relation("ChatLender")
   chatsAsUser              Chat[]        @relation("ChatUser")
   messages                 Message[]
-  refreshTokens            RefreshToken?
+  refreshTokens            RefreshToken[]
   reviewsRecv              Review[]      @relation("LenderReviews")
   reviewsGiven             Review[]      @relation("UserReviews")
   notifications            Notification[]
   bookings                 Booking[]     @relation("UserBookings")
+  favorites                Favorite[]
 
 
   @@index([email])
@@ -52,9 +53,11 @@ model RefreshToken {
   token     String   @unique
   expiresAt DateTime
   revoked   Boolean  @default(false)
-  userId    String   @unique
+  userId    String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Address {
@@ -93,6 +96,7 @@ model Car {
   latitude           Float?
   longitude          Float?
   availabilityStatus CarStatus  @default(available)
+  averageRating      Float      @default(0)
 
   lenderId           String
   categoryId         Int
@@ -103,6 +107,7 @@ model Car {
   chats              Chat[]
   reviews            Review[]
   bookings           Booking[]
+  favorites          Favorite[]
 
   @@index([lenderId])
   @@index([categoryId])
@@ -205,6 +210,18 @@ model Notification {
   @@index([createdAt])
 }
 
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  carId     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, carId])
+  @@index([userId])
+}
 
 enum UserRole {
   User
