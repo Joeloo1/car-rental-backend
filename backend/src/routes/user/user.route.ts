@@ -8,6 +8,11 @@ import {
   markRead,
   markAllRead,
 } from "../../controllers/notification.controller";
+import {
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+} from "../../controllers/favorite.controller";
 
 const router: Router = Router();
 
@@ -22,5 +27,10 @@ router.delete("/deleteMe", deleteUser);
 router.get("/notifications", getMyNotifications);
 router.patch("/notifications/:id/read", markRead);
 router.patch("/notifications/mark-all-read", markAllRead);
+
+// Favorites
+router.get("/favorites", getFavorites);
+router.post("/favorites/:carId", addFavorite);
+router.delete("/favorites/:carId", removeFavorite);
 
 export default router;

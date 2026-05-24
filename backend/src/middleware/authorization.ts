@@ -2,7 +2,7 @@ import { Response, NextFunction, RequestHandler } from "express";
 import logger from "../config/winston";
 import AppError from "../utils/AppError";
 import { AuthRequest } from "../types/authRequest";
-import { UserRole } from "../generated/prisma/enums";
+import { UserRole } from "../generated/prisma";
 
 export const restrictTo = (...roles: UserRole[]): RequestHandler => {
   return (req, _res, next) => {

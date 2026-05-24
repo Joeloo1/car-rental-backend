@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -18,7 +18,12 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { adminService } from '../../services/admin.service';
-import { OverviewChart, CategoryChart } from '../../components/Dashboard/DashboardCharts';
+const OverviewChart = lazy(() =>
+  import('../../components/Dashboard/DashboardCharts').then((m) => ({ default: m.OverviewChart }))
+);
+const CategoryChart = lazy(() =>
+  import('../../components/Dashboard/DashboardCharts').then((m) => ({ default: m.CategoryChart }))
+);
 import Button from '../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -259,7 +264,9 @@ const AdminDashboard: React.FC = () => {
                       <CardTitle className="text-lg">Growth Analytics</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <OverviewChart />
+                      <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}>
+                        <OverviewChart />
+                      </Suspense>
                     </CardContent>
                   </Card>
                   <Card>
@@ -267,7 +274,9 @@ const AdminDashboard: React.FC = () => {
                       <CardTitle className="text-lg">Fleet Distribution</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CategoryChart data={categoryData} />
+                      <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}>
+                        <CategoryChart data={categoryData} />
+                      </Suspense>
                       <div className="space-y-3 mt-4">
                         {categoryData.map((item, i) => (
                           <div key={i} className="flex items-center justify-between text-xs">

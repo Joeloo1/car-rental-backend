@@ -134,15 +134,7 @@ export const GetAllCarsService = async (filter: CarQuery) => {
     if (maxPrice) where.pricePerDay.lte = maxPrice;
   }
 
-  /**
-   * Building Order By
-   */
-  let orderBy: any = {};
-  if (sortBy === "averageRating") {
-    orderBy = { createdAt: sortOrder };
-  } else {
-    orderBy = { [sortBy]: sortOrder };
-  }
+  const orderBy: any = { [sortBy]: sortOrder };
 
   const [cars, total] = await Promise.all([
     prisma.car.findMany({
@@ -166,10 +158,8 @@ export const GetAllCarsService = async (filter: CarQuery) => {
             publicId: true,
           },
         },
-        reviews: {
-          select: {
-            rating: true,
-          },
+        _count: {
+          select: { reviews: true },
         },
       },
       orderBy,
@@ -177,28 +167,10 @@ export const GetAllCarsService = async (filter: CarQuery) => {
     prisma.car.count({ where }),
   ]);
 
-  // Calculate average rating
-  let carsWithRating = cars.map((car) => {
-    const avgRating =
-      car.reviews.length > 0
-        ? car.reviews.reduce((sum, review) => sum + review.rating, 0) / car.reviews.length
-        : 0;
-    return {
-      ...car,
-      averageRating: Number(avgRating.toFixed(1)),
-      totalReviews: car.reviews.length,
-      reviews: undefined,
-    };
+  const carsWithRating = cars.map((car) => {
+    const { _count, ...rest } = car;
+    return { ...rest, totalReviews: _count.reviews };
   });
-
-  // Sorting by Average Rating
-  if (sortBy === "averageRating") {
-    carsWithRating = carsWithRating.sort((a, b) => {
-      return sortOrder === "asc"
-        ? a.averageRating - b.averageRating
-        : b.averageRating - a.averageRating;
-    });
-  }
 
   const result = buildResult(carsWithRating, total, page, limit);
 
@@ -281,11 +253,6 @@ export const GetCarByIdService = async (id: string) => {
     throw new AppError("Car not Found", 404);
   }
 
-  const avgRating =
-    car.reviews.length > 0
-      ? car.reviews.reduce((sum, review) => sum + review.rating, 0) / car.reviews.length
-      : 0;
-
   // Sum completed booking counts across all lender cars (already fetched — no extra query)
   const totalTrips = car.lender.cars.reduce((sum, c) => sum + c._count.bookings, 0);
 
@@ -293,7 +260,6 @@ export const GetCarByIdService = async (id: string) => {
 
   const result = {
     ...car,
-    averageRating: Number(avgRating.toFixed(1)),
     totalReviews: car.reviews.length,
     lender: {
       ...lenderWithoutCars,
@@ -415,29 +381,14 @@ export const GetCarsByLenderService = async (lenderId: string) => {
     include: {
       category: true,
       images: { orderBy: [{ isMain: "desc" }, { order: "asc" }] },
-      reviews: {
-        select: {
-          rating: true,
-        },
-      },
+      _count: { select: { reviews: true } },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: { createdAt: "desc" },
   });
 
-  // Calculating the average rating
   const carsWithRating = cars.map((car) => {
-    const avgRating =
-      car.reviews.length > 0
-        ? car.reviews.reduce((sum, review) => sum + review.rating, 0) / car.reviews.length
-        : 0;
-    return {
-      ...car,
-      averageRating: Number(avgRating.toFixed(1)),
-      totalReviews: car.reviews.length,
-      reviews: undefined,
-    };
+    const { _count, ...rest } = car;
+    return { ...rest, totalReviews: _count.reviews };
   });
 
   // ── Cache write ─────────────────────────────────────────────────────────────

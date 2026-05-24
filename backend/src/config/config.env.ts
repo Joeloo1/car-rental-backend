@@ -36,6 +36,7 @@ const config = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET!,
   GOOGLE_REDIRECT_URL: process.env.GOOGLE_REDIRECT_URL,
   REDIS_URL: process.env.REDIS_URL,
+  SERVICE_FEE: Number(process.env.SERVICE_FEE ?? 65),
 };
 
 export default config;

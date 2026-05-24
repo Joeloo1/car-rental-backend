@@ -68,10 +68,7 @@ const FeaturedCars: React.FC<FeaturedCarsProps> = ({
       <div className="container">
         <div className="section-header justify-between flex items-center">
           <div className="header-text">
-            <h2
-              className="section-title"
-              dangerouslySetInnerHTML={{ __html: title }}
-            ></h2>
+            <h2 className="section-title">{title}</h2>
             <p className="section-subtitle">{subtitle}</p>
           </div>
           <Link to="/browse" className="btn-secondary desktop-only">

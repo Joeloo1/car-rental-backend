@@ -36,14 +36,21 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
   // Check if user exists
   const currentUser = await prisma.user.findUnique({
     where: { id: decoded.id },
-    // select: {
-    //   id: true,
-    //   name: true,
-    //   email: true,
-    //   role: true,
-    //   profileImagePublicId: true, // if you use this in controllers
-    //   passwordChangedAt: true,
-    // },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      accountStatus: true,
+      profileImage: true,
+      profileImagePublicId: true,
+      passwordChangedAt: true,
+      isVerified: true,
+      phoneNumber: true,
+      provider: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   if (!currentUser) {
