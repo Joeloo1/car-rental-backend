@@ -4,6 +4,9 @@ import logger from "./winston";
 let redisClient: RedisClientType | null = null;
 let isConnected = false;
 
+/** Expose the client for use by connect-redis session store. May be null if REDIS_URL is unset. */
+export const getClient = () => redisClient;
+
 /**
  * Get or create the Redis client singleton.
  * Returns null if REDIS_URL is not set (graceful degradation).

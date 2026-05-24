@@ -38,7 +38,7 @@ export const CreateReviewService = async (
     throw new AppError("Car not found", 404);
   }
 
-  // prevent User from reviewing there own car
+  // prevent User from reviewing their own car
   if (userId === car.lenderId) {
     logger.warn(`User with ID: ${userId} cannot review their own car`);
     throw new AppError("You cannot review your own car", 400);
@@ -46,6 +46,14 @@ export const CreateReviewService = async (
 
   if (!car.lenderId) {
     throw new AppError("Car has no associated lender", 500);
+  }
+
+  // Only allow reviews after a completed booking
+  const completedBooking = await prisma.booking.findFirst({
+    where: { carId, userId, status: "completed" },
+  });
+  if (!completedBooking) {
+    throw new AppError("You can only review a car after completing a booking", 403);
   }
 
   // Create Review

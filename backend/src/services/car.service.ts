@@ -349,6 +349,17 @@ export const deleteCarService = async (id: string, lenderId?: string) => {
     throw new AppError("Unauthorized: You can only update your own cars", 400);
   }
 
+  // Block deletion if there are active bookings
+  const activeBookingCount = await prisma.booking.count({
+    where: { carId: id, status: { in: ["pending", "confirmed"] } },
+  });
+  if (activeBookingCount > 0) {
+    throw new AppError(
+      "Cannot delete a car with active bookings. Cancel or complete all bookings first.",
+      409,
+    );
+  }
+
   await prisma.car.delete({
     where: { id },
   });
