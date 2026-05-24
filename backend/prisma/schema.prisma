@@ -81,8 +81,8 @@ model Category {
 model Car {
   id                 String     @id @default(uuid())
   title              String
-  brand              String?
-  model              String?
+  brand              String   @default("")
+  model              String   @default("")
   year               Int?
   description        String?
   pricePerDay        Float
@@ -203,6 +203,7 @@ model Notification {
   message   String
   type      String   @default("info")
   isRead    Boolean  @default(false)
+  link      String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

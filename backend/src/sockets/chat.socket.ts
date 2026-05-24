@@ -27,8 +27,35 @@ function isRateLimited(userId: string): boolean {
 }
 
 export const registerChatSocket = (io: Server) => {
+  // Authenticate via handshake token if provided; allow event-based auth as fallback
+  io.use(async (socket, next) => {
+    const token = socket.handshake.auth?.token as string | undefined;
+    if (token) {
+      try {
+        const decoded = (await verifyAccessToken(token)) as { id: string };
+        socket.data.userId = decoded.id;
+        socket.join(`user_${decoded.id}`);
+      } catch {
+        // Invalid token — reject immediately instead of silently connecting
+        return next(new Error("Authentication failed"));
+      }
+    }
+    next();
+  });
+
+  // Disconnect sockets that never authenticated within 10 seconds
   io.on("connection", (socket: Socket) => {
     logger.info(`Socket connected ${socket.id}`);
+
+    if (!socket.data.userId) {
+      const timeout = setTimeout(() => {
+        if (!socket.data.userId) {
+          logger.warn(`Socket ${socket.id} disconnected — no auth within 10s`);
+          socket.disconnect();
+        }
+      }, 10_000);
+      socket.once("disconnect", () => clearTimeout(timeout));
+    }
 
     socket.on("authenticate", async (token: string, callback?: Function) => {
       try {

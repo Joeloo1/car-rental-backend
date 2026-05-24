@@ -244,14 +244,28 @@ export const UpdateBookingStatusService = async (
     deleteCache(`cars:id:${booking.carId}`),
   ]);
 
-  // Send Notification to Renter
-  await CreateNotification(
-    booking.userId,
-    "Booking Status Updated",
-    `Your booking for ${booking.car.title} has been ${status}.`,
-    status === "confirmed" ? "success" : status === "cancelled" ? "warning" : "info",
-    "/dashboard",
-  );
+  const isLenderAction = userRole === "lender";
+  const notifType = status === "confirmed" ? "success" : status === "cancelled" ? "warning" : "info";
+
+  if (isLenderAction) {
+    // Lender acted — notify the renter
+    await CreateNotification(
+      booking.userId,
+      "Booking Status Updated",
+      `Your booking for ${booking.car.title} has been ${status}.`,
+      notifType,
+      "/dashboard",
+    );
+  } else {
+    // Renter acted — notify the lender
+    await CreateNotification(
+      booking.car.lenderId,
+      "Booking Cancelled",
+      `A renter has cancelled their booking for ${booking.car.title}.`,
+      "warning",
+      "/lender",
+    );
+  }
 
   logger.info(`Booking ${bookingId} status updated to ${status}`);
 };

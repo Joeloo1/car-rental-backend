@@ -14,13 +14,7 @@ export const CreateNotification = async (
   try {
     // 1. Save to Database
     const notification = await prisma.notification.create({
-      data: {
-        userId,
-        title,
-        message,
-        type,
-        isRead: false,
-      },
+      data: { userId, title, message, type, isRead: false, link },
     });
 
     // 2. Emit via Socket.io
@@ -29,7 +23,7 @@ export const CreateNotification = async (
       title: notification.title,
       message: notification.message,
       type: notification.type,
-      link,
+      link: notification.link,
       createdAt: notification.createdAt,
     });
 
