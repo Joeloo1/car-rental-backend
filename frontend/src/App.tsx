@@ -6,6 +6,7 @@ import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
 import Toast from "./components/ui/Toast";
 import PageTransition from "./components/common/PageTransition";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 
 // Lazy-load pages
 const LandingPagePro = lazy(() => import("./pages/LandingPagePro.tsx"));
@@ -67,9 +68,11 @@ function App() {
         <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30 selection:text-primary">
           <Navbar />
           <main className="flex-1">
-            <Suspense fallback={<PageSkeleton />}>
-              <AnimatedRoutes />
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<PageSkeleton />}>
+                <AnimatedRoutes />
+              </Suspense>
+            </ErrorBoundary>
           </main>
           <Footer />
         </div>
