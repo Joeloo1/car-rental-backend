@@ -1,16 +1,11 @@
 import { Request, Response } from "express";
-// import jwt from "jsonwebtoken";
 import config from "../../config/config.env";
 import logger from "../../config/winston";
 import catchAsync from "../../utils/catchAsync";
 import { AuthRequest } from "../../types/authRequest";
 import { generateAccessToken, generateRefreshToken } from "@/utils/jwt";
+import { prisma } from "../../config/database";
 
-/**
- * Google OAuth Callback Handler
- * Called after successful Google authentication
- * Generates JWT tokens and returns user data
- */
 export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Response) => {
   const user = req.user;
 
@@ -20,65 +15,58 @@ export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Respo
   }
 
   try {
-    // Fix: use generateRefreshToken for the refresh token (was incorrectly using generateAccessToken)
-    const accessToken = await generateAccessToken({
-      id: user.id,
-      role: user.role,
+    const [accessToken, refreshToken] = await Promise.all([
+      generateAccessToken({ id: user.id, role: user.role }),
+      generateRefreshToken({ id: user.id, role: user.role }),
+    ]);
+
+    // Persist the refresh token so the rotation/lookup logic works
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
     });
 
-    const refreshToken = await generateRefreshToken({
-      id: user.id,
-      role: user.role,
-    });
-
-    // Refresh token goes in an httpOnly cookie only — never in the URL
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: config.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: "lax", // "lax" allows the cookie to be sent after cross-site OAuth redirects
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    logger.info("Google OAuth successful", {
-      userId: user.id,
-      email: user.email,
+    // Set access token as a short-lived, JS-readable cookie so the frontend can
+    // read it once and move it into memory — avoids putting it in the URL/history.
+    res.cookie("oauthAccessToken", accessToken, {
+      httpOnly: false,
+      secure: config.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 1000, // 60 seconds — just long enough for the redirect
     });
 
-    // Redirect to frontend with access token only — refresh token is in the cookie
-    res.redirect(
-      `${config.CLIENT_URL}/auth-success?accessToken=${accessToken}&userId=${user.id}`,
-    );
+    logger.info("Google OAuth successful", { userId: user.id, email: user.email });
+
+    res.redirect(`${config.CLIENT_URL}/auth-success`);
   } catch (error) {
     logger.error("Google OAuth token generation failed", {
       userId: user.id,
       error: error instanceof Error ? error.message : "Unknown error",
     });
-
     res.redirect(`${config.CLIENT_URL}/login?error=token_generation_failed`);
   }
 });
 
-/**
- * Google OAuth Failure Handler
- * Called when Google authentication fails
- */
 export const googleAuthFailure = (_req: Request, res: Response) => {
   logger.warn("Google OAuth authentication failed");
   res.redirect(`${config.CLIENT_URL}/login?error=google_auth_failed`);
 };
 
-/**
- * Get Current User
- * Returns the currently authenticated user
- */
 export const getCurrentUser = catchAsync(async (req: AuthRequest, res: Response): Promise<any> => {
   const user = req.user;
 
   if (!user) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Not authenticated",
-    });
+    return res.status(401).json({ status: "fail", message: "Not authenticated" });
   }
 
   res.status(200).json({

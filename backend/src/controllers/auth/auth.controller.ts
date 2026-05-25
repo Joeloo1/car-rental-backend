@@ -23,16 +23,14 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   logger.info(`User with email: ${newUser.email} Signed Up successfully`);
   res.status(201).json({
     status: "success",
-    message: "Account created successfully. Please check your email to verify your account.",
-    data: { newUser },
-    token: { refreshToken, accessToken },
+    message: "Account created. Please check your email to verify your account before signing in.",
   });
 });
 
@@ -77,7 +75,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -86,7 +84,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     status: "success",
     message: "User logged in Successfully",
     data: { sanitizedUser },
-    tokens: { accessToken, refreshToken },
+    tokens: { accessToken },
   });
 });
 
@@ -160,6 +158,14 @@ export const refreshAccessToken = catchAsync(async (req: Request, res: Response)
     return;
   }
   const result = await refreshAccessTokenService(refreshToken);
+
+  // Set the new rotated refresh token as an HttpOnly cookie
+  res.cookie("refreshToken", result.refreshToken, {
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
   res.status(200).json({
     status: "success",

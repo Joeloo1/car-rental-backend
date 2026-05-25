@@ -11,8 +11,8 @@ export const CarStatusEnum = z.enum(["available", "rented", "maintenance", "unav
 export const CreateCarSchema = z.object({
   body: z.object({
     title: z.string().min(3, "Title must be at least 3 characters"),
-    brand: z.string().optional(),
-    model: z.string().optional(),
+    brand: z.string().min(1, "Brand is required"),
+    model: z.string().min(1, "Model is required"),
     year: z
       .number()
       .int()

@@ -72,4 +72,3 @@ export const deleteUser = catchAsync(async (req: AuthRequest, res: Response) => 
     message: "User deleted successfully",
   });
 });
-

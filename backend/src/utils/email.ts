@@ -93,6 +93,59 @@ export const getNewMessageEmailHtml = (
 </div>
 `;
 
+export const getBookingEmailHtml = (
+  recipientName: string,
+  carLabel: string,
+  startDate: string,
+  endDate: string,
+  totalPrice: number,
+  status: string,
+  dashboardUrl: string,
+): string => {
+  const statusColors: Record<string, string> = {
+    pending: "#f59e0b",
+    confirmed: "#10b981",
+    cancelled: "#ef4444",
+    completed: "#6366f1",
+  };
+  const color = statusColors[status] ?? "#6366f1";
+  const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f6f9fc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f9fc;">
+    <tr><td align="center" style="padding:40px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,.07);overflow:hidden;">
+        <tr><td style="background:${color};padding:36px 30px;text-align:center;">
+          <h1 style="margin:0;color:#fff;font-size:26px;font-weight:700;">Booking ${statusLabel} — LuxeDrive</h1>
+        </td></tr>
+        <tr><td style="padding:36px 30px;">
+          <p style="margin:0 0 16px;color:#1a1a1a;font-size:16px;">Hi ${recipientName},</p>
+          <p style="margin:0 0 24px;color:#4a5568;font-size:15px;line-height:1.6;">
+            Your booking for <strong>${carLabel}</strong> is now <strong style="color:${color};">${statusLabel}</strong>.
+          </p>
+          <table width="100%" cellpadding="12" style="background:#f7fafc;border-radius:8px;margin-bottom:28px;">
+            <tr><td style="color:#718096;font-size:14px;">Pickup</td><td style="color:#2d3748;font-size:14px;font-weight:600;text-align:right;">${startDate}</td></tr>
+            <tr><td style="color:#718096;font-size:14px;">Return</td><td style="color:#2d3748;font-size:14px;font-weight:600;text-align:right;">${endDate}</td></tr>
+            <tr><td style="color:#718096;font-size:14px;border-top:1px solid #e2e8f0;">Total</td><td style="color:#2d3748;font-size:16px;font-weight:700;text-align:right;border-top:1px solid #e2e8f0;">$${totalPrice}</td></tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:0 0 28px;">
+            <a href="${dashboardUrl}" style="display:inline-block;background:${color};color:#fff;text-decoration:none;padding:13px 36px;border-radius:8px;font-size:15px;font-weight:600;">View Booking</a>
+          </td></tr></table>
+          <p style="margin:0;color:#718096;font-size:13px;line-height:1.6;">If you have any questions, reply to this email or visit your dashboard.</p>
+        </td></tr>
+        <tr><td style="background:#f7fafc;padding:24px;text-align:center;border-top:1px solid #e2e8f0;">
+          <p style="margin:0;color:#a0aec0;font-size:12px;">© ${new Date().getFullYear()} LuxeDrive. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+};
+
 export const generatePasswordResetEmail = (resetURL: string, email: string) => {
   return `
 <!DOCTYPE html>

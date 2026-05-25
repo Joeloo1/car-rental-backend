@@ -8,11 +8,7 @@ import {
   markRead,
   markAllRead,
 } from "../../controllers/notification.controller";
-import {
-  getFavorites,
-  addFavorite,
-  removeFavorite,
-} from "../../controllers/favorite.controller";
+import { getFavorites, addFavorite, removeFavorite } from "../../controllers/favorite.controller";
 
 const router: Router = Router();
 

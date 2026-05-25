@@ -6,6 +6,7 @@ import config from "../config/config.env";
 import { CreateBookingInput } from "../schema/booking.schema";
 import { Prisma, BookingStatus } from "../generated/prisma/client";
 import { CreateNotification } from "./notification.service";
+import { sendEmail, getBookingEmailHtml } from "../utils/email";
 
 // ─── Cache TTLs ───────────────────────────────────────────────────────────────
 const TTL_BOOKINGS = 2 * 60; // 2 minutes — bookings change frequently
@@ -104,6 +105,61 @@ export const CreateBookingService = async (
     "info",
     "/dashboard",
   );
+
+  // Send confirmation emails to both parties (fire-and-forget — don't block response)
+  const formatDate = (d: Date) => d.toISOString().split("T")[0];
+  const dashboardUrl = config.CLIENT_URL || "http://localhost:5173";
+
+  try {
+    const [renter, lender] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } }),
+      prisma.user.findUnique({ where: { id: car.lenderId }, select: { email: true, name: true } }),
+    ]);
+
+    const emailData = {
+      carLabel: car.title,
+      startDate: formatDate(booking.startDate),
+      endDate: formatDate(booking.endDate),
+      totalPrice: booking.totalPrice,
+      status: "pending",
+      dashboardUrl,
+    };
+
+    await Promise.all([
+      renter?.email
+        ? sendEmail({
+            email: renter.email,
+            subject: `Booking Request Received — ${car.title} · LuxeDrive`,
+            html: getBookingEmailHtml(
+              renter.name,
+              emailData.carLabel,
+              emailData.startDate,
+              emailData.endDate,
+              emailData.totalPrice,
+              emailData.status,
+              dashboardUrl,
+            ),
+          })
+        : Promise.resolve(),
+      lender?.email
+        ? sendEmail({
+            email: lender.email,
+            subject: `New Booking Request — ${car.title} · LuxeDrive`,
+            html: getBookingEmailHtml(
+              lender.name,
+              emailData.carLabel,
+              emailData.startDate,
+              emailData.endDate,
+              emailData.totalPrice,
+              emailData.status,
+              `${dashboardUrl}/lender`,
+            ),
+          })
+        : Promise.resolve(),
+    ]);
+  } catch (emailErr) {
+    logger.error("Failed to send booking creation emails", emailErr);
+  }
 
   logger.info(`Booking created: ${booking.id}`);
   return booking;
@@ -216,6 +272,26 @@ export const UpdateBookingStatusService = async (
     throw new AppError("You can only update your own bookings", 403);
   }
 
+  // Renters can only cancel — not confirm or complete
+  if (userRole === "User" && status !== "cancelled") {
+    throw new AppError("Renters can only cancel a booking", 403);
+  }
+
+  // State machine: enforce valid transitions
+  const VALID_TRANSITIONS: Record<string, BookingStatus[]> = {
+    pending: ["confirmed", "cancelled"],
+    confirmed: ["completed", "cancelled"],
+    completed: [],
+    cancelled: [],
+  };
+  const allowed = VALID_TRANSITIONS[booking.status as string] ?? [];
+  if (!allowed.includes(status)) {
+    throw new AppError(
+      `Cannot transition booking from "${booking.status}" to "${status}"`,
+      400,
+    );
+  }
+
   // If cancelling or completing, make the car available again
   if (status === "cancelled" || status === "completed") {
     await prisma.$transaction([
@@ -245,7 +321,8 @@ export const UpdateBookingStatusService = async (
   ]);
 
   const isLenderAction = userRole === "lender";
-  const notifType = status === "confirmed" ? "success" : status === "cancelled" ? "warning" : "info";
+  const notifType =
+    status === "confirmed" ? "success" : status === "cancelled" ? "warning" : "info";
 
   if (isLenderAction) {
     // Lender acted — notify the renter
@@ -265,6 +342,68 @@ export const UpdateBookingStatusService = async (
       "warning",
       "/lender",
     );
+  }
+
+  // Email both parties on confirmed or cancelled
+  if (status === "confirmed" || status === "cancelled") {
+    try {
+      const formatDate = (d: Date) => d.toISOString().split("T")[0];
+      const dashboardUrl = config.CLIENT_URL || "http://localhost:5173";
+
+      const [renter, lender] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: { email: true, name: true },
+        }),
+        prisma.user.findUnique({
+          where: { id: booking.car.lenderId },
+          select: { email: true, name: true },
+        }),
+      ]);
+
+      const emailData = {
+        carLabel: booking.car.title,
+        startDate: formatDate(booking.startDate),
+        endDate: formatDate(booking.endDate),
+        totalPrice: booking.totalPrice,
+        status,
+      };
+
+      await Promise.all([
+        renter?.email
+          ? sendEmail({
+              email: renter.email,
+              subject: `Booking ${status === "confirmed" ? "Confirmed" : "Cancelled"} — ${booking.car.title} · LuxeDrive`,
+              html: getBookingEmailHtml(
+                renter.name,
+                emailData.carLabel,
+                emailData.startDate,
+                emailData.endDate,
+                emailData.totalPrice,
+                emailData.status,
+                dashboardUrl,
+              ),
+            })
+          : Promise.resolve(),
+        lender?.email
+          ? sendEmail({
+              email: lender.email,
+              subject: `Booking ${status === "confirmed" ? "Confirmed" : "Cancelled"} — ${booking.car.title} · LuxeDrive`,
+              html: getBookingEmailHtml(
+                lender.name,
+                emailData.carLabel,
+                emailData.startDate,
+                emailData.endDate,
+                emailData.totalPrice,
+                emailData.status,
+                `${dashboardUrl}/lender`,
+              ),
+            })
+          : Promise.resolve(),
+      ]);
+    } catch (emailErr) {
+      logger.error("Failed to send booking status update emails", emailErr);
+    }
   }
 
   logger.info(`Booking ${bookingId} status updated to ${status}`);
