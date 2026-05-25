@@ -30,14 +30,50 @@ const cleanupExpiredTokens = async () => {
   }
 };
 
+const autoCompleteExpiredBookings = async () => {
+  try {
+    const now = new Date();
+
+    // Find all pending/confirmed bookings whose rental period has ended
+    const expired = await prisma.booking.findMany({
+      where: {
+        status: { in: ["pending", "confirmed"] },
+        endDate: { lt: now },
+      },
+      include: { car: { select: { id: true, title: true, lenderId: true } } },
+    });
+
+    if (expired.length === 0) return;
+
+    // Mark them completed and free the cars in one transaction
+    await prisma.$transaction([
+      prisma.booking.updateMany({
+        where: { id: { in: expired.map((b) => b.id) } },
+        data: { status: "completed" },
+      }),
+      prisma.car.updateMany({
+        where: { id: { in: [...new Set(expired.map((b) => b.carId))] } },
+        data: { availabilityStatus: "available" },
+      }),
+    ]);
+
+    logger.info(`Auto-completed ${expired.length} expired booking(s)`);
+  } catch (err) {
+    logger.error("Failed to auto-complete expired bookings:", err);
+  }
+};
+
 connectDB();
 connectRedis();
 
 server.listen(port, async () => {
   logger.info(`Server running on PORT: ${port}...`);
   await cleanupExpiredTokens();
-  // Re-run every 24 hours
+  await autoCompleteExpiredBookings();
+  // Refresh token cleanup: every 24 hours
   setInterval(cleanupExpiredTokens, 24 * 60 * 60 * 1000);
+  // Booking auto-completion: every hour
+  setInterval(autoCompleteExpiredBookings, 60 * 60 * 1000);
 });
 
 let isShuttingDown = false;

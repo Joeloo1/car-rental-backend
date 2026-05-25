@@ -37,7 +37,10 @@ const config = {
   GOOGLE_REDIRECT_URL: process.env.GOOGLE_REDIRECT_URL,
   REDIS_URL: process.env.REDIS_URL,
   SERVICE_FEE: Number(process.env.SERVICE_FEE ?? 65),
-  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173").split(",").map((o) => o.trim()),
+  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173")
+    .split(",")
+    .map((o) => o.trim()),
+  ADMIN_SIGNUP_SECRET: process.env.ADMIN_SIGNUP_SECRET,
 };
 
 export default config;

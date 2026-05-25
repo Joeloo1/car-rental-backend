@@ -209,7 +209,10 @@ export const loginService = async (data: LoginInput) => {
 
   // Google OAuth users have no password
   if (!user.passwordHash) {
-    throw new AppError("This account uses Google sign-in. Please use the Google button to log in.", 400);
+    throw new AppError(
+      "This account uses Google sign-in. Please use the Google button to log in.",
+      400,
+    );
   }
 
   // Compare the passwords
@@ -447,14 +450,34 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
     throw new AppError("Account is not active", 403);
   }
 
-  // Generate new access token
+  // Rotate: issue new access + refresh token, revoke the old one
   const payload = { id: storedToken.user.id, role: storedToken.user.role };
-  const newAccessToken = await generateAccessToken(payload);
 
-  logger.info(`Access token refreshed for user: ${storedToken.user.id}`);
+  const [newAccessToken, newRefreshToken] = await Promise.all([
+    generateAccessToken(payload),
+    generateRefreshToken(payload),
+  ]);
+
+  // deleteMany (not delete) so a React StrictMode double-fire or any concurrent
+  // request using the same cookie doesn't throw "record not found for delete".
+  const { count } = await prisma.refreshToken.deleteMany({ where: { id: storedToken.id } });
+  if (count === 0) {
+    // Token was already rotated by a concurrent request — treat as invalid
+    throw new AppError("Invalid refresh token", 401);
+  }
+  await prisma.refreshToken.create({
+    data: {
+      token: newRefreshToken,
+      userId: storedToken.user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  logger.info(`Tokens rotated for user: ${storedToken.user.id}`);
 
   return {
     accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
     user: {
       id: storedToken.user.id,
       name: storedToken.user.name,

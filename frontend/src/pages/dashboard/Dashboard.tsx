@@ -15,14 +15,12 @@ import {
   Compass,
   ChevronRight,
   Star,
-  Mail,
-  Phone,
-  Shield,
   Bell,
   Key,
   AlertTriangle,
   MapPin,
 } from 'lucide-react';
+import ProfileEditor from '../../components/common/ProfileEditor';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { bookingService } from '../../services/booking.service.ts';
@@ -281,20 +279,27 @@ const Dashboard: React.FC = () => {
             <div className="p-6 rounded-3xl bg-[#111115] border border-white/8 space-y-6">
               {/* Profile */}
               <div className="flex flex-col items-center text-center pb-6 border-b border-white/8">
-                <div className="relative mb-4">
+                <button
+                  onClick={() => setActiveNav('profile')}
+                  className="relative mb-4 group focus:outline-none"
+                  title="Edit profile"
+                >
                   <img
                     src={
                       user?.profileImage ||
-                      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=3b82f6&color=fff&size=200`
                     }
                     alt={user?.name}
-                    className="w-20 h-20 rounded-full object-cover ring-2 ring-blue-500/30"
+                    className="w-20 h-20 rounded-full object-cover ring-2 ring-blue-500/30 group-hover:ring-blue-400/60 transition-all"
                   />
                   <span className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 rounded-full border-2 border-[#111115]" />
-                </div>
+                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-white text-[9px] font-bold">Edit</span>
+                  </div>
+                </button>
                 <h3 className="font-bold text-white text-lg">{user?.name || 'User'}</h3>
                 <span className="text-xs text-gray-400 mt-1 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                  {user?.role === 'lender' ? 'Elite Lender' : 'Premium Member'}
+                  {user?.role === 'lender' ? 'Elite Lender' : user?.role === 'admin' ? 'Administrator' : 'Premium Member'}
                 </span>
               </div>
 
@@ -482,80 +487,7 @@ const Dashboard: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-6"
               >
-                {/* Profile Card */}
-                <div className="p-8 rounded-2xl bg-[#111115] border border-white/8">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                    <div className="relative flex-shrink-0">
-                      <img
-                        src={
-                          user?.profileImage ||
-                          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
-                        }
-                        alt={user?.name}
-                        className="w-24 h-24 rounded-2xl object-cover ring-2 ring-blue-500/30"
-                      />
-                      <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#111115]" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-white mb-1">{user?.name}</h3>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/20">
-                        <CheckCircle size={12} />
-                        {user?.role === 'lender' ? 'Verified Lender' : 'Premium Member'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[
-                    {
-                      icon: Mail,
-                      label: 'Email Address',
-                      value: user?.email || '—',
-                      color: 'text-blue-400',
-                      bg: 'bg-blue-400/10',
-                    },
-                    {
-                      icon: Phone,
-                      label: 'Phone Number',
-                      value: user?.phoneNumber || 'Not provided',
-                      color: 'text-purple-400',
-                      bg: 'bg-purple-400/10',
-                    },
-                    {
-                      icon: UserIcon,
-                      label: 'Account Role',
-                      value: user?.role === 'lender' ? 'Car Lender' : 'Car Borrower',
-                      color: 'text-emerald-400',
-                      bg: 'bg-emerald-400/10',
-                    },
-                    {
-                      icon: Shield,
-                      label: 'Account Status',
-                      value: user?.isVerified ? 'Verified' : 'Pending Verification',
-                      color: user?.isVerified ? 'text-emerald-400' : 'text-yellow-400',
-                      bg: user?.isVerified ? 'bg-emerald-400/10' : 'bg-yellow-400/10',
-                    },
-                  ].map((field, i) => (
-                    <div
-                      key={i}
-                      className="p-5 rounded-2xl bg-[#111115] border border-white/8 flex items-center gap-4"
-                    >
-                      <div
-                        className={`w-11 h-11 rounded-xl ${field.bg} flex items-center justify-center flex-shrink-0`}
-                      >
-                        <field.icon size={20} className={field.color} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-0.5">
-                          {field.label}
-                        </p>
-                        <p className="text-sm font-semibold text-white truncate">{field.value}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <ProfileEditor theme="dark" />
 
                 {/* Stats Row */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

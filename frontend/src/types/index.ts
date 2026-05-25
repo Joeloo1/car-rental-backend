@@ -40,6 +40,8 @@ export type Car = {
   longitude?: number;
   averageRating?: number;
   totalReviews?: number;
+  serviceFee?: number;
+  bookedDates?: Array<{ startDate: string; endDate: string }>;
   images: Array<{
     id: string;
     imageUrl: string;

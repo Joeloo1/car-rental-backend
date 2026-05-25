@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
+import { tokenStore } from "../utils/tokenStore";
 import type { User, LoginCredentials, RegisterData } from "../types/index";
 
 interface AuthContextType {
@@ -11,28 +12,26 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   setToken: (token: string) => Promise<void>;
+  updateUser: (partial: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // On mount: try to get a fresh access token via the refresh cookie, then load user
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        if (token) {
-          const res = await api.get("/users/me");
-          setUser(res.data.data.user);
-        }
-      } catch (error) {
-        // Silently clear invalid token
-        console.log("Auth check failed, clearing token");
-        localStorage.removeItem("accessToken");
+        const res = await api.post("/auth/refresh-token", {});
+        const { accessToken } = res.data;
+        tokenStore.set(accessToken);
+        const meRes = await api.get("/users/me");
+        setUser(meRes.data.data.user);
+      } catch {
+        tokenStore.clear();
       } finally {
         setIsLoading(false);
       }
@@ -42,31 +41,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const setToken = async (token: string) => {
-    localStorage.setItem("accessToken", token);
+    tokenStore.set(token);
     try {
       const res = await api.get("/users/me");
       setUser(res.data.data.user);
     } catch (error) {
-      localStorage.removeItem("accessToken");
+      tokenStore.clear();
       setUser(null);
       throw error;
     }
   };
 
   const login = async (credentials: LoginCredentials) => {
-    // Backend returns: { status, message, data: { sanitizedUser }, tokens: { accessToken, refreshToken } }
     const res = await api.post("/auth/login", credentials);
     const { data, tokens } = res.data;
-    localStorage.setItem("accessToken", tokens.accessToken);
+    tokenStore.set(tokens.accessToken);
     setUser(data.sanitizedUser);
   };
 
+  // register does NOT log the user in — they must verify their email first
   const register = async (userData: RegisterData) => {
-    // Backend returns: { status, message, data: { newUser }, token: { accessToken, refreshToken } }
-    const res = await api.post("/auth/signup", userData);
-    const { data, token } = res.data;
-    localStorage.setItem("accessToken", token.accessToken);
-    setUser(data.newUser);
+    await api.post("/auth/signup", userData);
+  };
+
+  const updateUser = (partial: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...partial } : prev));
   };
 
   const logout = async () => {
@@ -75,7 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } catch {
       // Ignore logout errors
     } finally {
-      localStorage.removeItem("accessToken");
+      tokenStore.clear();
       setUser(null);
     }
   };
@@ -90,6 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         register,
         logout,
         setToken,
+        updateUser,
       }}
     >
       {children}

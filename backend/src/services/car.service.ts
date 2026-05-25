@@ -4,6 +4,8 @@ import AppError from "../utils/AppError";
 import { CreateCarInput, UpdateCarInput, CarQuery } from "../schema/car.schema";
 import logger from "../config/winston";
 import { CarStatus } from "../generated/prisma/client";
+import cloudinary from "../config/cloudinary";
+import config from "../config/config.env";
 
 // ─── Cache TTLs (seconds) ─────────────────────────────────────────────────────
 const TTL_CAR_LIST = 5 * 60; // 5 minutes
@@ -31,26 +33,27 @@ export const CreateCarService = async (data: CreateCarInput, user: any) => {
   }
 
   const car = await prisma.car.create({
-    data: {
-      title: data.title,
-      brand: data.brand,
-      model: data.model,
-      year: data.year,
-      description: data.description,
-      pricePerDay: data.pricePerDay,
-      locationCity: data.locationCity,
-      availabilityStatus: data.availabilityStatus || "available",
-      lenderId: user.id,
-      categoryId: data.categoryId,
-      fuelType: data.fuelType,
-      transmission: data.transmission,
-      seats: data.seats,
-      topSpeed: data.topSpeed,
-      acceleration: data.acceleration,
-      enginePower: data.enginePower,
-      latitude: data.latitude,
-      longitude: data.longitude,
-    },
+    data: { ...data, lenderId: user.id },
+    // data: {
+    //   title: data.title,
+    //   brand: data.brand,
+    //   model: data.model,
+    //   year: data.year,
+    //   description: data.description,
+    //   pricePerDay: data.pricePerDay,
+    //   locationCity: data.locationCity,
+    //   availabilityStatus: data.availabilityStatus || "available",
+    //   lenderId: user.id,
+    //   categoryId: data.categoryId,
+    //   fuelType: data.fuelType,
+    //   transmission: data.transmission,
+    //   seats: data.seats,
+    //   topSpeed: data.topSpeed,
+    //   acceleration: data.acceleration,
+    //   enginePower: data.enginePower,
+    //   latitude: data.latitude,
+    //   longitude: data.longitude,
+    // },
 
     include: {
       lender: {
@@ -207,46 +210,56 @@ export const GetCarByIdService = async (id: string) => {
     return cached;
   }
 
-  const car = await prisma.car.findUnique({
-    where: { id },
-    include: {
-      lender: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phoneNumber: true,
-          profileImage: true,
-          createdAt: true,
-          cars: {
-            select: {
-              _count: { select: { bookings: { where: { status: "completed" } } } },
+  const [car, bookedRanges] = await Promise.all([
+    prisma.car.findUnique({
+      where: { id },
+      include: {
+        lender: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            profileImage: true,
+            createdAt: true,
+            cars: {
+              select: {
+                _count: { select: { bookings: { where: { status: "completed" } } } },
+              },
             },
           },
         },
-      },
-      category: true,
-      images: {
-        orderBy: [{ isMain: "desc" }, { order: "asc" }],
-      },
-      reviews: {
-        select: {
-          rating: true,
-          comment: true,
-          createdAt: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
+        category: true,
+        images: {
+          orderBy: [{ isMain: "desc" }, { order: "asc" }],
+        },
+        reviews: {
+          select: {
+            rating: true,
+            comment: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
-        },
-        orderBy: {
-          createdAt: "desc",
+          orderBy: {
+            createdAt: "desc",
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.booking.findMany({
+      where: {
+        carId: id,
+        status: { in: ["pending", "confirmed"] },
+        endDate: { gte: new Date() },
+      },
+      select: { startDate: true, endDate: true },
+    }),
+  ]);
 
   if (!car) {
     logger.warn(`Car with ID: ${id}`);
@@ -261,6 +274,11 @@ export const GetCarByIdService = async (id: string) => {
   const result = {
     ...car,
     totalReviews: car.reviews.length,
+    serviceFee: config.SERVICE_FEE,
+    bookedDates: bookedRanges.map((b) => ({
+      startDate: b.startDate.toISOString().split("T")[0],
+      endDate: b.endDate.toISOString().split("T")[0],
+    })),
     lender: {
       ...lenderWithoutCars,
       totalTrips,
@@ -360,9 +378,19 @@ export const deleteCarService = async (id: string, lenderId?: string) => {
     );
   }
 
-  await prisma.car.delete({
-    where: { id },
+  // Remove images from Cloudinary before deleting the car record
+  const images = await prisma.carImage.findMany({
+    where: { carId: id },
+    select: { publicId: true },
   });
+
+  if (images.length > 0) {
+    await Promise.allSettled(
+      images.map((img) => cloudinary.uploader.destroy(img.publicId)),
+    );
+  }
+
+  await prisma.car.delete({ where: { id } });
 
   // Invalidate relevant caches
   await Promise.all([
@@ -371,7 +399,7 @@ export const deleteCarService = async (id: string, lenderId?: string) => {
     deleteCache(`cars:lender:${car.lenderId}`),
   ]);
 
-  logger.info(`Deleting car with ID: ${id}`);
+  logger.info(`Deleted car ${id} with ${images.length} Cloudinary image(s) removed`);
 };
 
 /**
