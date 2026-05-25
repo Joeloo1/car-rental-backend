@@ -65,9 +65,24 @@ const CarDetails: React.FC = () => {
     },
   });
 
+  const isDateRangeBlocked = (start: string, end: string): boolean => {
+    if (!car?.bookedDates || !start || !end) return false;
+    const s = new Date(start);
+    const e = new Date(end);
+    return car.bookedDates.some((range: { startDate: string; endDate: string }) => {
+      const rs = new Date(range.startDate);
+      const re = new Date(range.endDate);
+      return s <= re && e >= rs;
+    });
+  };
+
   const handleReserve = () => {
     if (!dates.startDate || !dates.endDate) {
       toast.error("Please select pickup and return dates");
+      return;
+    }
+    if (isDateRangeBlocked(dates.startDate, dates.endDate)) {
+      toast.error("Selected dates overlap with an existing booking. Please choose different dates.");
       return;
     }
     bookingMutation.mutate(dates);
@@ -80,10 +95,12 @@ const CarDetails: React.FC = () => {
     return Math.max(Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)), 1);
   };
 
+  const serviceFee = car?.serviceFee ?? 65;
+
   const calculateTotal = () => {
     if (!car) return 0;
     const days = calculateDays();
-    return days > 0 ? car.pricePerDay * days + 65 : 0;
+    return days > 0 ? car.pricePerDay * days + serviceFee : 0;
   };
 
   const fallbackImages = [
@@ -383,7 +400,7 @@ const CarDetails: React.FC = () => {
                        </div>
                        <div className="flex justify-between text-sm">
                          <span className="text-muted-foreground">Insurance & Service</span>
-                         <span className="font-bold">$65</span>
+                         <span className="font-bold">${serviceFee}</span>
                        </div>
                        <div className="pt-3 border-t border-border flex justify-between items-center">
                          <span className="font-display font-bold">Total Amount</span>

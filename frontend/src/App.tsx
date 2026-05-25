@@ -7,6 +7,7 @@ import Footer from "./components/common/Footer";
 import Toast from "./components/ui/Toast";
 import PageTransition from "./components/common/PageTransition";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // Lazy-load pages
 const LandingPagePro = lazy(() => import("./pages/LandingPagePro.tsx"));
@@ -51,10 +52,18 @@ const AnimatedRoutes = () => {
         <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route path="/browse"              element={<PageTransition><BrowseCars /></PageTransition>} />
         <Route path="/car/:id"             element={<PageTransition><CarDetails /></PageTransition>} />
-        <Route path="/dashboard"           element={<PageTransition><Dashboard /></PageTransition>} />
-        <Route path="/lender"              element={<PageTransition><LenderDashboard /></PageTransition>} />
-        <Route path="/admin"               element={<PageTransition><AdminDashboard /></PageTransition>} />
+        <Route path="/dashboard"           element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
+        <Route path="/lender"              element={<ProtectedRoute allowedRoles={["lender", "admin"]}><PageTransition><LenderDashboard /></PageTransition></ProtectedRoute>} />
+        <Route path="/admin"               element={<ProtectedRoute allowedRoles={["admin"]}><PageTransition><AdminDashboard /></PageTransition></ProtectedRoute>} />
         <Route path="/how-it-works"        element={<PageTransition><HowItWorks /></PageTransition>} />
+        <Route path="*"                    element={
+          <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 text-center px-4">
+            <h1 className="text-7xl font-display font-black text-primary">404</h1>
+            <h2 className="text-2xl font-bold text-foreground">Page not found</h2>
+            <p className="text-muted-foreground max-w-sm">The page you're looking for doesn't exist or has been moved.</p>
+            <a href="/" className="mt-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold">Go Home</a>
+          </div>
+        } />
       </Routes>
     </AnimatePresence>
   );

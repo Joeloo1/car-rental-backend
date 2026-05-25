@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -20,8 +20,11 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { login } = useAuth();
+
+  const from = (location.state as { from?: Location })?.from?.pathname || "/dashboard";
 
   const {
     register,
@@ -51,7 +54,7 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormValues) => {
     try {
       await login(data);
-      navigate("/dashboard");
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       const error = err as ApiError;
       const errorMessage = error.response?.data?.message || "Failed to login";

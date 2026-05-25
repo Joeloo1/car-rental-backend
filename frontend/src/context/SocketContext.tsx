@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { tokenStore } from '../utils/tokenStore';
 import { toast } from 'react-hot-toast';
 
 interface SocketContextType {
@@ -16,21 +17,15 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!user) return;
 
-    const token = localStorage.getItem('accessToken');
+    const token = tokenStore.get();
     if (!token) return;
 
     const socketUrl = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:3000';
     const s = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
-    });
-
-    s.on('connect', () => {
-      s.emit('authenticate', token, (res: { success: boolean }) => {
-        if (res.success) {
-          console.log('Global socket authenticated');
-        }
-      });
+      // Pass token at handshake time — handled by io.use() middleware on the backend
+      auth: { token },
     });
 
     s.on('new_notification', (data: { type: string; title: string; message: string }) => {

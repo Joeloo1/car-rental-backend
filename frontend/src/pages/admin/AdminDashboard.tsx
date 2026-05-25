@@ -13,7 +13,9 @@ import {
   ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
+  User as UserIcon,
 } from 'lucide-react';
+import ProfileEditor from '../../components/common/ProfileEditor';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
@@ -33,7 +35,7 @@ import { cn } from '../../utils/cn';
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'cars'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'cars' | 'profile'>('overview');
   const [userSearch, setUserSearch] = useState('');
   const [carSearch, setCarSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -204,6 +206,7 @@ const AdminDashboard: React.FC = () => {
             { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
             { id: 'users', label: 'User Directory', icon: Users },
             { id: 'cars', label: 'Vehicle Listings', icon: Car },
+            { id: 'profile', label: 'My Profile', icon: UserIcon },
           ].map((tab) => (
             <Button
               key={tab.id}
@@ -376,6 +379,16 @@ const AdminDashboard: React.FC = () => {
                   onDelete={(id) => { setDeletingId(id); deleteCarMutation.mutate(id); }}
                   deletingId={deletingId}
                 />
+              </motion.div>
+            )}
+
+            {activeTab === 'profile' && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-3xl"
+              >
+                <ProfileEditor theme="system" />
               </motion.div>
             )}
           </>

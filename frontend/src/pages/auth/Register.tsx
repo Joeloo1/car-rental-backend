@@ -50,7 +50,8 @@ const Register: React.FC = () => {
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       await registerAuth(data);
-      navigate("/dashboard");
+      toast.success("Account created! Check your email to verify before signing in.");
+      navigate("/login");
     } catch (err: unknown) {
       const error = err as ApiError;
       const errorMessage =

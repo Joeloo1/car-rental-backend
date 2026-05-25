@@ -17,7 +17,9 @@ import {
   Gauge,
   AlertTriangle,
   Banknote,
+  User as UserIcon,
 } from 'lucide-react';
+import ProfileEditor from '../../components/common/ProfileEditor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
@@ -49,7 +51,7 @@ const CAR_PLACEHOLDER =
 const LenderDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'cars' | 'bookings' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cars' | 'bookings' | 'messages' | 'profile'>('overview');
   const [isAddCarOpen, setIsAddCarOpen] = useState(false);
   const [carToDelete, setCarToDelete] = useState<any | null>(null);
   const queryClient = useQueryClient();
@@ -216,6 +218,7 @@ const LenderDashboard: React.FC = () => {
             { id: 'cars', label: 'My Vehicles', icon: Car },
             { id: 'bookings', label: 'Bookings', icon: Calendar, badge: pendingBookings.length },
             { id: 'messages', label: 'Messages', icon: MessageCircle, badge: unreadChatCount },
+            { id: 'profile', label: 'Profile', icon: UserIcon },
           ].map((tab) => (
             <Button
               key={tab.id}
@@ -352,6 +355,12 @@ const LenderDashboard: React.FC = () => {
             )}
 
             {activeTab === 'messages' && <LenderChatInbox />}
+
+            {activeTab === 'profile' && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-3xl">
+                <ProfileEditor theme="system" />
+              </motion.div>
+            )}
 
             {activeTab === 'bookings' && (
                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
