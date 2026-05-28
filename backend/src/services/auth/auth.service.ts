@@ -1,6 +1,7 @@
 import { prisma } from "../../config/database";
 import AppError from "../../utils/AppError";
 import logger from "../../config/winston";
+import { deleteCache } from "../../config/redis";
 import { LoginInput, SignupInput } from "../../schema/auth.schema";
 import {
   hashPassword,
@@ -15,7 +16,10 @@ import {
   verifyEmailToken,
   verifyRefreshToken,
 } from "../../utils/jwt";
-import { sendEmail, getVerificationEmailHtml, generatePasswordResetEmail } from "../../utils/email";
+// IMPROVEMENT: auth emails now go through the BullMQ queue via dispatchEmail.
+// OLD: import { sendEmail, getVerificationEmailHtml, generatePasswordResetEmail } from "../../utils/email";
+import { getVerificationEmailHtml, generatePasswordResetEmail } from "../../utils/email";
+import { dispatchEmail } from "../../workers/email.worker";
 import config from "../../config/config.env";
 import { UserRole } from "../../generated/prisma/client";
 import { JwtPayload } from "jsonwebtoken";
@@ -67,24 +71,15 @@ export const signupService = async (data: SignupInput) => {
 
   const verifyUrl = `${config.CLIENT_URL}/api/auth/verify-email?token=${verificationToken}`;
 
-  sendEmail({
+  // IMPROVEMENT: enqueue instead of fire-and-forget. If the SMTP call fails the
+  // worker retries automatically (up to 3 attempts) — the old pattern silently
+  // dropped the email on transient failures.
+  // OLD: sendEmail({...}).then(...).catch(...)
+  await dispatchEmail({
     email: newUser.email,
     subject: "Verify Your Email Address",
     html: getVerificationEmailHtml(verifyUrl, newUser.name),
-  })
-    .then(() => {
-      logger.info("Verification email sent successfully", {
-        userId: newUser.id,
-        email: newUser.email,
-      });
-    })
-    .catch((error) => {
-      logger.error("Failed to send verification email", {
-        userId: newUser.id,
-        email: newUser.email,
-        error: error.message,
-      });
-    });
+  });
 
   // Generate accessToken and refreshToken
   const payload = { id: newUser.id, role: newUser.role };
@@ -131,6 +126,11 @@ export const verifyEmailService = async (token: string) => {
     throw new AppError("Invalid  or expired verification link", 400);
   }
 
+  if (user.verifyTokenExpiry && user.verifyTokenExpiry < new Date()) {
+    logger.warn(`Verification token expired for user: ${user.email}`);
+    throw new AppError("Verification link has expired. Please request a new one.", 400);
+  }
+
   await prisma.user.update({
     where: { id: user.id },
     data: {
@@ -174,16 +174,14 @@ export const resendverifyEmailService = async (email: string) => {
   if (!clientUrl) {
     throw new Error("CLIENT_URL is not defined");
   }
-
-  // Send verification email
   const verifyUrl = `${config.CLIENT_URL}/api/auth/verify-email?token=${verificationToken}`;
 
-  await sendEmail({
+  await dispatchEmail({
     email: user.email,
     subject: "Verify your email",
     html: getVerificationEmailHtml(verifyUrl, user.name),
   });
-  logger.info(`Verification email resent to ${user.email}`);
+  logger.info(`Verification email queued for ${user.email}`);
 };
 
 /**
@@ -300,27 +298,21 @@ export const forgotPasswordServices = async (email: string) => {
   const resetURL = `${config.CLIENT_URL}/reset-password/${passwordResetToken}`;
 
   try {
-    await sendEmail({
+    await dispatchEmail({
       email: user.email,
       subject: "Your password reset token (valid for 10 min)",
       html: generatePasswordResetEmail(resetURL, user.email),
     });
 
-    logger.info("Password reset token sent successfully", {
-      email,
-      userId: user.id,
-    });
+    logger.info("Password reset email queued", { email, userId: user.id });
     return { message: "Password reset link has been sent to your email" };
   } catch (err) {
     await prisma.user.update({
       where: { email },
-      data: {
-        passwordResetToken: null,
-        passwordResetTokenExpiry: null,
-      },
+      data: { passwordResetToken: null, passwordResetTokenExpiry: null },
     });
 
-    logger.error("Error sending password reset email", { email, error: err });
+    logger.error("Error queuing password reset email", { email, error: err });
     throw new AppError("Error sending email. Please try again later.", 500);
   }
 };
@@ -375,6 +367,8 @@ export const resetPasswordService = async (
     },
   });
 
+  await deleteCache(`auth:user:${user.id}`);
+
   logger.info("Password reset successful", { userId: user.id });
 
   return {
@@ -386,9 +380,6 @@ export const resetPasswordService = async (
  *  Log Out
  */
 export const logOutService = async (userId: string, refreshToken: string | null) => {
-  // If a specific token is provided, revoke only that session (single-device logout).
-  // If no token is available (e.g. client sent no body/cookie), revoke all sessions
-  // for this user so logout always succeeds.
   await prisma.refreshToken.deleteMany({
     where: refreshToken ? { userId, token: refreshToken } : { userId },
   });

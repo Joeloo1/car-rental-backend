@@ -6,7 +6,8 @@ import config from "../config/config.env";
 import { CreateBookingInput } from "../schema/booking.schema";
 import { Prisma, BookingStatus } from "../generated/prisma/client";
 import { CreateNotification } from "./notification.service";
-import { sendEmail, getBookingEmailHtml } from "../utils/email";
+import { getBookingEmailHtml } from "../utils/email";
+import { dispatchEmail } from "../workers/email.worker";
 
 // ─── Cache TTLs ───────────────────────────────────────────────────────────────
 const TTL_BOOKINGS = 2 * 60; // 2 minutes — bookings change frequently
@@ -106,60 +107,54 @@ export const CreateBookingService = async (
     "/dashboard",
   );
 
-  // Send confirmation emails to both parties (fire-and-forget — don't block response)
   const formatDate = (d: Date) => d.toISOString().split("T")[0];
   const dashboardUrl = config.CLIENT_URL || "http://localhost:5173";
 
-  try {
-    const [renter, lender] = await Promise.all([
-      prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } }),
-      prisma.user.findUnique({ where: { id: car.lenderId }, select: { email: true, name: true } }),
-    ]);
+  const [renter, lender] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } }),
+    prisma.user.findUnique({ where: { id: car.lenderId }, select: { email: true, name: true } }),
+  ]);
 
-    const emailData = {
-      carLabel: car.title,
-      startDate: formatDate(booking.startDate),
-      endDate: formatDate(booking.endDate),
-      totalPrice: booking.totalPrice,
-      status: "pending",
-      dashboardUrl,
-    };
+  const emailBase = {
+    carLabel: car.title,
+    startDate: formatDate(booking.startDate),
+    endDate: formatDate(booking.endDate),
+    totalPrice: booking.totalPrice,
+    status: "pending",
+  };
 
-    await Promise.all([
-      renter?.email
-        ? sendEmail({
-            email: renter.email,
-            subject: `Booking Request Received — ${car.title} · LuxeDrive`,
-            html: getBookingEmailHtml(
-              renter.name,
-              emailData.carLabel,
-              emailData.startDate,
-              emailData.endDate,
-              emailData.totalPrice,
-              emailData.status,
-              dashboardUrl,
-            ),
-          })
-        : Promise.resolve(),
-      lender?.email
-        ? sendEmail({
-            email: lender.email,
-            subject: `New Booking Request — ${car.title} · LuxeDrive`,
-            html: getBookingEmailHtml(
-              lender.name,
-              emailData.carLabel,
-              emailData.startDate,
-              emailData.endDate,
-              emailData.totalPrice,
-              emailData.status,
-              `${dashboardUrl}/lender`,
-            ),
-          })
-        : Promise.resolve(),
-    ]);
-  } catch (emailErr) {
-    logger.error("Failed to send booking creation emails", emailErr);
-  }
+  await Promise.all([
+    renter?.email
+      ? dispatchEmail({
+          email: renter.email,
+          subject: `Booking Request Received — ${car.title} · LuxeDrive`,
+          html: getBookingEmailHtml(
+            renter.name,
+            emailBase.carLabel,
+            emailBase.startDate,
+            emailBase.endDate,
+            emailBase.totalPrice,
+            emailBase.status,
+            dashboardUrl,
+          ),
+        })
+      : Promise.resolve(),
+    lender?.email
+      ? dispatchEmail({
+          email: lender.email,
+          subject: `New Booking Request — ${car.title} · LuxeDrive`,
+          html: getBookingEmailHtml(
+            lender.name,
+            emailBase.carLabel,
+            emailBase.startDate,
+            emailBase.endDate,
+            emailBase.totalPrice,
+            emailBase.status,
+            `${dashboardUrl}/lender`,
+          ),
+        })
+      : Promise.resolve(),
+  ]);
 
   logger.info(`Booking created: ${booking.id}`);
   return booking;
@@ -168,81 +163,113 @@ export const CreateBookingService = async (
 /**
  * Get all bookings for a user (renter)
  */
-export const GetUserBookingsService = async (userId: string) => {
-  const cacheKey = `bookings:user:${userId}`;
+export const GetUserBookingsService = async (
+  userId: string,
+  page: number = 1,
+  limit: number = 10,
+) => {
+  // OLD: const cacheKey = `bookings:user:${userId}`;
+  const cacheKey = `bookings:user:${userId}:${page}:${limit}`;
 
   // ── Cache read ──────────────────────────────────────────────────────────────
-  const cached = await getCache<any[]>(cacheKey);
+  const cached = await getCache<any>(cacheKey);
   if (cached) {
     logger.info(`Cache HIT: ${cacheKey}`);
     return cached;
   }
 
-  const bookings = await prisma.booking.findMany({
-    where: { userId },
-    include: {
-      car: {
-        include: {
-          images: {
-            where: { isMain: true },
-            take: 1,
+  const skip = (page - 1) * limit;
+
+  const [bookings, total] = await Promise.all([
+    prisma.booking.findMany({
+      where: { userId },
+      include: {
+        car: {
+          include: {
+            images: {
+              where: { isMain: true },
+              take: 1,
+            },
           },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.booking.count({ where: { userId } }),
+  ]);
+
+  const result = {
+    data: bookings,
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+  };
 
   // ── Cache write ─────────────────────────────────────────────────────────────
-  await setCache(cacheKey, bookings, TTL_BOOKINGS);
+  await setCache(cacheKey, result, TTL_BOOKINGS);
 
-  return bookings;
+  return result;
 };
 
 /**
  * Get all bookings for cars owned by a lender
  */
-export const GetLenderBookingsService = async (lenderId: string) => {
-  const cacheKey = `bookings:lender:${lenderId}`;
+export const GetLenderBookingsService = async (
+  lenderId: string,
+  page: number = 1,
+  limit: number = 10,
+) => {
+  // OLD: const cacheKey = `bookings:lender:${lenderId}`;
+  const cacheKey = `bookings:lender:${lenderId}:${page}:${limit}`;
 
   // ── Cache read ──────────────────────────────────────────────────────────────
-  const cached = await getCache<any[]>(cacheKey);
+  const cached = await getCache<any>(cacheKey);
   if (cached) {
     logger.info(`Cache HIT: ${cacheKey}`);
     return cached;
   }
 
-  const bookings = await prisma.booking.findMany({
-    where: {
-      car: {
-        lenderId,
-      },
-    },
-    include: {
-      car: {
-        include: {
-          images: {
-            where: { isMain: true },
-            take: 1,
+  const skip = (page - 1) * limit;
+
+  const where = { car: { lenderId } };
+
+  const [bookings, total] = await Promise.all([
+    prisma.booking.findMany({
+      where,
+      include: {
+        car: {
+          include: {
+            images: {
+              where: { isMain: true },
+              take: 1,
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            profileImage: true,
           },
         },
       },
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          profileImage: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.booking.count({ where }),
+  ]);
+
+  const result = {
+    data: bookings,
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+  };
 
   // ── Cache write ─────────────────────────────────────────────────────────────
-  await setCache(cacheKey, bookings, TTL_BOOKINGS);
+  await setCache(cacheKey, result, TTL_BOOKINGS);
 
-  return bookings;
+  return result;
 };
 
 /**
@@ -286,10 +313,7 @@ export const UpdateBookingStatusService = async (
   };
   const allowed = VALID_TRANSITIONS[booking.status as string] ?? [];
   if (!allowed.includes(status)) {
-    throw new AppError(
-      `Cannot transition booking from "${booking.status}" to "${status}"`,
-      400,
-    );
+    throw new AppError(`Cannot transition booking from "${booking.status}" to "${status}"`, 400);
   }
 
   // If cancelling or completing, make the car available again
@@ -344,66 +368,63 @@ export const UpdateBookingStatusService = async (
     );
   }
 
-  // Email both parties on confirmed or cancelled
   if (status === "confirmed" || status === "cancelled") {
-    try {
-      const formatDate = (d: Date) => d.toISOString().split("T")[0];
-      const dashboardUrl = config.CLIENT_URL || "http://localhost:5173";
+    const formatDate = (d: Date) => d.toISOString().split("T")[0];
+    const dashboardUrl = config.CLIENT_URL || "http://localhost:5173";
 
-      const [renter, lender] = await Promise.all([
-        prisma.user.findUnique({
-          where: { id: booking.userId },
-          select: { email: true, name: true },
-        }),
-        prisma.user.findUnique({
-          where: { id: booking.car.lenderId },
-          select: { email: true, name: true },
-        }),
-      ]);
+    const [renter, lender] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: booking.userId },
+        select: { email: true, name: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: booking.car.lenderId },
+        select: { email: true, name: true },
+      }),
+    ]);
 
-      const emailData = {
-        carLabel: booking.car.title,
-        startDate: formatDate(booking.startDate),
-        endDate: formatDate(booking.endDate),
-        totalPrice: booking.totalPrice,
-        status,
-      };
+    const emailBase = {
+      carLabel: booking.car.title,
+      startDate: formatDate(booking.startDate),
+      endDate: formatDate(booking.endDate),
+      totalPrice: booking.totalPrice,
+      status,
+    };
 
-      await Promise.all([
-        renter?.email
-          ? sendEmail({
-              email: renter.email,
-              subject: `Booking ${status === "confirmed" ? "Confirmed" : "Cancelled"} — ${booking.car.title} · LuxeDrive`,
-              html: getBookingEmailHtml(
-                renter.name,
-                emailData.carLabel,
-                emailData.startDate,
-                emailData.endDate,
-                emailData.totalPrice,
-                emailData.status,
-                dashboardUrl,
-              ),
-            })
-          : Promise.resolve(),
-        lender?.email
-          ? sendEmail({
-              email: lender.email,
-              subject: `Booking ${status === "confirmed" ? "Confirmed" : "Cancelled"} — ${booking.car.title} · LuxeDrive`,
-              html: getBookingEmailHtml(
-                lender.name,
-                emailData.carLabel,
-                emailData.startDate,
-                emailData.endDate,
-                emailData.totalPrice,
-                emailData.status,
-                `${dashboardUrl}/lender`,
-              ),
-            })
-          : Promise.resolve(),
-      ]);
-    } catch (emailErr) {
-      logger.error("Failed to send booking status update emails", emailErr);
-    }
+    const subjectLabel = status === "confirmed" ? "Confirmed" : "Cancelled";
+
+    await Promise.all([
+      renter?.email
+        ? dispatchEmail({
+            email: renter.email,
+            subject: `Booking ${subjectLabel} — ${booking.car.title} · LuxeDrive`,
+            html: getBookingEmailHtml(
+              renter.name,
+              emailBase.carLabel,
+              emailBase.startDate,
+              emailBase.endDate,
+              emailBase.totalPrice,
+              emailBase.status,
+              dashboardUrl,
+            ),
+          })
+        : Promise.resolve(),
+      lender?.email
+        ? dispatchEmail({
+            email: lender.email,
+            subject: `Booking ${subjectLabel} — ${booking.car.title} · LuxeDrive`,
+            html: getBookingEmailHtml(
+              lender.name,
+              emailBase.carLabel,
+              emailBase.startDate,
+              emailBase.endDate,
+              emailBase.totalPrice,
+              emailBase.status,
+              `${dashboardUrl}/lender`,
+            ),
+          })
+        : Promise.resolve(),
+    ]);
   }
 
   logger.info(`Booking ${bookingId} status updated to ${status}`);
