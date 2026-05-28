@@ -132,6 +132,7 @@ model Booking {
   @@index([userId])
   @@index([carId])
   @@index([status])
+  @@index([carId, status])
 }
 
 model CarImage {

@@ -27,20 +27,26 @@ export const createBooking = catchAsync(async (req: AuthRequest, res: Response) 
 });
 
 export const getMyBookings = catchAsync(async (req: AuthRequest, res: Response) => {
-  const bookings = await GetUserBookingsService(req.user!.id);
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+
+  const result = await GetUserBookingsService(req.user!.id, page, limit);
 
   res.status(200).json({
     status: "success",
-    data: { bookings },
+    data: result,
   });
 });
 
 export const getLenderBookings = catchAsync(async (req: AuthRequest, res: Response) => {
-  const bookings = await GetLenderBookingsService(req.user!.id);
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+
+  const result = await GetLenderBookingsService(req.user!.id, page, limit);
 
   res.status(200).json({
     status: "success",
-    data: { bookings },
+    data: result,
   });
 });
 

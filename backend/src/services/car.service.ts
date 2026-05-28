@@ -11,8 +11,14 @@ import config from "../config/config.env";
 const TTL_CAR_LIST = 5 * 60; // 5 minutes
 const TTL_CAR_DETAIL = 10 * 60; // 10 minutes
 
-/** Build a stable cache key from a CarQuery filter object */
-const buildListKey = (filter: CarQuery) => `cars:list:${JSON.stringify(filter)}`;
+const buildListKey = (filter: CarQuery) => {
+  const sorted = Object.fromEntries(
+    Object.entries(filter)
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b)),
+  );
+  return `cars:list:${JSON.stringify(sorted)}`;
+};
 
 /**
  * CREATE CAR SERVICE
@@ -385,9 +391,7 @@ export const deleteCarService = async (id: string, lenderId?: string) => {
   });
 
   if (images.length > 0) {
-    await Promise.allSettled(
-      images.map((img) => cloudinary.uploader.destroy(img.publicId)),
-    );
+    await Promise.allSettled(images.map((img) => cloudinary.uploader.destroy(img.publicId)));
   }
 
   await prisma.car.delete({ where: { id } });

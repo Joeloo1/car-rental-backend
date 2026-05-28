@@ -6,6 +6,7 @@ import { connectDB, disconnectDB, prisma } from "./config/database";
 import { connectRedis, disconnectRedis } from "./config/redis";
 import logger from "./config/winston";
 import { registerChatSocket } from "./sockets/chat.socket";
+import { startEmailWorker } from "./workers/email.worker";
 
 const port = config.PORT;
 
@@ -65,6 +66,7 @@ const autoCompleteExpiredBookings = async () => {
 
 connectDB();
 connectRedis();
+startEmailWorker();
 
 server.listen(port, async () => {
   logger.info(`Server running on PORT: ${port}...`);

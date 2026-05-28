@@ -6,6 +6,32 @@ import AppError from "../utils/AppError";
 import { Jwtpayload } from "../types/auth.types";
 import { verifyAccessToken } from "../utils/jwt";
 import { changePasswordAfter } from "../utils/password";
+import { getCache, setCache } from "../config/redis";
+import { AccountStatus, Provider, UserRole } from "../generated/prisma/client";
+
+const TTL_AUTH_USER = 60; // 1 minute
+
+type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  accountStatus: AccountStatus;
+  profileImage: string;
+  profileImagePublicId: string | null;
+  passwordChangedAt: Date | null;
+  isVerified: boolean;
+  phoneNumber: string | null;
+  provider: Provider | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type CachedAuthUser = Omit<AuthUser, "passwordChangedAt" | "createdAt" | "updatedAt"> & {
+  passwordChangedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 /**
  * Protect Middleware
@@ -33,25 +59,43 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
     return next(new AppError("Invalid token, please log in again", 401));
   }
 
-  // Check if user exists
-  const currentUser = await prisma.user.findUnique({
-    where: { id: decoded.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      accountStatus: true,
-      profileImage: true,
-      profileImagePublicId: true,
-      passwordChangedAt: true,
-      isVerified: true,
-      phoneNumber: true,
-      provider: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const cacheKey = `auth:user:${decoded.id}`;
+
+  let currentUser: AuthUser | null = null;
+  const cached = await getCache<CachedAuthUser>(cacheKey);
+
+  if (cached) {
+    currentUser = {
+      ...cached,
+      passwordChangedAt: cached.passwordChangedAt ? new Date(cached.passwordChangedAt) : null,
+      createdAt: new Date(cached.createdAt),
+      updatedAt: new Date(cached.updatedAt),
+    };
+    logger.info(`Auth cache HIT: ${cacheKey}`);
+  } else {
+    currentUser = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        accountStatus: true,
+        profileImage: true,
+        profileImagePublicId: true,
+        passwordChangedAt: true,
+        isVerified: true,
+        phoneNumber: true,
+        provider: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (currentUser) {
+      await setCache(cacheKey, currentUser, TTL_AUTH_USER);
+    }
+  }
 
   if (!currentUser) {
     logger.warn("Unauthorized access attempt - user no longer exists", {
