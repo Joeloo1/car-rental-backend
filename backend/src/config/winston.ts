@@ -1,6 +1,7 @@
 import path from "node:path";
 import winston from "winston";
 import config from "./config.env";
+import { getRequestId } from "../utils/requestContext";
 
 const { combine, colorize, printf, timestamp, errors, json } = winston.format;
 
@@ -27,21 +28,31 @@ const level = () => {
   return env === "development" ? "debug" : "info";
 };
 
+const addRequestId = winston.format((info) => {
+  info.requestId = getRequestId(); // "-" outside a request context
+  return info;
+});
+
 // Create Console Format
 const consoleFormat = combine(
   timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   colorize({ all: true }),
+  addRequestId(),
   printf((info) => {
-    const { timestamp, level, message, ...meta } = info;
+    const { timestamp, level, message, requestId, ...meta } = info;
+    // Only print the bracket when inside a real request (not startup/cron logs)
+    const reqTag = requestId && requestId !== "-" ? ` [${requestId}]` : "";
     const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : "";
-    return `[${timestamp}] ${level}: ${message} ${metaStr}`;
+    return `[${timestamp}]${reqTag} ${level}: ${message} ${metaStr}`;
   }),
 );
 
-// Create File Format
+// Create File Format — requestId ends up as a top-level JSON field,
+// making it trivially greppable in log aggregators (Datadog, Loki, etc.)
 const fileFormat = combine(
   timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   errors({ stack: true }),
+  addRequestId(),
   json(),
 );
 

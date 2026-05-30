@@ -1,4 +1,5 @@
 import z from "zod";
+import xss from "xss";
 
 /**
  * Schema for creating a review
@@ -15,7 +16,8 @@ export const createReviewSchema = z.object({
       .trim()
       .min(3, "Comment must be at least 3 characters")
       .max(500, "Comment cannot exceed 500 characters")
-      .optional(),
+      .optional()
+      .transform((v) => (v ? xss(v) : v)),
   }),
 });
 
@@ -26,7 +28,13 @@ export const updateReviewSchema = z.object({
   body: z
     .object({
       rating: z.number().int("Rating must be an integer").min(1).max(5).optional(),
-      comment: z.string().trim().min(3).max(500).optional(),
+      comment: z
+        .string()
+        .trim()
+        .min(3)
+        .max(500)
+        .optional()
+        .transform((v) => (v ? xss(v) : v)),
     })
     .refine((data) => data.rating !== undefined || data.comment !== undefined, {
       message: "At least one field must be provided",

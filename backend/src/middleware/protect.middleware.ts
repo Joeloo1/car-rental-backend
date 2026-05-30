@@ -104,8 +104,17 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
     return next(new AppError("User belonging to this token no longer exists", 401));
   }
 
-  // check if user changed password after token was issued
+  if (currentUser.accountStatus !== AccountStatus.active) {
+    return next(
+      new AppError(
+        `Your account is ${currentUser.accountStatus}. Please contact support.`,
+        403,
+      ),
+    );
+  }
+
   if (changePasswordAfter(currentUser.passwordChangedAt, decoded.iat)) {
+    // check if user changed password after token was issued
     logger.warn("Unauthorized access attempt - password changed after token issued", {
       userId: currentUser.id,
     });

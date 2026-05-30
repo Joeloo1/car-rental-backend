@@ -1,5 +1,7 @@
 import http from "http";
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import Redis from "ioredis";
 import app from "./app";
 import config from "./config/config.env";
 import { connectDB, disconnectDB, prisma } from "./config/database";
@@ -14,9 +16,14 @@ const server = http.createServer(app);
 
 const allowedOrigins = config.ALLOWED_ORIGINS;
 
+const pubClient = new Redis(config.REDIS_URL || "redis://localhost:6379");
+const subClient = pubClient.duplicate();
+
 export const io = new Server(server, {
   cors: { origin: allowedOrigins, credentials: true },
 });
+
+io.adapter(createAdapter(pubClient, subClient));
 
 registerChatSocket(io);
 
@@ -87,8 +94,12 @@ const shutdown = async (signal: string) => {
   logger.info(`${signal} received. Starting graceful shutdown...`);
 
   try {
-    await disconnectRedis();
-    await disconnectDB();
+    await Promise.all([
+      pubClient.quit(),
+      subClient.quit(),
+      disconnectRedis(),
+      disconnectDB(),
+    ]);
     if (server) {
       server.close(async () => {
         logger.info("⛔ HTTP server closed.");
