@@ -1,4 +1,5 @@
 import { z } from "zod";
+import xss from "xss";
 
 /**
  * Car Status Enum
@@ -10,16 +11,28 @@ export const CarStatusEnum = z.enum(["available", "rented", "maintenance", "unav
  */
 export const CreateCarSchema = z.object({
   body: z.object({
-    title: z.string().min(3, "Title must be at least 3 characters"),
-    brand: z.string().min(1, "Brand is required"),
-    model: z.string().min(1, "Model is required"),
+    title: z
+      .string()
+      .min(3, "Title must be at least 3 characters")
+      .transform((v) => xss(v)),
+    brand: z
+      .string()
+      .min(1, "Brand is required")
+      .transform((v) => xss(v)),
+    model: z
+      .string()
+      .min(1, "Model is required")
+      .transform((v) => xss(v)),
     year: z
       .number()
       .int()
       .min(1900, "Year must be 1900 or later")
       .max(new Date().getFullYear() + 1, "Year cannot be in the future")
       .optional(),
-    description: z.string().optional(),
+    description: z
+      .string()
+      .optional()
+      .transform((v) => (v ? xss(v) : v)),
     pricePerDay: z.number().positive("Price per day must be positive"),
     locationCity: z.string().optional(),
     availabilityStatus: CarStatusEnum.optional().default("available"),
@@ -40,16 +53,29 @@ export const CreateCarSchema = z.object({
  */
 export const UpdateCarSchema = z.object({
   body: z.object({
-    title: z.string().min(3, "Title must be at least 3 characters").optional(),
-    brand: z.string().optional(),
-    model: z.string().optional(),
+    title: z
+      .string()
+      .min(3, "Title must be at least 3 characters")
+      .optional()
+      .transform((v) => (v ? xss(v) : v)),
+    brand: z
+      .string()
+      .optional()
+      .transform((v) => (v ? xss(v) : v)),
+    model: z
+      .string()
+      .optional()
+      .transform((v) => (v ? xss(v) : v)),
     year: z
       .number()
       .int()
       .min(1900, "Year must be 1900 or later")
       .max(new Date().getFullYear() + 1, "Year cannot be in the future")
       .optional(),
-    description: z.string().optional(),
+    description: z
+      .string()
+      .optional()
+      .transform((v) => (v ? xss(v) : v)),
     pricePerDay: z.number().positive("Price per day must be positive").optional(),
     locationCity: z.string().optional(),
     availabilityStatus: CarStatusEnum.optional(),

@@ -6,6 +6,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import session from "express-session";
 import { RedisStore } from "connect-redis";
+import { randomUUID } from "crypto";
 
 import config from "./config/config.env";
 import logger from "./config/winston";
@@ -13,14 +14,23 @@ import { globalErrorHandler } from "./error/errorHandling";
 import AppError from "./utils/AppError";
 import passport from "./config/passport";
 import { getClient } from "./config/redis";
+import { requestContext } from "./utils/requestContext";
 
 import routes from "./routes/routes";
 
 const app: Express = express();
 
-// Development logging
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const requestId = (req.headers["x-request-id"] as string | undefined) ?? randomUUID();
+  req.headers["x-request-id"] = requestId;
+  res.setHeader("x-request-id", requestId);
+  requestContext.run({ requestId }, next);
+});
+
+morgan.token("request-id", (req) => req.headers["x-request-id"] as string);
+
 if (config.NODE_ENV === "development") {
-  app.use(morgan("dev"));
+  app.use(morgan(":request-id :method :url :status :response-time ms"));
 }
 
 // Set security HTTP Headers
@@ -74,7 +84,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use("/api", limiter);
+app.use("/api/v1", limiter);
 
 const authLimiter = rateLimit({
   max: 20,
@@ -84,11 +94,11 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use("/api/auth/login", authLimiter);
-app.use("/api/auth/signup", authLimiter);
-app.use("/api/auth/forgot-password", authLimiter);
+app.use("/api/v1/auth/login", authLimiter);
+app.use("/api/v1/auth/signup", authLimiter);
+app.use("/api/v1/auth/forgot-password", authLimiter);
 
-app.use("/api", routes);
+app.use("/api/v1", routes);
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
   logger.warn(`Can't find ${req.originalUrl} on this server`);

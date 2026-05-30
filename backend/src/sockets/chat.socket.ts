@@ -1,4 +1,5 @@
 import { Server, Socket } from "socket.io";
+import xss from "xss";
 import { prisma } from "../config/database";
 import logger from "../config/winston";
 import { verifyAccessToken } from "../utils/jwt";
@@ -157,7 +158,7 @@ export const registerChatSocket = (io: Server) => {
       if (!senderId) return;
 
       // Validate message content
-      const text = (data.messageText ?? "").trim();
+      const text = xss((data.messageText ?? "").trim());
       if (!text || text.length > 1000) {
         socket.emit("chat_error", "Message must be between 1 and 1000 characters");
         return;

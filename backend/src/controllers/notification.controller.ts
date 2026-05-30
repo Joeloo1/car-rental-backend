@@ -12,7 +12,9 @@ export const getMyNotifications = catchAsync(async (req: AuthRequest, res: Respo
 });
 
 export const markRead = catchAsync(async (req: AuthRequest, res: Response) => {
-  await MarkAsRead(req.params.id as string);
+  const userId = req.user!.id;
+  const params = req.params.id as string;
+  await MarkAsRead(params, userId);
   res.status(200).json({
     status: "success",
     message: "Notification marked as read",

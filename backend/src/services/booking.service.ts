@@ -1,5 +1,5 @@
 import { prisma } from "../config/database";
-import { getCache, setCache, deleteCache } from "../config/redis";
+import { getCache, setCache, deleteCache, deleteCacheByPattern } from "../config/redis";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
 import config from "../config/config.env";
@@ -84,8 +84,10 @@ export const CreateBookingService = async (
 
   // Invalidate caches: renter's bookings, lender's bookings, stats, and car caches
   await Promise.all([
-    deleteCache(`bookings:user:${userId}`),
-    deleteCache(`bookings:lender:${car.lenderId}`),
+    // deleteCache(`bookings:user:${userId}`),
+    // deleteCache(`bookings:lender:${car.lenderId}`),
+    deleteCacheByPattern(`booking:user:${userId}:*`),
+    deleteCacheByPattern(`booking:lender:${car.lenderId}:*`),
     deleteCache(`stats:${userId}:User`),
     deleteCache(`stats:${car.lenderId}:lender`),
     deleteCache(`cars:id:${carId}`),
