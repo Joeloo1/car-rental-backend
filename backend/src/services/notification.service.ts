@@ -1,4 +1,4 @@
-import { io } from "../server";
+import { getSocketIO } from "../utils/socketInstance";
 import { prisma } from "../config/database";
 import logger from "../config/winston";
 
@@ -17,8 +17,9 @@ export const CreateNotification = async (
       data: { userId, title, message, type, isRead: false, link },
     });
 
-    // 2. Emit via Socket.io
-    io.to(`user_${userId}`).emit("new_notification", {
+    // 2. Emit via Socket.io (io may be null during early startup — gracefully skip)
+    const io = getSocketIO();
+    io?.to(`user_${userId}`).emit("new_notification", {
       id: notification.id,
       title: notification.title,
       message: notification.message,
@@ -35,12 +36,18 @@ export const CreateNotification = async (
   }
 };
 
-export const GetUserNotifications = async (userId: string) => {
-  return await prisma.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
+export const GetUserNotifications = async (userId: string, page = 1, limit = 20) => {
+  const skip = (page - 1) * limit;
+  const [notifications, total] = await prisma.$transaction([
+    prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.notification.count({ where: { userId } }),
+  ]);
+  return { notifications, total, page, totalPages: Math.ceil(total / limit) };
 };
 
 export const MarkAsRead = async (notificationId: string, userId: string) => {

@@ -55,7 +55,7 @@ export const carParamsSchema = z.object({
  */
 export const reviewParamsSchema = z.object({
   params: z.object({
-    reviewId: z.string().uuid("Invalid review ID"),
+    id: z.string().uuid("Invalid review ID"),
   }),
 });
 

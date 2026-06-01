@@ -109,11 +109,14 @@ model Car {
   bookings           Booking[]
   favorites          Favorite[]
 
+  @@index([brand])
   @@index([lenderId])
   @@index([categoryId])
   @@index([availabilityStatus])
   @@index([locationCity])
   @@index([pricePerDay])
+  @@index([availabilityStatus, locationCity])
+  @@index([availabilityStatus, pricePerDay])
 }
 
 model Booking {

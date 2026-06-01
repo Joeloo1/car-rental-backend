@@ -124,6 +124,25 @@ export const deleteCache = async (...keys: string[]): Promise<void> => {
 };
 
 /**
+ * Increment a counter key and set its TTL on first creation.
+ * Returns the new count, or 0 when Redis is unavailable (fails open).
+ * Use this for sliding/fixed-window rate limiters that must survive Redis restarts.
+ */
+export const incrCache = async (key: string, ttlSeconds: number): Promise<number> => {
+  const client = getRedisClient();
+  if (!client || !isConnected) return 0;
+
+  try {
+    const count = await client.incr(key);
+    if (count === 1) await client.expire(key, ttlSeconds);
+    return count;
+  } catch (err) {
+    logger.warn(`Redis incrCache error for key "${key}": ${err}`);
+    return 0;
+  }
+};
+
+/**
  * Delete all cache keys matching a glob pattern (e.g. "cars:list:*").
  * Uses SCAN to avoid blocking the Redis event loop.
  */

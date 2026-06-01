@@ -5,6 +5,7 @@ import { Readable } from "stream";
 import { BulkReorderInput } from "../schema/carImage.schema";
 import logger from "../config/winston";
 import AppError from "../utils/AppError";
+import { validateImageBytes } from "../middleware/upload.middleware";
 
 /**
  * Helper to covert buffer to stream
@@ -17,11 +18,15 @@ const bufferToStreams = (buffer: Buffer): Readable => {
   return readable;
 };
 
+const CLOUDINARY_TIMEOUT_MS = 15_000;
+
 /**
- * Upload single image to Cloudinary
+ * Upload single image to Cloudinary with a hard timeout.
+ * If Cloudinary doesn't respond within 15s, a 503 is thrown so the request
+ * fails fast instead of hanging until the Node.js socket timeout fires.
  */
 const UploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryUploadResult> => {
-  return new Promise((resolve, reject) => {
+  const upload = new Promise<CloudinaryUploadResult>((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder,
@@ -40,6 +45,15 @@ const UploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryU
 
     bufferToStreams(buffer).pipe(uploadStream);
   });
+
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(
+      () => reject(new AppError("Image service is temporarily unavailable. Try again later.", 503)),
+      CLOUDINARY_TIMEOUT_MS,
+    ),
+  );
+
+  return Promise.race([upload, timeout]);
 };
 
 /**
@@ -95,7 +109,7 @@ export const uploadCarImagesService = async (
   for (let i = 0; i < filesToUpload.length; i++) {
     const file = filesToUpload[i];
     try {
-      // Upload to Cloudinary
+      validateImageBytes(file.buffer);
       const result = await UploadToCloudinary(file.buffer, `cars/${carId}`);
 
       // Determine if this should be main

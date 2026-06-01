@@ -7,6 +7,7 @@ import morgan from "morgan";
 import session from "express-session";
 import { RedisStore } from "connect-redis";
 import { randomUUID } from "crypto";
+import { doubleCsrf } from "csrf-csrf";
 
 import config from "./config/config.env";
 import logger from "./config/winston";
@@ -15,10 +16,17 @@ import AppError from "./utils/AppError";
 import passport from "./config/passport";
 import { getClient } from "./config/redis";
 import { requestContext } from "./utils/requestContext";
-
 import routes from "./routes/routes";
 
 const app: Express = express();
+
+const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
+  getSecret: () => config.CSRF_SECRET,
+  cookieName: "__Host-psifi.x-csrf-token",
+  cookieOptions: { secure: config.NODE_ENV === "production" },
+  size: 64,
+  getSessionIdentifier: (req) => req.session.id,
+});
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const requestId = (req.headers["x-request-id"] as string | undefined) ?? randomUUID();
@@ -66,8 +74,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50kb" }));
+app.use(express.urlencoded({ extended: true, limit: "50kb" }));
 
 app.use(
   cors({
@@ -75,6 +83,12 @@ app.use(
     credentials: true,
   }),
 );
+
+app.get("/api/csrf-token", (req, res) => {
+  res.json({ csrfToken: generateCsrfToken(req, res) });
+});
+
+app.use(doubleCsrfProtection);
 
 const limiter = rateLimit({
   max: 300,

@@ -14,14 +14,17 @@ export const CreateCarSchema = z.object({
     title: z
       .string()
       .min(3, "Title must be at least 3 characters")
+      .max(100, "Title must be 100 characters or fewer")
       .transform((v) => xss(v)),
     brand: z
       .string()
       .min(1, "Brand is required")
+      .max(50, "Brand must be 50 characters or fewer")
       .transform((v) => xss(v)),
     model: z
       .string()
       .min(1, "Model is required")
+      .max(50, "Model must be 50 characters or fewer")
       .transform((v) => xss(v)),
     year: z
       .number()
@@ -31,10 +34,11 @@ export const CreateCarSchema = z.object({
       .optional(),
     description: z
       .string()
+      .max(2000, "Description must be 2000 characters or fewer")
       .optional()
       .transform((v) => (v ? xss(v) : v)),
     pricePerDay: z.number().positive("Price per day must be positive"),
-    locationCity: z.string().optional(),
+    locationCity: z.string().max(100, "City must be 100 characters or fewer").optional(),
     availabilityStatus: CarStatusEnum.optional().default("available"),
     categoryId: z.number().int().positive("Invalid category ID"),
     fuelType: z.string().optional(),
@@ -56,14 +60,17 @@ export const UpdateCarSchema = z.object({
     title: z
       .string()
       .min(3, "Title must be at least 3 characters")
+      .max(100, "Title must be 100 characters or fewer")
       .optional()
       .transform((v) => (v ? xss(v) : v)),
     brand: z
       .string()
+      .max(50, "Brand must be 50 characters or fewer")
       .optional()
       .transform((v) => (v ? xss(v) : v)),
     model: z
       .string()
+      .max(50, "Model must be 50 characters or fewer")
       .optional()
       .transform((v) => (v ? xss(v) : v)),
     year: z
@@ -74,10 +81,11 @@ export const UpdateCarSchema = z.object({
       .optional(),
     description: z
       .string()
+      .max(2000, "Description must be 2000 characters or fewer")
       .optional()
       .transform((v) => (v ? xss(v) : v)),
     pricePerDay: z.number().positive("Price per day must be positive").optional(),
-    locationCity: z.string().optional(),
+    locationCity: z.string().max(100, "City must be 100 characters or fewer").optional(),
     availabilityStatus: CarStatusEnum.optional(),
     fuelType: z.string().optional(),
     transmission: z.string().optional(),

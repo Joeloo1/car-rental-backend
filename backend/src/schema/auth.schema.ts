@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const strongPassword = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+    "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+  );
+
 /*
  * Signup Schema
  */
@@ -17,13 +25,22 @@ export const SignupSchema = z.object({
         .string()
         .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
         .optional(),
-      password: z
-        .string()
-        .min(8, "Password must be at least 8 characters")
-        .regex(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-          "Password must contain at least one uppercase letter, one lowercase letter, and one number",
-        ),
+      password: strongPassword,
+      passwordConfirm: z.string().min(1, "Please confirm your password"),
+    })
+    .refine((data) => data.password === data.passwordConfirm, {
+      message: "Passwords do not match",
+      path: ["passwordConfirm"],
+    }),
+});
+
+/*
+ * Reset Password Schema
+ */
+export const ResetPasswordSchema = z.object({
+  body: z
+    .object({
+      password: strongPassword,
       passwordConfirm: z.string().min(1, "Please confirm your password"),
     })
     .refine((data) => data.password === data.passwordConfirm, {
