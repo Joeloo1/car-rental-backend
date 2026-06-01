@@ -158,7 +158,7 @@ export const GetAllCarsService = async (filter: CarQuery) => {
             profileImage: true,
           },
         },
-        category: true,
+        category: { select: { id: true, name: true } },
         images: {
           where: { isMain: true },
           take: 1,
@@ -422,8 +422,12 @@ export const GetCarsByLenderService = async (lenderId: string) => {
   const cars = await prisma.car.findMany({
     where: { lenderId },
     include: {
-      category: true,
-      images: { orderBy: [{ isMain: "desc" }, { order: "asc" }] },
+      category: { select: { id: true, name: true } },
+      images: {
+        where: { isMain: true },
+        take: 1,
+        select: { imageUrl: true, publicId: true },
+      },
       _count: { select: { reviews: true } },
     },
     orderBy: { createdAt: "desc" },

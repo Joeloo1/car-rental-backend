@@ -9,6 +9,7 @@ import {
   getDashboardStats,
   createBooking,
 } from "../controllers/booking.controller";
+import { bookingLimiter } from "../middleware/ratelimit";
 
 const router: Router = Router({ mergeParams: true });
 
@@ -45,6 +46,6 @@ router.route("/:id/status").patch(updateBookingStatus);
  * Note: this route should be mounted on carRoutes or we can leave it here
  * and mount bookingRoutes on `/api/cars/:carId/bookings` as well.
  */
-router.post("/car/:carId", createBooking);
+router.post("/car/:carId", bookingLimiter, createBooking);
 
 export default router;

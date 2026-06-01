@@ -4,10 +4,12 @@ import { GetUserNotifications, MarkAsRead, MarkAllAsRead } from "../services/not
 import { AuthRequest } from "../types/authRequest";
 
 export const getMyNotifications = catchAsync(async (req: AuthRequest, res: Response) => {
-  const notifications = await GetUserNotifications(req.user!.id);
+  const page = Math.max(1, parseInt((req.query.page as string) ?? "1", 10) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt((req.query.limit as string) ?? "20", 10) || 20));
+  const result = await GetUserNotifications(req.user!.id, page, limit);
   res.status(200).json({
     status: "success",
-    data: { notifications },
+    data: result,
   });
 });
 

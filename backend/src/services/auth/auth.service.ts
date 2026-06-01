@@ -327,14 +327,10 @@ export const resetPasswordService = async (
   newPassword: string,
   passwordConfirm: string,
 ) => {
-  // Validates password match
+  // Validates password match (Zod ResetPasswordSchema also validates strength + match at the route level)
   if (newPassword !== passwordConfirm) {
     logger.warn("passwords do not match");
-    throw new AppError("Password do not match", 400);
-  }
-
-  if (newPassword.length < 8) {
-    throw new AppError("Password must be at least 8 characters long", 400);
+    throw new AppError("Passwords do not match", 400);
   }
 
   // Hash the token
@@ -383,6 +379,9 @@ export const logOutService = async (userId: string, refreshToken: string | null)
   await prisma.refreshToken.deleteMany({
     where: refreshToken ? { userId, token: refreshToken } : { userId },
   });
+
+  // Evict the auth cache immediately so revoked sessions can't use the 60s window
+  await deleteCache(`auth:user:${userId}`);
 
   logger.info(`User logged out: ${userId}`);
 };

@@ -6,25 +6,16 @@ import { verifyAccessToken } from "../utils/jwt";
 import { CreateNotification } from "../services/notification.service";
 import { sendEmail, getNewMessageEmailHtml } from "../utils/email";
 import config from "../config/config.env";
+import { incrCache } from "../config/redis";
 
-// Per-user in-memory rate limiter: max 30 messages per 60 seconds
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 30;
-const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_WINDOW_S = 60;
 
-function isRateLimited(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(userId);
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) return true;
-
-  entry.count++;
-  return false;
+// Redis-backed rate limiter — works correctly across multiple server instances.
+// Falls open (returns false) when Redis is unavailable so chat still works.
+async function isRateLimited(userId: string): Promise<boolean> {
+  const count = await incrCache(`chat:rl:${userId}`, RATE_LIMIT_WINDOW_S);
+  return count > RATE_LIMIT_MAX;
 }
 
 export const registerChatSocket = (io: Server) => {
@@ -165,7 +156,7 @@ export const registerChatSocket = (io: Server) => {
       }
 
       // Rate limit: 30 messages per minute per user
-      if (isRateLimited(senderId)) {
+      if (await isRateLimited(senderId)) {
         socket.emit("chat_error", "You are sending messages too quickly, please slow down");
         return;
       }

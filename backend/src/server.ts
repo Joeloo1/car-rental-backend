@@ -8,11 +8,13 @@ import { connectDB, disconnectDB, prisma } from "./config/database";
 import { connectRedis, disconnectRedis } from "./config/redis";
 import logger from "./config/winston";
 import { registerChatSocket } from "./sockets/chat.socket";
-import { startEmailWorker } from "./workers/email.worker";
+import { setSocketIO } from "./utils/socketInstance";
 
 const port = config.PORT;
 
 const server = http.createServer(app);
+server.requestTimeout = 30_000;
+server.headersTimeout = 35_000;
 
 const allowedOrigins = config.ALLOWED_ORIGINS;
 
@@ -23,6 +25,7 @@ export const io = new Server(server, {
   cors: { origin: allowedOrigins, credentials: true },
 });
 
+setSocketIO(io);
 io.adapter(createAdapter(pubClient, subClient));
 
 registerChatSocket(io);
@@ -73,7 +76,6 @@ const autoCompleteExpiredBookings = async () => {
 
 connectDB();
 connectRedis();
-startEmailWorker();
 
 server.listen(port, async () => {
   logger.info(`Server running on PORT: ${port}...`);
@@ -94,12 +96,7 @@ const shutdown = async (signal: string) => {
   logger.info(`${signal} received. Starting graceful shutdown...`);
 
   try {
-    await Promise.all([
-      pubClient.quit(),
-      subClient.quit(),
-      disconnectRedis(),
-      disconnectDB(),
-    ]);
+    await Promise.all([pubClient.quit(), subClient.quit(), disconnectRedis(), disconnectDB()]);
     if (server) {
       server.close(async () => {
         logger.info("⛔ HTTP server closed.");

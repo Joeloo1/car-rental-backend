@@ -3,6 +3,7 @@ import { validateRequest } from "../middleware/validation_middleware";
 import { CreateCarSchema, UpdateCarSchema, CarParamsSchema } from "../schema/car.schema";
 import { restrictTo } from "../middleware/authorization";
 import { protect } from "../middleware/protect.middleware";
+import { carCreateLimiter, reviewLimiter } from "../middleware/ratelimit";
 import {
   createCar,
   getAllCars,
@@ -66,7 +67,7 @@ router.use(protect);
  * Validates request against CreateCarSchema
  * Protection: PROTECTED (Lender only)
  */
-router.route("/").post(restrictTo(UserRole.lender), validateRequest(CreateCarSchema), createCar);
+router.route("/").post(restrictTo(UserRole.lender), carCreateLimiter, validateRequest(CreateCarSchema), createCar);
 
 /**
  * PATCH /api/cars/:id
@@ -104,7 +105,7 @@ router.route("/:id").delete(restrictTo(UserRole.lender, UserRole.admin), deleteC
  * Body: { rating: number, comment?: string }
  * Protection: PROTECTED (Renter only - cannot review your own car)
  */
-router.route("/:id/reviews").post(validateRequest(createReviewSchema), createReview);
+router.route("/:id/reviews").post(reviewLimiter, validateRequest(createReviewSchema), createReview);
 
 /**
  * MOUNT /api/cars/:carId/images

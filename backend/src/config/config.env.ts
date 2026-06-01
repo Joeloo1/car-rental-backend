@@ -3,11 +3,20 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const REQUIRED_VARS = [
+  "DATABASE_URL",
   "JWT_ACCESS_TOKEN_SECRET",
   "JWT_REFRESH_TOKEN_SECRET",
   "VERIFICATION_SECRET",
+  "CSRF_SECRET",
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
+  "CLIENT_URL",
+  "EMAIL_HOST",
+  "EMAIL_USER",
+  "EMAIL_PASS",
 ] as const;
 
 const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
@@ -23,6 +32,8 @@ const config = {
   JWT_REFRESH_TOKEN_SECRET: process.env.JWT_REFRESH_TOKEN_SECRET!,
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY as string,
   REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY as string,
+  CSRF_SECRET: process.env.CSRF_SECRET!,
+  ADMIN_SIGNUP_SECRET: process.env.ADMIN_SIGNUP_SECRET!,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
   EMAIL_HOST: process.env.EMAIL_HOST,
@@ -40,7 +51,6 @@ const config = {
   ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173")
     .split(",")
     .map((o) => o.trim()),
-  ADMIN_SIGNUP_SECRET: process.env.ADMIN_SIGNUP_SECRET,
 };
 
 export default config;

@@ -16,7 +16,7 @@ import {
   getCurrentUser,
 } from "../../controllers/auth/google.oauth.controller";
 import { validateRequest } from "../../middleware/validation_middleware";
-import { SignupSchema, LoginSchema } from "../../schema/auth.schema";
+import { SignupSchema, LoginSchema, ResetPasswordSchema } from "../../schema/auth.schema";
 import { adminSignup } from "../../controllers/admin/admin.controller";
 import { protect } from "../../middleware/protect.middleware";
 
@@ -80,7 +80,7 @@ router.route("/forgot-Password").post(forgotPassword);
  * Params: { token: string }
  * Body: { password: string }
  */
-router.route("/reset-password/:token").patch(resetPassword);
+router.route("/reset-password/:token").patch(validateRequest(ResetPasswordSchema), resetPassword);
 
 /**
  * POST /api/auth/refresh-token
