@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { carService } from "../services/car.service.ts";
 import { useFavorites } from "../hooks/useFavorites.ts";
+import { useAuth } from "../context/AuthContext";
 import Map from "../components/common/Map.tsx";
 import ChatWindow from "../components/Chat/ChatWindow.tsx";
 import { getImageUrl } from "../utils/image";
@@ -31,6 +32,7 @@ const CarDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [dates, setDates] = useState({ startDate: "", endDate: "" });
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
@@ -77,6 +79,15 @@ const CarDetails: React.FC = () => {
   };
 
   const handleReserve = () => {
+    if (!user) {
+      toast.error("Please sign in to make a booking.");
+      navigate("/login");
+      return;
+    }
+    if (!user.isVerified) {
+      toast.error("Please verify your email before making a booking. Check your inbox for the verification link.");
+      return;
+    }
     if (!dates.startDate || !dates.endDate) {
       toast.error("Please select pickup and return dates");
       return;

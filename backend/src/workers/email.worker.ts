@@ -13,7 +13,7 @@ export const startEmailWorker = () => {
   }
 
   const worker = new Worker<EmailJobData>(
-    "luxedrive:email",
+    "luxedrive-email",
     async (job: Job<EmailJobData>) => {
       const { email, subject, html } = job.data;
       await sendEmail({ email, subject, html });

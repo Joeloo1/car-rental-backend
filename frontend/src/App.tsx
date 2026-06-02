@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { queryClient } from "./lib/queryClient";
 import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
+import VerificationBanner from "./components/common/VerificationBanner";
 import Toast from "./components/ui/Toast";
 import PageTransition from "./components/common/PageTransition";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
@@ -23,6 +24,8 @@ const Register        = lazy(() => import("./pages/auth/Register.tsx"));
 const ForgotPassword  = lazy(() => import("./pages/auth/ForgotPassword.tsx"));
 const ResetPassword   = lazy(() => import("./pages/auth/ResetPassword.tsx"));
 const AuthSuccess     = lazy(() => import("./pages/auth/AuthSuccess.tsx"));
+const VerifyEmailPage        = lazy(() => import("./pages/auth/VerifyEmailPage.tsx"));
+const VerifyEmailConfirmPage = lazy(() => import("./pages/auth/VerifyEmailConfirmPage.tsx"));
 const ProfilePage     = lazy(() => import("./pages/ProfilePage.tsx"));
 const MyBookings      = lazy(() => import("./pages/MyBookings.tsx"));
 const FavoritesPage   = lazy(() => import("./pages/FavoritesPage.tsx"));
@@ -43,6 +46,8 @@ const AnimatedRoutes = () => {
         <Route path="/login"               element={<PageTransition><Login /></PageTransition>} />
         <Route path="/register"            element={<PageTransition><Register /></PageTransition>} />
         <Route path="/auth-success"        element={<PageTransition><AuthSuccess /></PageTransition>} />
+        <Route path="/verify-email"         element={<PageTransition><VerifyEmailPage /></PageTransition>} />
+        <Route path="/verify-email-confirm" element={<PageTransition><VerifyEmailConfirmPage /></PageTransition>} />
         <Route path="/forgot-password"     element={<PageTransition><ForgotPassword /></PageTransition>} />
         <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route path="/browse"              element={<PageTransition><BrowseCars /></PageTransition>} />
@@ -68,6 +73,7 @@ function App() {
       <Router>
         <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30 selection:text-primary">
           <Navbar />
+          <VerificationBanner />
           <main className="flex-1">
             <ErrorBoundary>
               <Suspense fallback={<PageSkeleton />}>

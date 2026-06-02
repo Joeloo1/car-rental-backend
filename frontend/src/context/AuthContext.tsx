@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   setToken: (token: string) => Promise<void>;
   updateUser: (partial: Partial<User>) => void;
 }
@@ -81,6 +82,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const logoutAll = async () => {
+    try {
+      await api.post("/auth/logout-all");
+    } catch {
+      // Best-effort
+    } finally {
+      tokenStore.clear();
+      setUser(null);
+      queryClient.clear();
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -90,6 +103,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
+        logoutAll,
         setToken,
         updateUser,
       }}

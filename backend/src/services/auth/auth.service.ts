@@ -67,7 +67,7 @@ export const signupService = async (data: SignupInput) => {
     },
   });
 
-  const verifyUrl = `${config.CLIENT_URL}/api/auth/verify-email?token=${verificationToken}`;
+  const verifyUrl = `${config.CLIENT_URL}/api/v1/auth/verify-email?token=${verificationToken}`;
 
   await dispatchEmail({
     email: newUser.email,
@@ -168,7 +168,7 @@ export const resendverifyEmailService = async (email: string) => {
   if (!clientUrl) {
     throw new Error("CLIENT_URL is not defined");
   }
-  const verifyUrl = `${config.CLIENT_URL}/api/auth/verify-email?token=${verificationToken}`;
+  const verifyUrl = `${config.CLIENT_URL}/api/v1/auth/verify-email?token=${verificationToken}`;
 
   await dispatchEmail({
     email: user.email,
@@ -207,17 +207,17 @@ export const loginService = async (data: LoginInput) => {
     );
   }
 
+  // Block deactivated accounts before any expensive password check
+  if (user.accountStatus !== "active") {
+    logger.warn(`Login attempt on deactivated account: ${email}`);
+    throw new AppError("Your account has been deactivated. Contact support.", 403);
+  }
+
   // Compare the passwords
   const isValid = await ComparePassword(password, user.passwordHash);
   if (!isValid) {
     logger.warn(`Incorrect password attempt for email: ${email}`);
     throw new AppError("Invalid email or password", 401);
-  }
-
-  // Check if the user is verified
-  if (!user.isVerified && user.role !== "admin") {
-    logger.warn(`User with email: ${user.email} hasn't verified their email`);
-    throw new AppError("Please verify your email first", 403);
   }
 
   const sanitizedUser = {
@@ -227,6 +227,7 @@ export const loginService = async (data: LoginInput) => {
     phoneNumber: user.phoneNumber,
     profileImage: user.profileImage,
     role: user.role,
+    isVerified: user.isVerified,
   };
 
   // Generate accessToken and refreshToken
