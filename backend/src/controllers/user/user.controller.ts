@@ -4,6 +4,7 @@ import {
   updateUserService,
   GetUserService,
   deleteUserService,
+  upgradeToLenderService,
 } from "../../services/user/user.service";
 import logger from "../../config/winston";
 import catchAsync from "../../utils/catchAsync";
@@ -74,6 +75,17 @@ export const getUser = catchAsync(async (req: AuthRequest, res: Response, next: 
   res.status(200).json({
     status: "success",
     data: { user },
+  });
+});
+
+// Upgrade current user from User → lender
+export const upgradeToLender = catchAsync(async (req: AuthRequest, res: Response) => {
+  const updated = await upgradeToLenderService(req.user!.id);
+  logger.info(`User ${req.user!.id} upgraded to lender`);
+  res.status(200).json({
+    status: "success",
+    message: "Your account has been upgraded to Lender. You can now list cars.",
+    data: { user: updated },
   });
 });
 

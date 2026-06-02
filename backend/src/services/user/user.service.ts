@@ -3,6 +3,7 @@ import logger from "../../config/winston";
 import AppError from "../../utils/AppError";
 import { UpdateUserInput } from "../../schema/user/user.schema";
 import cloudinary from "../../config/cloudinary";
+import { UserRole } from "../../generated/prisma/client";
 import { Readable } from "stream";
 
 const bufferToStream = (buffer: Buffer): Readable => {
@@ -129,5 +130,21 @@ export const deleteUserService = async (userId: string) => {
   return await prisma.user.update({
     where: { id: userId },
     data: { active: false },
+  });
+};
+
+/**
+ * Upgrade User → lender
+ */
+export const upgradeToLenderService = async (userId: string) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError("User not found", 404);
+  if (user.role === UserRole.lender) throw new AppError("Account is already a lender", 400);
+  if (user.role === UserRole.admin) throw new AppError("Admin accounts cannot be changed", 400);
+
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { role: UserRole.lender },
+    select: { id: true, name: true, email: true, role: true, profileImage: true, phoneNumber: true, isVerified: true },
   });
 };

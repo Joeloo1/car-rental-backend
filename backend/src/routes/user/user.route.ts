@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { uploadProfileImage } from "../../middleware/upload.middleware";
 import { resizePhoto } from "../../middleware/resize-middleware";
-import { updateUser, deleteUser, getUser } from "../../controllers/user/user.controller";
+import { updateUser, deleteUser, getUser, upgradeToLender } from "../../controllers/user/user.controller";
 import { protect } from "../../middleware/protect.middleware";
 import {
   getMyNotifications,
@@ -18,6 +18,7 @@ router.patch("/updateMe", uploadProfileImage.single("profileImage"), resizePhoto
 
 router.get("/me", getUser);
 router.delete("/deleteMe", deleteUser);
+router.post("/upgrade-to-lender", upgradeToLender);
 
 // Notifications
 router.get("/notifications", getMyNotifications);

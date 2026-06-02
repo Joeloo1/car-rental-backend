@@ -16,8 +16,6 @@ import {
   verifyEmailToken,
   verifyRefreshToken,
 } from "../../utils/jwt";
-// IMPROVEMENT: auth emails now go through the BullMQ queue via dispatchEmail.
-// OLD: import { sendEmail, getVerificationEmailHtml, generatePasswordResetEmail } from "../../utils/email";
 import { getVerificationEmailHtml, generatePasswordResetEmail } from "../../utils/email";
 import { dispatchEmail } from "../../workers/email.worker";
 import config from "../../config/config.env";
@@ -46,7 +44,7 @@ export const signupService = async (data: SignupInput) => {
   const verificationToken = generateVerificationToken(data.email);
   const verificationExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
-  const role = data.role === "lender" ? UserRole.lender : UserRole.User;
+  const role = UserRole.User;
 
   // Create user
   const newUser = await prisma.user.create({
@@ -71,10 +69,6 @@ export const signupService = async (data: SignupInput) => {
 
   const verifyUrl = `${config.CLIENT_URL}/api/auth/verify-email?token=${verificationToken}`;
 
-  // IMPROVEMENT: enqueue instead of fire-and-forget. If the SMTP call fails the
-  // worker retries automatically (up to 3 attempts) — the old pattern silently
-  // dropped the email on transient failures.
-  // OLD: sendEmail({...}).then(...).catch(...)
   await dispatchEmail({
     email: newUser.email,
     subject: "Verify Your Email Address",

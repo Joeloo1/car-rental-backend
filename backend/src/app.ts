@@ -9,6 +9,13 @@ import { RedisStore } from "connect-redis";
 import { randomUUID } from "crypto";
 import { doubleCsrf } from "csrf-csrf";
 
+// Extend express-session so we can mark sessions for persistence
+declare module "express-session" {
+  interface SessionData {
+    csrfInit?: boolean;
+  }
+}
+
 import config from "./config/config.env";
 import logger from "./config/winston";
 import { globalErrorHandler } from "./error/errorHandling";
@@ -20,9 +27,13 @@ import routes from "./routes/routes";
 
 const app: Express = express();
 
+// "__Host-" prefix requires the Secure flag; use it only in production
+const csrfCookieName =
+  config.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token";
+
 const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
   getSecret: () => config.CSRF_SECRET,
-  cookieName: "__Host-psifi.x-csrf-token",
+  cookieName: csrfCookieName,
   cookieOptions: { secure: config.NODE_ENV === "production" },
   size: 64,
   getSessionIdentifier: (req) => req.session.id,
@@ -84,8 +95,16 @@ app.use(
   }),
 );
 
-app.get("/api/csrf-token", (req, res) => {
-  res.json({ csrfToken: generateCsrfToken(req, res) });
+// Force the session to be saved before generating the token.
+// With saveUninitialized:false, an unmodified session is never persisted, so the
+// subsequent POST would arrive with a brand-new session ID, making the HMAC mismatch.
+// Setting csrfInit marks the session as modified, which triggers the save.
+app.get("/api/csrf-token", (req, res, next) => {
+  req.session.csrfInit = true;
+  req.session.save((err) => {
+    if (err) return next(err);
+    res.json({ csrfToken: generateCsrfToken(req, res) });
+  });
 });
 
 app.use(doubleCsrfProtection);
