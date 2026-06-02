@@ -193,7 +193,8 @@ const Login: React.FC = () => {
                 variant="outline"
                 type="button"
                 onClick={() => {
-                  const apiUrl = import.meta.env.VITE_API_URL || "/api";
+                  // OLD: const apiUrl = import.meta.env.VITE_API_URL || "/api";
+                  const apiUrl = import.meta.env.VITE_API_URL || "/api/v1";
                   window.location.href = `${apiUrl}/auth/google`;
                 }}
                 className="w-full"

@@ -10,15 +10,19 @@ import { useAuth } from "../../context/AuthContext";
 import { cn } from "../../utils/cn";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import Select from "../../components/ui/Select";
 import type { ApiError } from "../../types/index";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Must include an uppercase letter, a lowercase letter, and a number",
+    ),
   passwordConfirm: z.string(),
-  role: z.enum(["User", "lender"]),
   agree: z.boolean().refine((val) => val === true, "You must agree to terms"),
 }).refine((data) => data.password === data.passwordConfirm, {
   message: "Passwords don't match",
@@ -42,21 +46,18 @@ const Register: React.FC = () => {
       email: "",
       password: "",
       passwordConfirm: "",
-      role: "User",
       agree: false,
     },
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await registerAuth(data);
+      await registerAuth({ name: data.name, email: data.email, password: data.password, passwordConfirm: data.passwordConfirm });
       toast.success("Account created! Check your email to verify before signing in.");
       navigate("/login");
     } catch (err: unknown) {
       const error = err as ApiError;
-      const errorMessage =
-        error.response?.data?.message || "Failed to create account";
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || "Failed to create account");
     }
   };
 
@@ -155,12 +156,17 @@ const Register: React.FC = () => {
                 <Input
                   label="Password"
                   type="password"
-                  placeholder="Create a strong password"
+                  placeholder="Min 8 chars, uppercase, number"
                   leftIcon={<Lock size={18} />}
                   error={errors.password?.message}
                   {...register("password")}
                   disabled={isSubmitting}
                 />
+                {!errors.password && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Min 8 characters · uppercase · lowercase · number
+                  </p>
+                )}
               </motion.div>
 
               {/* Confirm Password */}
@@ -172,20 +178,6 @@ const Register: React.FC = () => {
                   leftIcon={<Lock size={18} />}
                   error={errors.passwordConfirm?.message}
                   {...register("passwordConfirm")}
-                  disabled={isSubmitting}
-                />
-              </motion.div>
-
-              {/* Role Selection dropdown */}
-              <motion.div variants={itemVariants}>
-                <Select
-                  label="I want to"
-                  options={[
-                    { value: "User", label: "Rent a Car (Borrower)" },
-                    { value: "lender", label: "List My Car (Lender)" },
-                  ]}
-                  error={errors.role?.message}
-                  {...register("role")}
                   disabled={isSubmitting}
                 />
               </motion.div>
@@ -235,7 +227,8 @@ const Register: React.FC = () => {
                 variant="outline"
                 type="button"
                 onClick={() => {
-                  const apiUrl = import.meta.env.VITE_API_URL || "/api";
+                  // OLD: const apiUrl = import.meta.env.VITE_API_URL || "/api";
+                  const apiUrl = import.meta.env.VITE_API_URL || "/api/v1";
                   window.location.href = `${apiUrl}/auth/google`;
                 }}
                 className="w-full"

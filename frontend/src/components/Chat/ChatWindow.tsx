@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, MessageCircle, Loader2 } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
+import { tokenStore } from '../../utils/tokenStore';
 import './ChatWindow.css';
 
 interface Message {
@@ -42,10 +43,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ carId, lenderId, lenderName, on
   useEffect(() => {
     if (!user) return;
 
-    const token = localStorage.getItem('accessToken');
+    const token = tokenStore.get();
     if (!token) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:3000';
+    // OLD: import.meta.env.VITE_API_URL?.replace(/\/api$/, '')
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL ||
+      import.meta.env.VITE_API_URL?.replace(/\/api\/v1$/, "") ||
+      "http://localhost:3000";
     const socket = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],

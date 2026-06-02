@@ -10,10 +10,12 @@ import './LandingPage.css';
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   
-  const { data: cars, isLoading } = useQuery({
+  const { data: carsData, isLoading } = useQuery({
     queryKey: ['featured-cars'],
     queryFn: () => carService.getAll({ limit: 4 })
   });
+
+  const cars = carsData?.cars;
 
   return (
     <div className="landing-page">

@@ -358,7 +358,7 @@ const LenderDashboard: React.FC = () => {
 
             {activeTab === 'profile' && (
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-3xl">
-                <ProfileEditor theme="system" />
+                <ProfileEditor />
               </motion.div>
             )}
 

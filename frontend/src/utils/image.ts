@@ -27,9 +27,11 @@ export const getImageUrl = (url: string, width: number = 800): string => {
     return optimizeImage(url, width);
   }
 
-  // If it's a relative URL, prepend the API base URL
+  // If it's a relative URL, prepend the server root (strip the /api/v1 path prefix).
+  // OLD: import.meta.env.VITE_API_URL?.replace("/api", "") — only removed /api
   const apiUrl =
-    import.meta.env.VITE_API_URL?.replace("/api", "") ||
+    import.meta.env.VITE_SOCKET_URL ||
+    import.meta.env.VITE_API_URL?.replace("/api/v1", "") ||
     "http://localhost:3000";
   return optimizeImage(`${apiUrl}${url}`, width);
 };

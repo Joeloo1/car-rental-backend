@@ -88,7 +88,7 @@ export interface LoginCredentials {
 export interface RegisterData extends LoginCredentials {
   name: string;
   phoneNumber?: string;
-  role?: UserRole;
+  passwordConfirm?: string;
 }
 
 export interface ApiError {

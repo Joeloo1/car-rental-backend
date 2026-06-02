@@ -4,116 +4,117 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        // Semantic tokens
+        border:     "hsl(var(--border))",
+        input:      "hsl(var(--input))",
+        ring:       "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT:    "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          50: "#eff6ff",
-          100: "#dbeafe",
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
-          800: "#1e40af",
-          900: "#1e3a8a",
-          950: "#172554",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
+          DEFAULT:    "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
+          DEFAULT:    "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
+          DEFAULT:    "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT:    "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
         card: {
-          DEFAULT: "hsl(var(--card))",
+          DEFAULT:    "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        dark: {
-          50: "#f8fafc",
-          100: "#cbd5e1",
-          200: "#64748b",
-          300: "#1f1f25",
-          400: "#1a1a20",
-          500: "#111115",
-          600: "#0a0a0b",
+        // App-specific surface scale
+        surface: {
+          0: "#0a0a0a",
+          1: "#111111",
+          2: "#181818",
+          3: "#222222",
+          4: "#2c2c2c",
         },
-      },
-      borderRadius: {
-        lg: `var(--radius)`,
-        md: `calc(var(--radius) - 2px)`,
-        sm: `calc(var(--radius) - 4px)`,
+        // Inline text colors
+        ink: {
+          primary:   "#fafafa",
+          secondary: "#a1a1aa",
+          tertiary:  "#71717a",
+          disabled:  "#3f3f46",
+        },
+        // Semantic accents
+        blue: {
+          DEFAULT: "#2563eb",
+          light:   "#3b82f6",
+          dim:     "rgba(37,99,235,0.12)",
+        },
+        green: {
+          DEFAULT: "#16a34a",
+          dim:     "rgba(22,163,74,0.12)",
+        },
+        red: {
+          DEFAULT: "#dc2626",
+          dim:     "rgba(220,38,38,0.12)",
+        },
+        amber: {
+          DEFAULT: "#d97706",
+          dim:     "rgba(217,119,6,0.1)",
+        },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Outfit", "sans-serif"],
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
-      animation: {
-        "fade-in": "fadeIn 0.6s ease-out",
-        "fade-in-up": "fadeInUp 0.6s ease-out",
-        "fade-in-down": "fadeInDown 0.6s ease-out",
-        "slide-in-left": "slideInLeft 0.6s ease-out",
-        "slide-in-right": "slideInRight 0.6s ease-out",
-        "scale-in": "scaleIn 0.4s ease-out",
-        "bounce-slow": "bounce 2s ease-in-out infinite",
-        shimmer: "shimmer 1.5s ease-in-out infinite",
-        "spin-slow": "spin 3s linear infinite",
+      fontSize: {
+        "2xs": ["0.6875rem", { lineHeight: "1rem" }],
       },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0", transform: "translateY(16px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        fadeInUp: {
-          "0%": { opacity: "0", transform: "translateY(30px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        fadeInDown: {
-          "0%": { opacity: "0", transform: "translateY(-30px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        slideInLeft: {
-          "0%": { opacity: "0", transform: "translateX(-30px)" },
-          "100%": { opacity: "1", transform: "translateX(0)" },
-        },
-        slideInRight: {
-          "0%": { opacity: "0", transform: "translateX(30px)" },
-          "100%": { opacity: "1", transform: "translateX(0)" },
-        },
-        scaleIn: {
-          "0%": { opacity: "0", transform: "scale(0.9)" },
-          "100%": { opacity: "1", transform: "scale(1)" },
-        },
-        shimmer: {
-          "0%": { backgroundPosition: "-1000px 0" },
-          "100%": { backgroundPosition: "1000px 0" },
-        },
+      borderRadius: {
+        DEFAULT: "0.5rem",
+        sm:  "0.375rem",
+        md:  "0.5rem",
+        lg:  "0.75rem",
+        xl:  "1rem",
+        "2xl": "1.25rem",
+        full: "9999px",
       },
-      backdropBlur: {
-        xs: "2px",
+      spacing: {
+        18: "4.5rem",
+        22: "5.5rem",
       },
       boxShadow: {
-        glow: "0 0 20px rgba(59, 130, 246, 0.5)",
-        "glow-lg": "0 0 40px rgba(59, 130, 246, 0.6)",
+        "sm":       "0 1px 2px rgba(0,0,0,0.5)",
+        "md":       "0 4px 12px rgba(0,0,0,0.4)",
+        "lg":       "0 8px 24px rgba(0,0,0,0.45)",
+        "xl":       "0 16px 40px rgba(0,0,0,0.5)",
+        "card":     "0 0 0 1px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.4)",
+        "dropdown": "0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.6)",
+        "inset":    "inset 0 1px 0 rgba(255,255,255,0.06)",
+      },
+      keyframes: {
+        "fade-in": {
+          "0%":   { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "fade-up": {
+          "0%":   { opacity: "0", transform: "translateY(16px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "shimmer": {
+          "0%":   { backgroundPosition: "-400px 0" },
+          "100%": { backgroundPosition: "400px 0" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.2s ease-out both",
+        "fade-up": "fade-up 0.35s ease-out both",
+        "shimmer": "shimmer 1.4s ease-in-out infinite",
       },
     },
   },

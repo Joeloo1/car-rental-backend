@@ -1,487 +1,392 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import {
-  Menu,
-  X,
-  Car,
-  LogIn,
-  User as UserIcon,
-  LogOut,
-  Bell,
-  Search,
-  Heart,
-  ChevronDown,
-  Crown,
-  LayoutDashboard,
-} from "lucide-react";
+import { Menu, X, Bell, ChevronDown, LogOut, LayoutDashboard, Car, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useSocket } from "../../context/SocketContext";
-import { notificationService } from "../../services/notification.service.ts";
-import NotificationDrawer from "../Navbar/NotificationDrawer.tsx";
-import { clsx } from "clsx";
+import { notificationService } from "../../services/notification.service";
+import NotificationDrawer from "../Navbar/NotificationDrawer";
 
 const Navbar: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate  = useNavigate();
+  const location  = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const { socket } = useSocket();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/");
-      setIsMobileMenuOpen(false);
-      setIsUserMenuOpen(false);
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
-  };
+  const [solid,       setSolid]       = useState(false);
+  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [userOpen,    setUserOpen]    = useState(false);
+  const [notifOpen,   setNotifOpen]   = useState(false);
+  const [unread,      setUnread]      = useState(0);
+  const userRef = useRef<HTMLDivElement>(null);
+
+  // Transparent on hero pages, solid elsewhere
+  const isHeroPage = location.pathname === "/";
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+    if (!isHeroPage) { setSolid(true); return; }
+    const onScroll = () => setSolid(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHeroPage]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    setUserOpen(false);
+  }, [location.pathname]);
+
+  // Click-outside for user dropdown
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (userRef.current && !userRef.current.contains(e.target as Node)) {
+        setUserOpen(false);
+      }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      notificationService
-        .getAll()
-        .then((notifs) => {
-          setUnreadCount(notifs.filter((n) => !n.isRead).length);
-        })
-        .catch(() => {
-          console.log("Could not fetch notifications");
-        });
-    }
+    if (!isAuthenticated) return;
+    notificationService.getAll()
+      .then((res: any) => {
+        const arr = Array.isArray(res) ? res : (res?.notifications ?? []);
+        setUnread(arr.filter((n: any) => !n.isRead).length);
+      })
+      .catch(() => {});
   }, [isAuthenticated]);
 
-  // Increment badge count when a new notification arrives via socket
   useEffect(() => {
     if (!socket) return;
-    const handleNewNotif = () => setUnreadCount((c) => c + 1);
-    socket.on("new_notification", handleNewNotif);
-    return () => {
-      socket.off("new_notification", handleNewNotif);
-    };
+    const inc = () => setUnread(c => c + 1);
+    socket.on("new_notification", inc);
+    return () => { socket.off("new_notification", inc); };
   }, [socket]);
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsUserMenuOpen(false);
-  }, [location.pathname]);
+  const handleLogout = async () => {
+    setUserOpen(false);
+    await logout();
+    navigate("/");
+  };
 
-  const isActivePath = (path: string) => location.pathname === path;
+  const handleNotifClose = () => {
+    setNotifOpen(false);
+    notificationService.getAll()
+      .then((res: any) => {
+        const arr = Array.isArray(res) ? res : (res?.notifications ?? []);
+        setUnread(arr.filter((n: any) => !n.isRead).length);
+      })
+      .catch(() => {});
+  };
+
+  const navLinks = [
+    { label: "Browse Cars",  to: "/browse" },
+    { label: "How It Works", to: "/how-it-works" },
+  ];
+
+  const isActive = (to: string) => location.pathname === to;
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={clsx(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          isScrolled
-            ? "bg-[#0a0a0b]/80 backdrop-blur-2xl border-b border-white/10 shadow-2xl"
-            : "bg-transparent",
-        )}
+      <header
+        className={`
+          fixed top-0 inset-x-0 z-50 h-14 transition-all duration-200
+          ${solid
+            ? "bg-[#0f0f0f] border-b border-[#1f1f1f]"
+            : "bg-transparent border-b border-transparent"
+          }
+        `}
       >
-        <div className="container-custom">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <Link
-              to="/"
-              className="flex items-center gap-3 group"
-              aria-label="LuxeDrive Home"
-            >
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-                className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30"
-              >
-                <Car size={22} className="text-white" />
-              </motion.div>
-              <span className="text-2xl font-display font-bold text-white group-hover:text-blue-400 transition-colors">
-                LuxeDrive
-              </span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-1">
-              <NavLink to="/browse" active={isActivePath("/browse")}>
-                Browse Cars
-              </NavLink>
-              <NavLink
-                to="/how-it-works"
-                active={isActivePath("/how-it-works")}
-              >
-                How it Works
-              </NavLink>
-              {isAuthenticated && user?.role === 'lender' && (
-                <NavLink to="/lender" active={isActivePath("/lender")}>
-                  Host Hub
-                </NavLink>
-              )}
-              {isAuthenticated && user?.role === 'admin' && (
-                <NavLink to="/admin" active={isActivePath("/admin")}>
-                  Admin
-                </NavLink>
-              )}
-              {isAuthenticated && (
-                <NavLink to="/dashboard" active={isActivePath("/dashboard")}>
-                  Dashboard
-                </NavLink>
-              )}
+        <div className="container h-full flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex items-center gap-2 flex-shrink-0 group"
+          >
+            <div className="w-7 h-7 rounded-md bg-blue flex items-center justify-center">
+              <Car size={14} className="text-white" />
             </div>
+            <span className="font-semibold text-[15px] text-ink-primary tracking-tight">
+              LuxeDrive
+            </span>
+          </Link>
 
-            {/* Desktop Actions */}
-            <div className="hidden lg:flex items-center gap-3">
-              {isAuthenticated ? (
-                <>
-                  {/* Search Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                    aria-label="Search"
-                  >
-                    <Search size={20} />
-                  </motion.button>
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map(({ label, to }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
+                  ${isActive(to)
+                    ? "text-ink-primary bg-surface-2"
+                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
+                  }
+                `}
+              >
+                {label}
+              </Link>
+            ))}
+            {isAuthenticated && user?.role === "lender" && (
+              <Link
+                to="/lender"
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
+                  ${isActive("/lender")
+                    ? "text-ink-primary bg-surface-2"
+                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
+                  }
+                `}
+              >
+                Host Hub
+              </Link>
+            )}
+            {isAuthenticated && user?.role === "admin" && (
+              <Link
+                to="/admin"
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
+                  ${isActive("/admin")
+                    ? "text-ink-primary bg-surface-2"
+                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
+                  }
+                `}
+              >
+                Admin
+              </Link>
+            )}
+            {isAuthenticated && (
+              <Link
+                to="/dashboard"
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
+                  ${isActive("/dashboard")
+                    ? "text-ink-primary bg-surface-2"
+                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
+                  }
+                `}
+              >
+                Dashboard
+              </Link>
+            )}
+          </nav>
 
-                  {/* Favorites Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                    aria-label="Favorites"
-                  >
-                    <Heart size={20} />
-                  </motion.button>
+          {/* Desktop right */}
+          <div className="hidden md:flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                {/* Notification bell */}
+                <button
+                  onClick={() => setNotifOpen(true)}
+                  className="relative p-2 rounded-md text-ink-tertiary hover:text-ink-primary hover:bg-surface-2 transition-colors"
+                  aria-label="Notifications"
+                >
+                  <Bell size={17} />
+                  {unread > 0 && (
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue text-[9px] font-bold text-white">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
+                </button>
 
-                  {/* Notifications */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative p-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                    onClick={() => setIsNotifOpen(true)}
-                    aria-label="Notifications"
+                {/* User menu */}
+                <div ref={userRef} className="relative">
+                  <button
+                    onClick={() => setUserOpen(v => !v)}
+                    className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-lg border border-[#2a2a2a] bg-surface-2 hover:bg-surface-3 hover:border-[#333] transition-all duration-150"
                   >
-                    <Bell size={20} />
-                    {unreadCount > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg"
+                    <img
+                      src={
+                        user?.profileImage ||
+                        `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user?.name ?? "U")}&backgroundColor=2563eb&textColor=ffffff&fontSize=40`
+                      }
+                      alt={user?.name}
+                      className="w-6 h-6 rounded-md object-cover"
+                    />
+                    <span className="text-sm font-medium text-ink-primary max-w-[96px] truncate">
+                      {user?.name?.split(" ")[0]}
+                    </span>
+                    <ChevronDown
+                      size={13}
+                      className={`text-ink-tertiary transition-transform duration-150 ${userOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {userOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 4, scale: 0.97 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute right-0 mt-1.5 w-52 rounded-xl bg-[#111] border border-[#222] shadow-dropdown overflow-hidden"
                       >
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </motion.span>
+                        {/* User info */}
+                        <div className="px-3.5 py-3 border-b border-[#1f1f1f]">
+                          <p className="text-sm font-semibold text-ink-primary truncate">{user?.name}</p>
+                          <p className="text-xs text-ink-tertiary truncate mt-0.5">{user?.email}</p>
+                        </div>
+
+                        {/* Links */}
+                        <div className="py-1">
+                          <MenuLink icon={LayoutDashboard} label="Dashboard"   onClick={() => { navigate("/dashboard"); setUserOpen(false); }} />
+                          {user?.role === "lender" && (
+                            <MenuLink icon={Car}          label="Host Hub"     onClick={() => { navigate("/lender"); setUserOpen(false); }} />
+                          )}
+                          {user?.role === "admin" && (
+                            <MenuLink icon={Settings}     label="Admin Panel"  onClick={() => { navigate("/admin"); setUserOpen(false); }} />
+                          )}
+                        </div>
+
+                        <div className="py-1 border-t border-[#1f1f1f]">
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-red-400 hover:bg-surface-2 transition-colors"
+                          >
+                            <LogOut size={14} />
+                            Sign out
+                          </button>
+                        </div>
+                      </motion.div>
                     )}
-                  </motion.button>
-
-                  {/* User Menu */}
-                  <div className="relative">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/15 rounded-lg transition-all border border-white/10"
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                        <UserIcon size={18} className="text-white" />
-                      </div>
-                      <span className="text-sm font-medium text-white max-w-[100px] truncate">
-                        {user?.name || "User"}
-                      </span>
-                      <ChevronDown
-                        size={16}
-                        className={clsx(
-                          "text-gray-400 transition-transform",
-                          isUserMenuOpen && "rotate-180",
-                        )}
-                      />
-                    </motion.button>
-
-                    {/* User Dropdown */}
-                    <AnimatePresence>
-                      {isUserMenuOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className="absolute right-0 mt-2 w-56 bg-dark-500 border border-white/10 rounded-xl shadow-2xl overflow-hidden"
-                        >
-                          <div className="p-3 border-b border-white/10">
-                            <p className="text-sm font-semibold text-white truncate">
-                              {user?.name}
-                            </p>
-                            <p className="text-xs text-gray-400 truncate">
-                              {user?.email}
-                            </p>
-                          </div>
-                          <div className="p-2">
-                            <button
-                              onClick={() => { navigate("/dashboard"); setIsUserMenuOpen(false); }}
-                              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                            >
-                              <LayoutDashboard size={16} />
-                              Dashboard
-                            </button>
-                            {user?.role === 'lender' && (
-                              <button
-                                onClick={() => { navigate("/lender"); setIsUserMenuOpen(false); }}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-all"
-                              >
-                                <Car size={16} />
-                                Host Hub
-                              </button>
-                            )}
-                            {user?.role === 'admin' && (
-                              <button
-                                onClick={() => { navigate("/admin"); setIsUserMenuOpen(false); }}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-all"
-                              >
-                                <Crown size={16} />
-                                Admin Panel
-                              </button>
-                            )}
-                          </div>
-                          <div className="p-2 border-t border-white/10">
-                            <button
-                              onClick={handleLogout}
-                              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
-                            >
-                              <LogOut size={16} />
-                              Sign Out
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate("/register")}
-                    className="flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/8 rounded-lg transition-all font-medium text-sm"
-                  >
-                    List your car
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate("/login")}
-                    className="flex items-center gap-2 px-4 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-medium"
-                  >
-                    <LogIn size={18} />
-                    Login
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate("/register")}
-                    className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 transition-all"
-                  >
-                    Sign Up Free
-                  </motion.button>
-                </>
-              )}
-            </div>
-
-            {/* Mobile Menu Toggle */}
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-all"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </motion.button>
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="btn-ghost text-sm"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => navigate("/register")}
+                  className="btn-primary text-sm"
+                >
+                  Get started
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-      </motion.nav>
 
-      {/* Mobile Menu */}
+          {/* Mobile toggle */}
+          <button
+            onClick={() => setMobileOpen(v => !v)}
+            className="md:hidden p-2 rounded-md text-ink-tertiary hover:text-ink-primary hover:bg-surface-2 transition-colors"
+            aria-label="Toggle navigation"
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </header>
+
+      {/* ── Mobile menu ─────────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {mobileOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-40 bg-black/60 md:hidden"
+              onClick={() => setMobileOpen(false)}
             />
-
-            {/* Menu Panel */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-80 bg-dark-600 border-l border-white/10 z-50 lg:hidden overflow-y-auto"
+              transition={{ type: "spring", damping: 30, stiffness: 280 }}
+              className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-[#111] border-l border-[#1f1f1f] flex flex-col md:hidden"
             >
-              <div className="p-6 space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-display font-bold text-white">
-                    Menu
-                  </span>
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-[#1f1f1f]">
+                <span className="font-semibold text-ink-primary">Menu</span>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="p-1.5 rounded-md text-ink-tertiary hover:text-ink-primary hover:bg-surface-2 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
 
-                {/* User Info */}
-                {isAuthenticated && user && (
-                  <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-                        <UserIcon size={24} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-gray-400 truncate">
-                          {user.email}
-                        </p>
-                      </div>
+              {/* User */}
+              {isAuthenticated && user && (
+                <div className="p-4 border-b border-[#1f1f1f]">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={user.profileImage || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.name ?? "U")}&backgroundColor=2563eb&textColor=ffffff`}
+                      className="w-9 h-9 rounded-lg object-cover"
+                      alt={user.name}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink-primary truncate">{user.name}</p>
+                      <p className="text-xs text-ink-tertiary truncate">{user.email}</p>
                     </div>
                   </div>
-                )}
-
-                {/* Navigation Links */}
-                <nav className="space-y-2">
-                  <MobileNavLink to="/browse" icon={<Search size={20} />}>
-                    Browse Cars
-                  </MobileNavLink>
-                  <MobileNavLink to="/how-it-works" icon={<Car size={20} />}>
-                    How it Works
-                  </MobileNavLink>
-                  {isAuthenticated && (
-                    <>
-                      <MobileNavLink to="/dashboard" icon={<LayoutDashboard size={20} />}>
-                        Dashboard
-                      </MobileNavLink>
-                      {user?.role === 'lender' && (
-                        <MobileNavLink to="/lender" icon={<Car size={20} />}>
-                          Host Hub
-                        </MobileNavLink>
-                      )}
-                      {user?.role === 'admin' && (
-                        <MobileNavLink to="/admin" icon={<Crown size={20} />}>
-                          Admin Panel
-                        </MobileNavLink>
-                      )}
-                      <MobileNavLink to="/favorites" icon={<Heart size={20} />}>
-                        Favorites
-                      </MobileNavLink>
-                    </>
-                  )}
-                </nav>
-
-                {/* Actions */}
-                <div className="pt-6 border-t border-white/10 space-y-3">
-                  {isAuthenticated ? (
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-all font-semibold"
-                    >
-                      <LogOut size={18} />
-                      Sign Out
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => navigate("/login")}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white hover:bg-white/15 rounded-lg transition-all font-semibold"
-                      >
-                        <LogIn size={18} />
-                        Login
-                      </button>
-                      <button
-                        onClick={() => navigate("/register")}
-                        className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold shadow-lg shadow-blue-500/30"
-                      >
-                        Sign Up
-                      </button>
-                    </>
-                  )}
                 </div>
+              )}
+
+              {/* Nav */}
+              <nav className="flex-1 p-3 overflow-y-auto">
+                {[
+                  ...navLinks,
+                  ...(isAuthenticated ? [{ label: "Dashboard", to: "/dashboard" }] : []),
+                  ...(isAuthenticated && user?.role === "lender" ? [{ label: "Host Hub", to: "/lender" }] : []),
+                  ...(isAuthenticated && user?.role === "admin"  ? [{ label: "Admin",    to: "/admin"  }] : []),
+                ].map(({ label, to }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className={`
+                      flex items-center px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-colors
+                      ${isActive(to) ? "bg-surface-3 text-ink-primary" : "text-ink-secondary hover:bg-surface-2 hover:text-ink-primary"}
+                    `}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Actions */}
+              <div className="p-3 border-t border-[#1f1f1f]">
+                {isAuthenticated ? (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-surface-2 transition-colors"
+                  >
+                    <LogOut size={15} /> Sign out
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <button onClick={() => navigate("/login")}    className="btn-secondary w-full justify-center py-2.5">Sign in</button>
+                    <button onClick={() => navigate("/register")} className="btn-primary w-full justify-center py-2.5">Get started</button>
+                  </div>
+                )}
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* Notification Drawer */}
-      {isNotifOpen && (
-        <NotificationDrawer
-          onClose={() => {
-            setIsNotifOpen(false);
-            notificationService.getAll().then((notifs) => {
-              setUnreadCount(notifs.filter((n) => !n.isRead).length);
-            });
-          }}
-        />
-      )}
+      {notifOpen && <NotificationDrawer onClose={handleNotifClose} />}
     </>
   );
 };
 
-// Desktop Nav Link Component
-const NavLink: React.FC<{
-  to: string;
-  active: boolean;
-  children: React.ReactNode;
-}> = ({ to, active, children }) => (
-  <Link
-    to={to}
-    className={clsx(
-      "px-4 py-2 rounded-lg font-medium transition-all relative",
-      active
-        ? "text-white bg-white/10"
-        : "text-gray-300 hover:text-white hover:bg-white/5",
-    )}
+const MenuLink: React.FC<{ icon: React.ElementType; label: string; onClick: () => void }> = ({
+  icon: Icon, label, onClick,
+}) => (
+  <button
+    onClick={onClick}
+    className="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-ink-secondary hover:text-ink-primary hover:bg-surface-2 transition-colors"
   >
-    {children}
-    {active && (
-      <motion.div
-        layoutId="activeNav"
-        className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
-      />
-    )}
-  </Link>
-);
-
-// Mobile Nav Link Component
-const MobileNavLink: React.FC<{
-  to: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}> = ({ to, icon, children }) => (
-  <Link
-    to={to}
-    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all font-medium"
-  >
-    {icon}
-    {children}
-  </Link>
+    <Icon size={14} />
+    {label}
+  </button>
 );
 
 export default Navbar;
