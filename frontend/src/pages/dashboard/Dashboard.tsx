@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard,
@@ -149,7 +149,7 @@ const BookingsTable: React.FC<{
 // ── Main ──────────────────────────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading: isAuthLoading, logout, logoutAll, updateUser } = useAuth();
   const [isAddCarModalOpen, setIsAddCarModalOpen] = useState(false);
   const [reviewBooking, setReviewBooking] = useState<any>(null);
   const [activeNav, setActiveNav] = useState('overview');
@@ -413,13 +413,20 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm text-ink-tertiary mt-1">{pageSubtitle[activeNav]}</p>
               </div>
               {showAddCar && (
-                <button
-                  onClick={() => setIsAddCarModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black flex-shrink-0 transition-opacity hover:opacity-90 active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg, #fcd34d, #d97706)' }}
-                >
-                  <Plus size={16} /> Add New Car
-                </button>
+                user?.isVerified ? (
+                  <button
+                    onClick={() => setIsAddCarModalOpen(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black flex-shrink-0 transition-opacity hover:opacity-90 active:scale-[0.98]"
+                    style={{ background: 'linear-gradient(135deg, #fcd34d, #d97706)' }}
+                  >
+                    <Plus size={16} /> Add New Car
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-2 border border-[#282828] text-sm text-ink-tertiary cursor-not-allowed select-none">
+                    <Plus size={15} className="opacity-50" />
+                    Verify email to add cars
+                  </div>
+                )
               )}
             </motion.div>
 
@@ -459,6 +466,65 @@ const Dashboard: React.FC = () => {
                     </motion.div>
                   ))}
                 </motion.div>
+
+                {/* ── Become a Lender CTA (only for regular users) ── */}
+                {user?.role === 'User' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.12 }}
+                    className="relative overflow-hidden rounded-2xl border border-[#1a2234] p-6"
+                    style={{ background: 'linear-gradient(135deg, #0c1220 0%, #111827 60%, #0c1220 100%)' }}
+                  >
+                    {/* Ambient glow */}
+                    <div
+                      className="absolute -top-8 -right-8 w-48 h-48 rounded-full opacity-[0.07] blur-2xl pointer-events-none"
+                      style={{ background: 'radial-gradient(circle, #f59e0b, transparent)' }}
+                    />
+                    <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.22)' }}
+                        >
+                          <Banknote size={20} style={{ color: '#f59e0b' }} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-[15px] text-white">Earn with your car</h3>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber bg-amber/10 border border-amber/20">
+                              <Sparkles size={9} /> New
+                            </span>
+                          </div>
+                          <p className="text-sm text-white/50 max-w-sm leading-relaxed">
+                            Become a lender and list your car. Set your own price and availability — you're in full control.
+                          </p>
+                        </div>
+                      </div>
+                      {user?.isVerified ? (
+                        <button
+                          onClick={() => upgradeMutation.mutate()}
+                          disabled={upgradeMutation.isPending}
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black flex-shrink-0 disabled:opacity-60 transition-opacity hover:opacity-90 active:scale-[0.98]"
+                          style={{ background: 'linear-gradient(135deg, #fcd34d, #d97706)' }}
+                        >
+                          {upgradeMutation.isPending
+                            ? <Loader2 size={15} className="animate-spin" />
+                            : <ArrowRight size={15} />
+                          }
+                          {upgradeMutation.isPending ? 'Upgrading…' : 'Become a Lender'}
+                        </button>
+                      ) : (
+                        <Link
+                          to="/verify-email"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-amber/25 bg-amber/[0.07] text-amber hover:bg-amber/[0.12] transition-colors flex-shrink-0"
+                        >
+                          Verify email first →
+                        </Link>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Recent bookings */}
                 <motion.section
@@ -564,6 +630,24 @@ const Dashboard: React.FC = () => {
                     </div>
                     <ChevronRight size={14} className="text-ink-tertiary group-hover:text-ink-secondary transition-colors" />
                   </button>
+
+                  <div className="border-t border-[#1c1c1c] mt-2 pt-2">
+                    <button
+                      onClick={async () => { await logoutAll(); navigate('/'); }}
+                      className="w-full flex items-center justify-between py-3 px-3 -mx-1 rounded-xl hover:bg-red/[0.06] transition-colors group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-red/[0.06] border border-red/15 flex items-center justify-center">
+                          <LogOut size={14} className="text-red" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-red">Logout all devices</p>
+                          <p className="text-xs text-ink-tertiary">Revoke all active sessions everywhere</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={14} className="text-ink-tertiary group-hover:text-red transition-colors" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Notifications */}
