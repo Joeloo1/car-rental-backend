@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
 import { tokenStore } from "../utils/tokenStore";
+import { queryClient } from "../lib/queryClient";
 import type { User, LoginCredentials, RegisterData } from "../types/index";
 
 interface AuthContextType {
@@ -59,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(data.sanitizedUser);
   };
 
-  // register does NOT log the user in — they must verify their email first
+  // register does NOT log the user in — they must verify their email first.
   const register = async (userData: RegisterData) => {
     await api.post("/auth/signup", userData);
   };
@@ -72,10 +73,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await api.post("/auth/logout");
     } catch {
-      // Ignore logout errors
+      // Ignore logout errors — token is cleared regardless
     } finally {
       tokenStore.clear();
       setUser(null);
+      queryClient.clear();
     }
   };
 

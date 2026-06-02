@@ -12,4 +12,13 @@ const updateProfile = async (data: UpdateProfileData | FormData) => {
   return res.data.data.updateUser;
 };
 
-export const userService = { updateProfile };
+const deleteAccount = async () => {
+  await api.delete("/users/deleteMe");
+};
+
+const upgradeToLender = async () => {
+  const res = await api.post("/users/upgrade-to-lender");
+  return res.data.data.user;
+};
+
+export const userService = { updateProfile, deleteAccount, upgradeToLender };

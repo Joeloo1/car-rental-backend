@@ -20,7 +20,13 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const token = tokenStore.get();
     if (!token) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:3000';
+    // OLD: import.meta.env.VITE_API_URL?.replace(/\/api$/, '') — stripped the old /api suffix
+    // VITE_API_URL now ends in /api/v1 so we strip /api/v1 instead.
+    // VITE_SOCKET_URL is the more explicit alternative and avoids this stripping entirely.
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL ||
+      import.meta.env.VITE_API_URL?.replace(/\/api\/v1$/, "") ||
+      "http://localhost:3000";
     const s = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],

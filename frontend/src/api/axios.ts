@@ -3,19 +3,46 @@ import { toast } from "react-hot-toast";
 import { tokenStore } from "../utils/tokenStore";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true,
 });
 
+// ── CSRF token management ─────────────────────────────────────────────────────
+// Fetch once, reuse across requests. On CSRF rejection, invalidate and re-fetch.
+let _csrfToken: string | null = null;
+let _csrfFetch: Promise<string> | null = null;
+
+const MUTATING = new Set(["post", "put", "patch", "delete"]);
+
+const getCsrfToken = (): Promise<string> => {
+  if (_csrfToken) return Promise.resolve(_csrfToken);
+  if (_csrfFetch) return _csrfFetch;
+  _csrfFetch = axios
+    .get<{ csrfToken: string }>("/api/csrf-token", { withCredentials: true })
+    .then((res) => {
+      _csrfToken = res.data.csrfToken;
+      _csrfFetch = null;
+      return _csrfToken;
+    })
+    .catch((err) => {
+      _csrfFetch = null;
+      throw err;
+    });
+  return _csrfFetch;
+};
+
 // ── Request interceptor ───────────────────────────────────────────────────────
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = tokenStore.get();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.method && MUTATING.has(config.method.toLowerCase())) {
+      config.headers["x-csrf-token"] = await getCsrfToken();
     }
     return config;
   },
@@ -82,6 +109,18 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    }
+
+    // Stale CSRF token — invalidate, re-fetch, and retry once
+    if (
+      error.response?.status === 403 &&
+      !originalRequest._csrfRetry &&
+      error.response?.data?.message?.toLowerCase().includes("csrf")
+    ) {
+      originalRequest._csrfRetry = true;
+      _csrfToken = null;
+      originalRequest.headers["x-csrf-token"] = await getCsrfToken();
+      return api(originalRequest);
     }
 
     // Show toast for non-401 errors

@@ -24,7 +24,7 @@ export const notificationService = {
   },
 
   markAllAsRead: async () => {
-    const res = await api.patch<ApiResponse<any>>('/users/notifications/read-all');
+    const res = await api.patch<ApiResponse<any>>('/users/notifications/mark-all-read');
     return res.data.data;
   }
 };

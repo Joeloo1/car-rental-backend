@@ -1,13 +1,18 @@
 import api from "../api/axios";
 import type { Car, ApiResponse } from "../types/index";
 
+export interface CarsPage {
+  cars: Car[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+}
+
 export const carService = {
-  getAll: async (params?: Record<string, any>) => {
-    const res = await api.get<ApiResponse<{ cars: Car[] }>>("/cars", {
-      params,
-    });
-    // Handle both response structures
-    return res.data.data?.cars || res.data.data || res.data || [];
+  getAll: async (params?: Record<string, any>): Promise<CarsPage> => {
+    const res = await api.get<ApiResponse<{ cars: Car[]; pagination: CarsPage["pagination"] }>>("/cars", { params });
+    return {
+      cars: res.data.data?.cars ?? [],
+      pagination: res.data.data?.pagination ?? { total: 0, page: 1, limit: 10, totalPages: 1 },
+    };
   },
 
   getById: async (id: string) => {

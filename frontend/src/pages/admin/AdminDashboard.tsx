@@ -388,7 +388,7 @@ const AdminDashboard: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-3xl"
               >
-                <ProfileEditor theme="system" />
+                <ProfileEditor />
               </motion.div>
             )}
           </>

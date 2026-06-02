@@ -29,8 +29,11 @@ const ChatPane: React.FC<ChatPaneProps> = ({ chat, currentUserId }) => {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
+    // OLD: import.meta.env.VITE_API_URL?.replace(/\/api$/, '')
     const socketUrl =
-      import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:3000';
+      import.meta.env.VITE_SOCKET_URL ||
+      import.meta.env.VITE_API_URL?.replace(/\/api\/v1$/, "") ||
+      "http://localhost:3000";
     const socket = io(socketUrl, { path: '/socket.io', transports: ['websocket', 'polling'] });
     socketRef.current = socket;
 
