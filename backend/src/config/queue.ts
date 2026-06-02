@@ -17,7 +17,7 @@ const defaultJobOptions = {
   removeOnFail: 200,
 };
 export const emailQueue: Queue<EmailJobData> | null = connection
-  ? new Queue<EmailJobData>("luxedrive:email", {
+  ? new Queue<EmailJobData>("luxedrive-email", {
       connection,
       defaultJobOptions: defaultJobOptions,
       // defaultJobOptions: {

@@ -34,19 +34,21 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// email verification
+// email verification — redirects to the frontend page so users see a real UI
 export const verifyEmail = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const token = req.query.token as string;
 
   if (!token) {
-    return next(new AppError("verification token missing", 400));
+    return res.redirect(`${config.CLIENT_URL}/verify-email-confirm?error=missing_token`);
   }
 
-  await verifyEmailService(token);
-
-  res.status(200).json({
-    message: "Email Verified Successfully",
-  });
+  try {
+    await verifyEmailService(token);
+    return res.redirect(`${config.CLIENT_URL}/verify-email-confirm?success=true`);
+  } catch (err: any) {
+    const code = err?.message?.includes("expired") ? "expired" : "invalid";
+    return res.redirect(`${config.CLIENT_URL}/verify-email-confirm?error=${code}`);
+  }
 });
 
 // Re-send verification name
@@ -130,19 +132,37 @@ export const resetPassword = catchAsync(async (req: Request, res: Response, next
   });
 });
 
-// log out
+const REFRESH_COOKIE_OPTS = (isProd: boolean) => ({
+  httpOnly: true,
+  secure: isProd,
+  sameSite: "lax" as const,
+  path: "/",
+});
+
+// log out — revoke token in DB AND clear the cookie so the browser discards it
 export const logOut = catchAsync(async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  // req.body may be undefined when the client sends no body — use optional chaining
   const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
 
-  // If no specific token is available, revoke all sessions for this user so
-  // logout always succeeds regardless of what the client sends.
   await logOutService(userId, refreshToken ?? null);
+
+  res.clearCookie("refreshToken", REFRESH_COOKIE_OPTS(config.NODE_ENV === "production"));
 
   res.status(200).json({
     status: "success",
-    message: "logged out successfully",
+    message: "Logged out successfully.",
+  });
+});
+
+// log out all devices — revoke every refresh token for this user
+export const logOutAll = catchAsync(async (req: AuthRequest, res: Response) => {
+  await logOutService(req.user!.id, null);
+
+  res.clearCookie("refreshToken", REFRESH_COOKIE_OPTS(config.NODE_ENV === "production"));
+
+  res.status(200).json({
+    status: "success",
+    message: "Logged out from all devices.",
   });
 });
 

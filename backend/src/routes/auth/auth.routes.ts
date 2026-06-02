@@ -8,6 +8,7 @@ import {
   forgotPassword,
   resetPassword,
   logOut,
+  logOutAll,
   refreshAccessToken,
 } from "../../controllers/auth/auth.controller";
 import {
@@ -52,6 +53,7 @@ router.route("/login").post(validateRequest(LoginSchema), login);
  * Requires authentication
  */
 router.route("/logout").post(protect, logOut);
+router.route("/logout-all").post(protect, logOutAll);
 
 /**
  * GET /api/auth/verify-email
