@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
 import { queryClient } from "./lib/queryClient";
@@ -30,11 +30,21 @@ const ProfilePage     = lazy(() => import("./pages/ProfilePage.tsx"));
 const MyBookings      = lazy(() => import("./pages/MyBookings.tsx"));
 const FavoritesPage   = lazy(() => import("./pages/FavoritesPage.tsx"));
 const AboutPage       = lazy(() => import("./pages/AboutPage.tsx"));
+const PrivacyPage     = lazy(() => import("./pages/PrivacyPage.tsx"));
+const TermsPage       = lazy(() => import("./pages/TermsPage.tsx"));
 const NotFoundPage    = lazy(() => import("./pages/NotFoundPage.tsx"));
 
 const PageSkeleton = () => (
   <div className="min-h-screen bg-background" />
 );
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -57,6 +67,8 @@ const AnimatedRoutes = () => {
         <Route path="/admin"               element={<ProtectedRoute allowedRoles={["admin"]}><PageTransition><AdminDashboard /></PageTransition></ProtectedRoute>} />
         <Route path="/how-it-works"        element={<PageTransition><HowItWorks /></PageTransition>} />
         <Route path="/about"               element={<PageTransition><AboutPage /></PageTransition>} />
+        <Route path="/privacy"             element={<PageTransition><PrivacyPage /></PageTransition>} />
+        <Route path="/terms"               element={<PageTransition><TermsPage /></PageTransition>} />
         <Route path="/profile"             element={<ProtectedRoute><PageTransition><ProfilePage /></PageTransition></ProtectedRoute>} />
         <Route path="/bookings"            element={<ProtectedRoute><PageTransition><MyBookings /></PageTransition></ProtectedRoute>} />
         <Route path="/favorites"           element={<ProtectedRoute><PageTransition><FavoritesPage /></PageTransition></ProtectedRoute>} />
@@ -71,6 +83,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Toast />
       <Router>
+        <ScrollToTop />
         <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30 selection:text-primary">
           <Navbar />
           <VerificationBanner />

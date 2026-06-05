@@ -69,8 +69,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        mono: ["JetBrains Mono", "Fira Code", "monospace"],
+        sans:    ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        mono:    ["JetBrains Mono", "Fira Code", "monospace"],
       },
       fontSize: {
         "2xs": ["0.6875rem", { lineHeight: "1rem" }],
