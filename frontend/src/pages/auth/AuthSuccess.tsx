@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, Loader2 } from "lucide-react";
+import { ShieldCheck, Loader2 } from "@/lib/icons";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
 
@@ -47,7 +47,7 @@ const AuthSuccess: React.FC = () => {
   }, [isLoading, isAuthenticated, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center p-6">
       <div className="w-full max-w-[380px] text-center animate-fade-up">
 
         {/* Spinning icon */}
@@ -57,21 +57,18 @@ const AuthSuccess: React.FC = () => {
             <div
               className="absolute -inset-3 rounded-full border border-transparent animate-spin"
               style={{
-                borderTopColor: "rgba(37,99,235,0.5)",
-                borderRightColor: "rgba(37,99,235,0.15)",
+                borderTopColor: "rgba(245,166,35,0.5)",
+                borderRightColor: "rgba(245,166,35,0.15)",
                 animationDuration: "1.2s",
               }}
             />
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center"
-              style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.22)" }}
-            >
-              <ShieldCheck size={26} style={{ color: "#3b82f6" }} />
+            <div className="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+              <ShieldCheck size={26} className="text-gold" />
             </div>
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-ink-primary tracking-tight mb-2">
+        <h2 className="font-heading text-xl font-bold text-ink-primary tracking-tight mb-2">
           Completing sign-in
         </h2>
         <p className="text-sm text-ink-tertiary mb-6">
@@ -80,7 +77,7 @@ const AuthSuccess: React.FC = () => {
 
         {/* Animated step text */}
         <div className="flex items-center justify-center gap-2 text-xs font-semibold text-ink-tertiary uppercase tracking-widest">
-          <Loader2 size={12} className="animate-spin text-blue-light" />
+          <Loader2 size={12} className="animate-spin text-gold" />
           <span key={step} className="animate-fade-in">{STEPS[step]}</span>
         </div>
       </div>

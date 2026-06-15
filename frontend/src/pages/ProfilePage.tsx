@@ -10,7 +10,7 @@ import {
   Mail,
   ChevronRight,
   Loader2,
-} from "lucide-react";
+} from "@/lib/icons";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import ProfileEditor from "../components/common/ProfileEditor";
@@ -23,7 +23,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 const ROLE_COLOR: Record<string, string> = {
-  User:   "text-blue-light bg-blue/10 border-blue/20",
+  User:   "text-teal bg-teal/10 border-teal/20",
   lender: "text-amber bg-amber/10 border-amber/20",
   admin:  "text-red bg-red/[0.12] border-red/25",
 };
@@ -49,19 +49,19 @@ const ProfilePage: React.FC = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-ink-tertiary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] py-12">
+    <div className="min-h-screen bg-[#0A0A0C] pt-24 pb-20">
       <div className="container max-w-2xl">
 
         {/* Page header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-ink-primary tracking-tight">My Account</h1>
+          <h1 className="font-heading text-2xl sm:text-[28px] font-bold text-ink-primary tracking-tight">My Account</h1>
           <p className="text-sm text-ink-tertiary mt-1">
             Manage your profile and account settings
           </p>
@@ -91,7 +91,7 @@ const ProfilePage: React.FC = () => {
         {/* Account security */}
         <div className="mb-6 p-6 rounded-2xl border border-[#1c1c1c] bg-surface-1">
           <div className="flex items-center gap-2.5 mb-5">
-            <Shield size={16} className="text-blue-light" />
+            <Shield size={16} className="text-gold" />
             <h2 className="font-semibold text-[15px] text-ink-primary">Account security</h2>
           </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield } from "@/lib/icons";
 
 const SECTIONS = [
   {
@@ -30,7 +30,7 @@ const SECTIONS = [
 ];
 
 const PrivacyPage: React.FC = () => (
-  <div className="min-h-screen bg-[#080808] pt-24 pb-20">
+  <div className="min-h-screen bg-[#0A0A0C] pt-24 pb-20">
     <div className="max-w-2xl mx-auto px-4 sm:px-6">
       <Link
         to="/"
@@ -40,8 +40,8 @@ const PrivacyPage: React.FC = () => (
       </Link>
 
       <div className="flex items-center gap-3 mb-2">
-        <div className="w-9 h-9 rounded-xl bg-blue/10 border border-blue/20 flex items-center justify-center">
-          <Shield size={17} className="text-blue" />
+        <div className="w-9 h-9 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+          <Shield size={17} className="text-gold" />
         </div>
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-tertiary">Legal</p>
       </div>
@@ -65,7 +65,7 @@ const PrivacyPage: React.FC = () => (
       <div className="mt-12 pt-8 border-t border-[#1c1c1c]">
         <p className="text-xs text-ink-disabled">
           Questions?{" "}
-          <a href="mailto:privacy@luxedrive.io" className="text-blue-light hover:underline">
+          <a href="mailto:privacy@luxedrive.io" className="text-gold hover:underline">
             privacy@luxedrive.io
           </a>
         </p>

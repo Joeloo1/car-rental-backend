@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
-import { Heart, ArrowRight, Loader2 } from "lucide-react";
+import { Heart, ArrowRight, Loader2 } from "@/lib/icons";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../hooks/useFavorites";
 import { carService } from "../services/car.service";
@@ -31,20 +31,20 @@ const FavoritesPage: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-ink-tertiary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] py-12">
+    <div className="min-h-screen bg-[#0A0A0C] pt-24 pb-20">
       <div className="container">
 
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-ink-primary tracking-tight">
+            <h1 className="font-heading text-2xl sm:text-[28px] font-bold text-ink-primary tracking-tight">
               My Favourites
             </h1>
             <p className="text-sm text-ink-tertiary mt-1">
@@ -89,7 +89,7 @@ const FavoritesPage: React.FC = () => {
             <button
               onClick={() => navigate("/browse")}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
+              style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
             >
               Discover cars <ArrowRight size={15} />
             </button>

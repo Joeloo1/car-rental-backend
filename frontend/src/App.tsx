@@ -8,6 +8,7 @@ import Footer from "./components/common/Footer";
 import VerificationBanner from "./components/common/VerificationBanner";
 import Toast from "./components/ui/Toast";
 import PageTransition from "./components/common/PageTransition";
+import RouteProgressBar from "./components/ui/RouteProgressBar";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
@@ -32,11 +33,21 @@ const FavoritesPage   = lazy(() => import("./pages/FavoritesPage.tsx"));
 const AboutPage       = lazy(() => import("./pages/AboutPage.tsx"));
 const PrivacyPage     = lazy(() => import("./pages/PrivacyPage.tsx"));
 const TermsPage       = lazy(() => import("./pages/TermsPage.tsx"));
-const NotFoundPage    = lazy(() => import("./pages/NotFoundPage.tsx"));
+const NotFoundPage         = lazy(() => import("./pages/NotFoundPage.tsx"));
+const BookingConfirmation  = lazy(() => import("./pages/BookingConfirmation.tsx"));
 
-const PageSkeleton = () => (
-  <div className="min-h-screen bg-background" />
-);
+// Routes where the main navbar + footer should be hidden (full-screen auth experience)
+const AUTH_PATHS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/auth-success",
+  "/verify-email",
+  "/verify-email-confirm",
+];
+
+const PageSkeleton = () => <div className="min-h-screen bg-[#0A0A0C]" />;
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -48,33 +59,57 @@ const ScrollToTop = () => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
-  
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/"                    element={<PageTransition><LandingPagePro /></PageTransition>} />
-        <Route path="/login"               element={<PageTransition><Login /></PageTransition>} />
-        <Route path="/register"            element={<PageTransition><Register /></PageTransition>} />
-        <Route path="/auth-success"        element={<PageTransition><AuthSuccess /></PageTransition>} />
-        <Route path="/verify-email"         element={<PageTransition><VerifyEmailPage /></PageTransition>} />
-        <Route path="/verify-email-confirm" element={<PageTransition><VerifyEmailConfirmPage /></PageTransition>} />
-        <Route path="/forgot-password"     element={<PageTransition><ForgotPassword /></PageTransition>} />
+        <Route path="/"                      element={<PageTransition><LandingPagePro /></PageTransition>} />
+        <Route path="/login"                 element={<PageTransition><Login /></PageTransition>} />
+        <Route path="/register"              element={<PageTransition><Register /></PageTransition>} />
+        <Route path="/auth-success"          element={<PageTransition><AuthSuccess /></PageTransition>} />
+        <Route path="/verify-email"          element={<PageTransition><VerifyEmailPage /></PageTransition>} />
+        <Route path="/verify-email-confirm"  element={<PageTransition><VerifyEmailConfirmPage /></PageTransition>} />
+        <Route path="/forgot-password"       element={<PageTransition><ForgotPassword /></PageTransition>} />
         <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
-        <Route path="/browse"              element={<PageTransition><BrowseCars /></PageTransition>} />
-        <Route path="/car/:id"             element={<PageTransition><CarDetails /></PageTransition>} />
-        <Route path="/dashboard"           element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
-        <Route path="/lender"              element={<ProtectedRoute allowedRoles={["lender", "admin"]}><PageTransition><LenderDashboard /></PageTransition></ProtectedRoute>} />
-        <Route path="/admin"               element={<ProtectedRoute allowedRoles={["admin"]}><PageTransition><AdminDashboard /></PageTransition></ProtectedRoute>} />
-        <Route path="/how-it-works"        element={<PageTransition><HowItWorks /></PageTransition>} />
-        <Route path="/about"               element={<PageTransition><AboutPage /></PageTransition>} />
-        <Route path="/privacy"             element={<PageTransition><PrivacyPage /></PageTransition>} />
-        <Route path="/terms"               element={<PageTransition><TermsPage /></PageTransition>} />
-        <Route path="/profile"             element={<ProtectedRoute><PageTransition><ProfilePage /></PageTransition></ProtectedRoute>} />
-        <Route path="/bookings"            element={<ProtectedRoute><PageTransition><MyBookings /></PageTransition></ProtectedRoute>} />
-        <Route path="/favorites"           element={<ProtectedRoute><PageTransition><FavoritesPage /></PageTransition></ProtectedRoute>} />
-        <Route path="*"                    element={<PageTransition><NotFoundPage /></PageTransition>} />
+        <Route path="/browse"                element={<PageTransition><BrowseCars /></PageTransition>} />
+        <Route path="/car/:id"               element={<PageTransition><CarDetails /></PageTransition>} />
+        <Route path="/dashboard"             element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
+        <Route path="/lender"                element={<ProtectedRoute allowedRoles={["lender", "admin"]}><PageTransition><LenderDashboard /></PageTransition></ProtectedRoute>} />
+        <Route path="/admin"                 element={<ProtectedRoute allowedRoles={["admin"]}><PageTransition><AdminDashboard /></PageTransition></ProtectedRoute>} />
+        <Route path="/how-it-works"          element={<PageTransition><HowItWorks /></PageTransition>} />
+        <Route path="/about"                 element={<PageTransition><AboutPage /></PageTransition>} />
+        <Route path="/privacy"              element={<PageTransition><PrivacyPage /></PageTransition>} />
+        <Route path="/terms"                element={<PageTransition><TermsPage /></PageTransition>} />
+        <Route path="/profile"              element={<ProtectedRoute><PageTransition><ProfilePage /></PageTransition></ProtectedRoute>} />
+        <Route path="/bookings"             element={<ProtectedRoute><PageTransition><MyBookings /></PageTransition></ProtectedRoute>} />
+        <Route path="/favorites"             element={<ProtectedRoute><PageTransition><FavoritesPage /></PageTransition></ProtectedRoute>} />
+        <Route path="/booking/:id"          element={<ProtectedRoute><PageTransition><BookingConfirmation /></PageTransition></ProtectedRoute>} />
+        <Route path="*"                     element={<PageTransition><NotFoundPage /></PageTransition>} />
       </Routes>
     </AnimatePresence>
+  );
+};
+
+// Separate shell component so it can read location (must be inside Router)
+const AppShell: React.FC = () => {
+  const location = useLocation();
+  const isAuth = AUTH_PATHS.some(
+    p => location.pathname === p || location.pathname.startsWith(p + "/"),
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background: "var(--color-bg)" }}>
+      {!isAuth && <Navbar />}
+      {!isAuth && <VerificationBanner />}
+      <main className="flex-1">
+        <ErrorBoundary>
+          <Suspense fallback={<PageSkeleton />}>
+            <AnimatedRoutes />
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+      {!isAuth && <Footer />}
+    </div>
   );
 };
 
@@ -83,19 +118,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Toast />
       <Router>
+        <RouteProgressBar />
         <ScrollToTop />
-        <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30 selection:text-primary">
-          <Navbar />
-          <VerificationBanner />
-          <main className="flex-1">
-            <ErrorBoundary>
-              <Suspense fallback={<PageSkeleton />}>
-                <AnimatedRoutes />
-              </Suspense>
-            </ErrorBoundary>
-          </main>
-          <Footer />
-        </div>
+        <AppShell />
       </Router>
     </QueryClientProvider>
   );

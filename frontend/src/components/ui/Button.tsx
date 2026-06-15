@@ -29,7 +29,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const variants = {
       primary:
-        "bg-primary text-white hover:bg-primary/90 shadow-accent hover:shadow-accent-lg hover:-translate-y-0.5 active:translate-y-0",
+        "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-gold-glow hover:-translate-y-0.5 active:translate-y-0",
       secondary:
         "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg hover:-translate-y-0.5",
       outline:
@@ -52,7 +52,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center gap-2 font-semibold rounded-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none relative overflow-hidden",
+          "inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none relative overflow-hidden",
           variants[variant],
           sizes[size],
           fullWidth && "w-full",

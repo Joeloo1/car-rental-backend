@@ -1,52 +1,52 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { CheckCircle2, XCircle, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ArrowRight, RefreshCw } from "@/lib/icons";
 import { useAuth } from "../../context/AuthContext";
 
 type Status = "loading" | "success" | "expired" | "invalid" | "already_verified";
 
 const MESSAGES: Record<Status, { icon: React.ReactNode; title: string; body: string }> = {
   loading: {
-    icon: <Loader2 size={28} className="animate-spin" style={{ color: "#3b82f6" }} />,
+    icon: <Loader2 size={28} className="animate-spin text-gold" />,
     title: "Verifying your email…",
     body: "Please wait while we confirm your address.",
   },
   success: {
-    icon: <CheckCircle2 size={28} style={{ color: "#22c55e" }} />,
+    icon: <CheckCircle2 size={28} className="text-teal" />,
     title: "Email verified!",
     body: "Your account is now fully activated. Welcome to LuxeDrive.",
   },
   already_verified: {
-    icon: <CheckCircle2 size={28} style={{ color: "#22c55e" }} />,
+    icon: <CheckCircle2 size={28} className="text-teal" />,
     title: "Already verified",
     body: "This email address has already been confirmed.",
   },
   expired: {
-    icon: <XCircle size={28} style={{ color: "#f59e0b" }} />,
+    icon: <XCircle size={28} className="text-gold" />,
     title: "Link expired",
     body: "This verification link has expired. Links are valid for 1 hour — request a new one below.",
   },
   invalid: {
-    icon: <XCircle size={28} style={{ color: "#dc2626" }} />,
+    icon: <XCircle size={28} className="text-red" />,
     title: "Invalid link",
     body: "This verification link is not valid or has already been used.",
   },
 };
 
 const ICON_BG: Record<Status, string> = {
-  loading:          "rgba(37,99,235,0.12)",
-  success:          "rgba(34,197,94,0.12)",
-  already_verified: "rgba(34,197,94,0.12)",
-  expired:          "rgba(245,158,11,0.12)",
-  invalid:          "rgba(220,38,38,0.12)",
+  loading:          "rgba(245,166,35,0.10)",
+  success:          "rgba(0,201,177,0.12)",
+  already_verified: "rgba(0,201,177,0.12)",
+  expired:          "rgba(245,166,35,0.10)",
+  invalid:          "rgba(255,77,77,0.12)",
 };
 
 const ICON_BORDER: Record<Status, string> = {
-  loading:          "rgba(37,99,235,0.22)",
-  success:          "rgba(34,197,94,0.22)",
-  already_verified: "rgba(34,197,94,0.22)",
-  expired:          "rgba(245,158,11,0.22)",
-  invalid:          "rgba(220,38,38,0.22)",
+  loading:          "rgba(245,166,35,0.22)",
+  success:          "rgba(0,201,177,0.22)",
+  already_verified: "rgba(0,201,177,0.22)",
+  expired:          "rgba(245,166,35,0.22)",
+  invalid:          "rgba(255,77,77,0.22)",
 };
 
 const VerifyEmailConfirmPage: React.FC = () => {
@@ -88,7 +88,7 @@ const VerifyEmailConfirmPage: React.FC = () => {
   const msg = MESSAGES[status];
 
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center p-6">
       <div className="w-full max-w-[420px] text-center animate-fade-up">
 
         {/* Icon */}
@@ -101,7 +101,7 @@ const VerifyEmailConfirmPage: React.FC = () => {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-ink-primary tracking-tight mb-2">{msg.title}</h1>
+        <h1 className="font-heading text-2xl font-bold text-ink-primary tracking-tight mb-2">{msg.title}</h1>
         <p className="text-sm text-ink-tertiary leading-relaxed mb-8">{msg.body}</p>
 
         {/* Actions */}
@@ -109,8 +109,7 @@ const VerifyEmailConfirmPage: React.FC = () => {
           <div className="space-y-3">
             <button
               onClick={() => navigate(user ? "/dashboard" : "/login", { replace: true })}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
+              className="btn-primary w-full"
             >
               {user ? "Go to Dashboard" : "Sign in"} <ArrowRight size={15} />
             </button>
@@ -122,11 +121,7 @@ const VerifyEmailConfirmPage: React.FC = () => {
 
         {(status === "expired" || status === "invalid") && (
           <div className="space-y-3">
-            <Link
-              to="/verify-email"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
-            >
+            <Link to="/verify-email" className="btn-primary w-full">
               <RefreshCw size={15} /> Request new link
             </Link>
             <Link
@@ -139,11 +134,7 @@ const VerifyEmailConfirmPage: React.FC = () => {
         )}
 
         {(status === "already_verified") && (
-          <Link
-            to={user ? "/dashboard" : "/login"}
-            className="flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90 mx-auto w-fit"
-            style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
-          >
+          <Link to={user ? "/dashboard" : "/login"} className="btn-primary mx-auto w-fit">
             {user ? "Go to Dashboard" : "Sign in"} <ArrowRight size={15} />
           </Link>
         )}

@@ -4,7 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Car } from "../../types/index";
 import { getImageUrl } from "../../utils/image";
-import { MapPin, Navigation, Star, Users } from "lucide-react";
+import { MapPin, Navigation, Star, Users } from "@/lib/icons";
 import Button from "../ui/Button";
 import { useNavigate } from "react-router-dom";
 

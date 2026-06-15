@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText } from "@/lib/icons";
 
 const SECTIONS = [
   {
@@ -38,7 +38,7 @@ const SECTIONS = [
 ];
 
 const TermsPage: React.FC = () => (
-  <div className="min-h-screen bg-[#080808] pt-24 pb-20">
+  <div className="min-h-screen bg-[#0A0A0C] pt-24 pb-20">
     <div className="max-w-2xl mx-auto px-4 sm:px-6">
       <Link
         to="/"
@@ -73,7 +73,7 @@ const TermsPage: React.FC = () => (
       <div className="mt-12 pt-8 border-t border-[#1c1c1c]">
         <p className="text-xs text-ink-disabled">
           Questions?{" "}
-          <a href="mailto:legal@luxedrive.io" className="text-blue-light hover:underline">
+          <a href="mailto:legal@luxedrive.io" className="text-gold hover:underline">
             legal@luxedrive.io
           </a>
         </p>

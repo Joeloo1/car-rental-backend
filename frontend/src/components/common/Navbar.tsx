@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, Bell, ChevronDown, LogOut, LayoutDashboard, Car, Settings } from "lucide-react";
+import { Menu, X, Bell, ChevronDown, LogOut, LayoutDashboard, Car, Settings, Heart, Calendar } from "@/lib/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useSocket } from "../../context/SocketContext";
@@ -91,86 +91,55 @@ const Navbar: React.FC = () => {
     <>
       <header
         className={`
-          fixed top-0 inset-x-0 z-50 h-14 transition-all duration-200
+          fixed top-0 inset-x-0 z-50 h-14 transition-all duration-300
           ${solid
-            ? "bg-[#0f0f0f] border-b border-[#1f1f1f]"
-            : "bg-transparent border-b border-transparent"
+            ? "border-b border-white/[0.07] backdrop-blur-xl"
+            : "border-b border-transparent"
           }
         `}
+        style={solid ? { background: "rgba(13,13,15,0.82)" } : {}}
       >
         <div className="container h-full flex items-center justify-between gap-4">
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2 flex-shrink-0 group"
+            className="flex items-center gap-2 flex-shrink-0"
           >
-            <div className="w-7 h-7 rounded-md bg-blue flex items-center justify-center">
-              <Car size={14} className="text-white" />
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "rgba(245,166,35,0.10)", border: "1px solid rgba(245,166,35,0.30)" }}
+            >
+              <Car size={13} className="text-gold" />
             </div>
-            <span className="font-semibold text-[15px] text-ink-primary tracking-tight">
+            <span className="font-heading font-bold text-[17px] tracking-tight" style={{ color: "#F2F0EC" }}>
               LuxeDrive
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ label, to }) => (
+          <nav className="hidden md:flex items-center gap-0.5">
+            {[
+              ...navLinks,
+              ...(isAuthenticated ? [{ label: "Dashboard", to: "/dashboard" }] : []),
+              ...(isAuthenticated && user?.role === "lender" ? [{ label: "Host Hub", to: "/lender" }] : []),
+              ...(isAuthenticated && user?.role === "admin"  ? [{ label: "Admin",    to: "/admin"  }] : []),
+            ].map(({ label, to }) => (
               <Link
                 key={to}
                 to={to}
-                className={`
-                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
-                  ${isActive(to)
-                    ? "text-ink-primary bg-surface-2"
-                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
-                  }
-                `}
+                className={`relative px-3.5 py-2 text-sm font-medium transition-colors duration-150 ${
+                  isActive(to) ? "text-ink-primary" : "text-ink-tertiary hover:text-ink-secondary"
+                }`}
               >
                 {label}
+                {isActive(to) && (
+                  <span
+                    className="absolute bottom-0 left-3.5 right-3.5 h-[2px] rounded-full"
+                    style={{ background: "linear-gradient(to right, #F5A623, #E8831A)" }}
+                  />
+                )}
               </Link>
             ))}
-            {isAuthenticated && user?.role === "lender" && (
-              <Link
-                to="/lender"
-                className={`
-                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
-                  ${isActive("/lender")
-                    ? "text-ink-primary bg-surface-2"
-                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
-                  }
-                `}
-              >
-                Host Hub
-              </Link>
-            )}
-            {isAuthenticated && user?.role === "admin" && (
-              <Link
-                to="/admin"
-                className={`
-                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
-                  ${isActive("/admin")
-                    ? "text-ink-primary bg-surface-2"
-                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
-                  }
-                `}
-              >
-                Admin
-              </Link>
-            )}
-            {isAuthenticated && (
-              <Link
-                to="/dashboard"
-                className={`
-                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150
-                  ${isActive("/dashboard")
-                    ? "text-ink-primary bg-surface-2"
-                    : "text-ink-tertiary hover:text-ink-primary hover:bg-surface-2"
-                  }
-                `}
-              >
-                Dashboard
-              </Link>
-            )}
           </nav>
 
           {/* Desktop right */}
@@ -185,7 +154,7 @@ const Navbar: React.FC = () => {
                 >
                   <Bell size={17} />
                   {unread > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue text-[9px] font-bold text-white">
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-black" style={{ background: "var(--color-gold)" }}>
                       {unread > 9 ? "9+" : unread}
                     </span>
                   )}
@@ -200,7 +169,7 @@ const Navbar: React.FC = () => {
                     <img
                       src={
                         user?.profileImage ||
-                        `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user?.name ?? "U")}&backgroundColor=2563eb&textColor=ffffff&fontSize=40`
+                        `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user?.name ?? "U")}&backgroundColor=F5A623&textColor=0A0A0C&fontSize=40`
                       }
                       alt={user?.name}
                       className="w-6 h-6 rounded-md object-cover"
@@ -232,6 +201,8 @@ const Navbar: React.FC = () => {
                         {/* Links */}
                         <div className="py-1">
                           <MenuLink icon={LayoutDashboard} label="Dashboard"   onClick={() => { navigate("/dashboard"); setUserOpen(false); }} />
+                          <MenuLink icon={Calendar}        label="My Bookings" onClick={() => { navigate("/bookings"); setUserOpen(false); }} />
+                          <MenuLink icon={Heart}           label="Favourites"  onClick={() => { navigate("/favorites"); setUserOpen(false); }} />
                           {user?.role === "lender" && (
                             <MenuLink icon={Car}          label="Host Hub"     onClick={() => { navigate("/lender"); setUserOpen(false); }} />
                           )}
@@ -264,7 +235,8 @@ const Navbar: React.FC = () => {
                 </button>
                 <button
                   onClick={() => navigate("/register")}
-                  className="btn-primary text-sm"
+                  className="px-4 py-2 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90 active:scale-[0.98] whitespace-nowrap"
+                  style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
                 >
                   Get started
                 </button>
@@ -318,7 +290,7 @@ const Navbar: React.FC = () => {
                 <div className="p-4 border-b border-[#1f1f1f]">
                   <div className="flex items-center gap-3">
                     <img
-                      src={user.profileImage || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.name ?? "U")}&backgroundColor=2563eb&textColor=ffffff`}
+                      src={user.profileImage || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.name ?? "U")}&backgroundColor=F5A623&textColor=0A0A0C`}
                       className="w-9 h-9 rounded-lg object-cover"
                       alt={user.name}
                     />
@@ -334,7 +306,11 @@ const Navbar: React.FC = () => {
               <nav className="flex-1 p-3 overflow-y-auto">
                 {[
                   ...navLinks,
-                  ...(isAuthenticated ? [{ label: "Dashboard", to: "/dashboard" }] : []),
+                  ...(isAuthenticated ? [
+                    { label: "Dashboard",   to: "/dashboard" },
+                    { label: "My Bookings", to: "/bookings" },
+                    { label: "Favourites",  to: "/favorites" },
+                  ] : []),
                   ...(isAuthenticated && user?.role === "lender" ? [{ label: "Host Hub", to: "/lender" }] : []),
                   ...(isAuthenticated && user?.role === "admin"  ? [{ label: "Admin",    to: "/admin"  }] : []),
                 ].map(({ label, to }) => (

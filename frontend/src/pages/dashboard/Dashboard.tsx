@@ -23,7 +23,7 @@ import {
   Loader2,
   Banknote,
   Sparkles,
-} from 'lucide-react';
+} from '@/lib/icons';
 import ProfileEditor from '../../components/common/ProfileEditor';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -40,8 +40,8 @@ const STATUS_PILL: Record<string, string> = {
   completed: 'text-green bg-green/10 border-green/20',
   cancelled:  'text-red bg-red/[0.1] border-red/20',
   pending:    'text-amber bg-amber/10 border-amber/20',
-  confirmed:  'text-blue-light bg-blue/10 border-blue/20',
-  active:     'text-blue-light bg-blue/10 border-blue/20',
+  confirmed:  'text-teal bg-teal/10 border-teal/20',
+  active:     'text-teal bg-teal/10 border-teal/20',
 };
 
 const fmt = (d: string) =>
@@ -64,7 +64,7 @@ const BookingsTable: React.FC<{
         <button
           onClick={onBrowse}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-black"
-          style={{ background: 'linear-gradient(135deg, #fcd34d, #d97706)' }}
+          style={{ background: 'linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))' }}
         >
           Browse Cars <ArrowRight size={14} />
         </button>
@@ -204,7 +204,7 @@ const Dashboard: React.FC = () => {
 
   if (isAuthLoading || isStatsLoading || isBookingsLoading) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-bg)" }}>
         <Loader2 size={24} className="animate-spin text-ink-tertiary" />
       </div>
     );
@@ -218,16 +218,16 @@ const Dashboard: React.FC = () => {
       ? 'text-amber bg-amber/10 border-amber/20'
       : user?.role === 'admin'
       ? 'text-red bg-red/[0.1] border-red/20'
-      : 'text-blue-light bg-blue/10 border-blue/20';
+      : 'text-teal bg-teal/10 border-teal/20';
 
   const statCards = [
     {
       label:       'Total Trips',
       value:       stats?.totalTrips ?? 0,
       icon:        Compass,
-      iconColor:   '#3b82f6',
-      iconBg:      'rgba(37,99,235,0.12)',
-      iconBorder:  'rgba(37,99,235,0.22)',
+      iconColor:   '#F5A623',
+      iconBg:      'rgba(245,166,35,0.12)',
+      iconBorder:  'rgba(245,166,35,0.22)',
       change:      '+12%',
       changeColor: 'text-green bg-green/10 border-green/20',
     },
@@ -235,9 +235,9 @@ const Dashboard: React.FC = () => {
       label:       'Total Earnings',
       value:       `$${(stats?.totalEarnings ?? 0).toLocaleString()}`,
       icon:        TrendingUp,
-      iconColor:   '#22c55e',
-      iconBg:      'rgba(34,197,94,0.12)',
-      iconBorder:  'rgba(34,197,94,0.22)',
+      iconColor:   '#00C9B1',
+      iconBg:      'rgba(0,201,177,0.12)',
+      iconBorder:  'rgba(0,201,177,0.22)',
       change:      '+8%',
       changeColor: 'text-green bg-green/10 border-green/20',
     },
@@ -245,9 +245,9 @@ const Dashboard: React.FC = () => {
       label:       'Active Rentals',
       value:       stats?.activeRentals ?? 0,
       icon:        Clock,
-      iconColor:   '#f59e0b',
-      iconBg:      'rgba(245,158,11,0.12)',
-      iconBorder:  'rgba(245,158,11,0.22)',
+      iconColor:   '#F5A623',
+      iconBg:      'rgba(245,166,35,0.12)',
+      iconBorder:  'rgba(245,166,35,0.22)',
       change:      null,
       changeColor: '',
     },
@@ -255,9 +255,9 @@ const Dashboard: React.FC = () => {
       label:       'Verified Cars',
       value:       stats?.verifiedCars ?? 0,
       icon:        CheckCircle,
-      iconColor:   '#a855f7',
-      iconBg:      'rgba(168,85,247,0.12)',
-      iconBorder:  'rgba(168,85,247,0.22)',
+      iconColor:   '#00C9B1',
+      iconBg:      'rgba(0,201,177,0.12)',
+      iconBorder:  'rgba(0,201,177,0.22)',
       change:      '+1',
       changeColor: 'text-green bg-green/10 border-green/20',
     },
@@ -278,7 +278,7 @@ const Dashboard: React.FC = () => {
     overview: (
       <>
         Welcome back,{' '}
-        <span style={{ background: 'linear-gradient(to right, #fcd34d, #d97706)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+        <span style={{ background: 'linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           {user?.name?.split(' ')[0]}
         </span>
       </>
@@ -300,10 +300,10 @@ const Dashboard: React.FC = () => {
   const showAddCar = user?.role === 'lender' && (activeNav === 'overview' || activeNav === 'cars');
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white pt-20 relative overflow-hidden">
+    <div className="min-h-screen text-white pt-20 relative overflow-hidden" style={{ background: "var(--color-bg)" }}>
       {/* Ambient glows */}
-      <div className="fixed top-0 right-0 w-[40%] h-[35%] opacity-[0.04] blur-[120px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #3b82f6, transparent)' }} />
-      <div className="fixed bottom-0 left-0 w-[30%] h-[30%] opacity-[0.03] blur-[100px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #a855f7, transparent)' }} />
+      <div className="fixed top-0 right-0 w-[40%] h-[35%] opacity-[0.04] blur-[120px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #F5A623, transparent)' }} />
+      <div className="fixed bottom-0 left-0 w-[30%] h-[30%] opacity-[0.03] blur-[100px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #00C9B1, transparent)' }} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10">
 
@@ -417,7 +417,7 @@ const Dashboard: React.FC = () => {
                   <button
                     onClick={() => setIsAddCarModalOpen(true)}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black flex-shrink-0 transition-opacity hover:opacity-90 active:scale-[0.98]"
-                    style={{ background: 'linear-gradient(135deg, #fcd34d, #d97706)' }}
+                    style={{ background: 'linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))' }}
                   >
                     <Plus size={16} /> Add New Car
                   </button>
@@ -479,15 +479,15 @@ const Dashboard: React.FC = () => {
                     {/* Ambient glow */}
                     <div
                       className="absolute -top-8 -right-8 w-48 h-48 rounded-full opacity-[0.07] blur-2xl pointer-events-none"
-                      style={{ background: 'radial-gradient(circle, #f59e0b, transparent)' }}
+                      style={{ background: 'radial-gradient(circle, #F5A623, transparent)' }}
                     />
                     <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                       <div className="flex items-start gap-4">
                         <div
                           className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.22)' }}
+                          style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.22)' }}
                         >
-                          <Banknote size={20} style={{ color: '#f59e0b' }} />
+                          <Banknote size={20} style={{ color: '#F5A623' }} />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
@@ -506,7 +506,7 @@ const Dashboard: React.FC = () => {
                           onClick={() => upgradeMutation.mutate()}
                           disabled={upgradeMutation.isPending}
                           className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black flex-shrink-0 disabled:opacity-60 transition-opacity hover:opacity-90 active:scale-[0.98]"
-                          style={{ background: 'linear-gradient(135deg, #fcd34d, #d97706)' }}
+                          style={{ background: 'linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))' }}
                         >
                           {upgradeMutation.isPending
                             ? <Loader2 size={15} className="animate-spin" />
@@ -613,7 +613,7 @@ const Dashboard: React.FC = () => {
                 {/* Security */}
                 <div className="p-6 rounded-2xl bg-surface-1 border border-[#1c1c1c]">
                   <h3 className="font-semibold text-[15px] text-ink-primary mb-5 flex items-center gap-2">
-                    <Key size={16} className="text-blue-light" /> Security
+                    <Key size={16} className="text-gold" /> Security
                   </h3>
                   <button
                     onClick={() => navigate('/forgot-password')}
@@ -653,7 +653,7 @@ const Dashboard: React.FC = () => {
                 {/* Notifications */}
                 <div className="p-6 rounded-2xl bg-surface-1 border border-[#1c1c1c]">
                   <h3 className="font-semibold text-[15px] text-ink-primary mb-5 flex items-center gap-2">
-                    <Bell size={16} className="text-blue-light" /> Notifications
+                    <Bell size={16} className="text-gold" /> Notifications
                   </h3>
                   <div className="space-y-1">
                     {[
@@ -669,7 +669,7 @@ const Dashboard: React.FC = () => {
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer ml-4 flex-shrink-0">
                           <input type="checkbox" defaultChecked={item.on} className="sr-only peer" />
-                          <div className="w-10 h-5 bg-surface-3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue" />
+                          <div className="w-10 h-5 bg-surface-3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gold" />
                         </label>
                       </div>
                     ))}

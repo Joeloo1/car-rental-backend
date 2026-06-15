@@ -1,5 +1,5 @@
 import React from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '@/lib/icons';
 
 interface EmptyStateProps {
   icon?: LucideIcon;
@@ -18,16 +18,18 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   action,
 }) => {
   return (
-    <div className="empty-state animate-fade-in">
+    <div className="flex flex-col items-center justify-center px-6 py-16 text-center animate-fade-in">
       {Icon && (
-        <div className="empty-state-icon">
-          <Icon size={64} strokeWidth={1.5} />
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/[0.07] bg-surface-1 text-ink-tertiary">
+          <Icon size={28} strokeWidth={1.5} />
         </div>
       )}
-      <h3 className="empty-state-title">{title}</h3>
-      {description && <p className="empty-state-description">{description}</p>}
+      <h3 className="font-heading text-lg font-bold tracking-tight text-ink-primary">{title}</h3>
+      {description && (
+        <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-ink-tertiary">{description}</p>
+      )}
       {action && (
-        <button className="btn-primary" onClick={action.onClick}>
+        <button className="btn-primary btn-sm mt-6" onClick={action.onClick}>
           {action.label}
         </button>
       )}

@@ -14,7 +14,7 @@ import {
   AlertTriangle,
   Car as CarIcon,
   Plus,
-} from "lucide-react";
+} from "@/lib/icons";
 import type { ApiError } from "../../types/index";
 import { carService } from "../../services/car.service.ts";
 import { getImageUrl } from "../../utils/image";
@@ -94,7 +94,7 @@ const CarCard: React.FC<{
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: Math.min(index, 6) * 0.07 }}
       className="group relative rounded-2xl bg-[#0d0d11] border border-white/8 overflow-hidden
-                 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-400"
+                 hover:border-gold/30 hover:shadow-2xl hover:shadow-gold/10 transition-all duration-400"
     >
       {/* ── Image ── */}
       <div className="relative h-48 overflow-hidden bg-[#0d0d11]">
@@ -143,7 +143,7 @@ const CarCard: React.FC<{
         {/* category badge */}
         {car.category?.name && (
           <div className="absolute bottom-3 left-3">
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 backdrop-blur-md uppercase tracking-wider">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-gold-light backdrop-blur-md uppercase tracking-wider">
               {car.category.name}
             </span>
           </div>
@@ -155,7 +155,7 @@ const CarCard: React.FC<{
         {/* Title + Price */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-white text-base leading-snug truncate group-hover:text-blue-400 transition-colors">
+            <h3 className="font-bold text-white text-base leading-snug truncate group-hover:text-gold transition-colors">
               {car.title || `${car.brand} ${car.model}`}
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -172,25 +172,25 @@ const CarCard: React.FC<{
         <div className="flex items-center gap-3 flex-wrap">
           {car.locationCity && (
             <span className="flex items-center gap-1 text-xs text-gray-400">
-              <MapPin size={11} className="text-blue-400" />
+              <MapPin size={11} className="text-gold" />
               {car.locationCity}
             </span>
           )}
           {car.fuelType && (
             <span className="flex items-center gap-1 text-xs text-gray-400">
-              <Fuel size={11} className="text-blue-400" />
+              <Fuel size={11} className="text-gold" />
               {car.fuelType}
             </span>
           )}
           {car.transmission && (
             <span className="flex items-center gap-1 text-xs text-gray-400">
-              <Gauge size={11} className="text-blue-400" />
+              <Gauge size={11} className="text-gold" />
               {car.transmission}
             </span>
           )}
           {car.seats && (
             <span className="flex items-center gap-1 text-xs text-gray-400">
-              <Users size={11} className="text-blue-400" />
+              <Users size={11} className="text-gold" />
               {car.seats}
             </span>
           )}
@@ -204,7 +204,7 @@ const CarCard: React.FC<{
           <div className="flex items-center gap-1.5">
             {car.averageRating && car.averageRating > 0 ? (
               <span className="flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-lg border border-yellow-500/20">
-                <Star size={11} fill="#fbbf24" />
+                <Star size={11} fill="#F5A623" />
                 {car.averageRating.toFixed(1)}
                 {car.totalReviews > 0 && (
                   <span className="text-gray-500 font-normal">
@@ -227,9 +227,9 @@ const CarCard: React.FC<{
             </button>
             <button
               onClick={() => navigate(`/car/${car.id}`)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-500/10 text-blue-400
-                         border border-blue-500/20 text-xs font-semibold
-                         hover:bg-blue-500/20 hover:border-blue-500/35 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gold/10 text-gold
+                         border border-gold/20 text-xs font-semibold
+                         hover:bg-gold/20 hover:border-gold/35 transition-all"
             >
               <Eye size={13} />
               View
@@ -284,8 +284,8 @@ const CarsList: React.FC<CarsListProps> = ({ lenderId, limit }) => {
   if (!cars || cars.length === 0) {
     return (
       <div className="text-center py-16 rounded-2xl border border-white/8 border-dashed">
-        <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-3">
-          <CarIcon size={24} className="text-blue-400" />
+        <div className="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
+          <CarIcon size={24} className="text-gold" />
         </div>
         <p className="text-gray-300 font-semibold mb-1">No listings yet</p>
         <p className="text-sm text-gray-500 mb-5">
@@ -293,7 +293,7 @@ const CarsList: React.FC<CarsListProps> = ({ lenderId, limit }) => {
         </p>
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("open-add-car-modal"))}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold hover:bg-blue-500/20 transition-all"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gold/10 border border-gold/20 text-gold text-sm font-semibold hover:bg-gold/20 transition-all"
         >
           <Plus size={15} /> Add a car
         </button>

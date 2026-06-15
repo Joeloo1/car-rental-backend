@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, MessageCircle, Loader2 } from 'lucide-react';
+import { X, Send, MessageCircle, Loader2 } from '@/lib/icons';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
 import { tokenStore } from '../../utils/tokenStore';

@@ -6,7 +6,7 @@ import {
   Info,
   AlertTriangle,
   MessageSquare,
-} from "lucide-react";
+} from "@/lib/icons";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../../context/SocketContext";
 import { useAuth } from "../../context/AuthContext";

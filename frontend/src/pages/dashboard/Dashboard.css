@@ -1,6 +1,6 @@
 .dashboard-container {
   padding-top: 8rem;
-  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.03) 0%, transparent 40%);
+  background: radial-gradient(circle at top right, rgba(245, 166, 35, 0.03) 0%, transparent 40%);
 }
 
 .dashboard-layout {
@@ -208,8 +208,8 @@
 }
 
 .badge-status.success {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  background: rgba(0, 201, 177, 0.1);
+  color: #00C9B1;
 }
 
 @media (max-width: 1200px) {

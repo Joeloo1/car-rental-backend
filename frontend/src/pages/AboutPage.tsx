@@ -1,19 +1,19 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Clock, Star, ArrowRight, MapPin, Users, Zap, Heart } from "lucide-react";
+import { Shield, Clock, Star, ArrowRight, MapPin, Users, Zap, Heart } from "@/lib/icons";
 
 const AboutPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-[#080808] min-h-screen">
+    <div className="bg-[#0A0A0C] min-h-screen">
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="relative py-28 overflow-hidden">
         {/* Ambient glow */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] opacity-[0.07] blur-3xl pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, #3b82f6, transparent)" }}
+          style={{ background: "radial-gradient(ellipse, #F5A623, transparent)" }}
         />
 
         <div className="container text-center relative z-10">
@@ -24,7 +24,7 @@ const AboutPage: React.FC = () => {
             Redefining how Nigeria{" "}
             <span
               style={{
-                background: "linear-gradient(to right, #fcd34d, #d97706)",
+                background: "linear-gradient(to right, #F5A623, #E8831A)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -101,7 +101,7 @@ const AboutPage: React.FC = () => {
               <div key={label} className={`px-6 py-7 ${i < 3 ? "border-r border-[#161616]" : ""}`}>
                 <p
                   className="text-2xl font-bold mb-0.5"
-                  style={gold ? { color: "#f59e0b" } : { color: "#fafafa" }}
+                  style={gold ? { color: "#F5A623" } : { color: "#fafafa" }}
                 >
                   {value}
                 </p>
@@ -128,17 +128,17 @@ const AboutPage: React.FC = () => {
             {[
               {
                 icon: Shield,
-                iconColor: "#3b82f6",
-                iconBg: "rgba(37,99,235,0.12)",
-                iconBorder: "rgba(37,99,235,0.22)",
+                iconColor: "#F5A623",
+                iconBg: "rgba(245,166,35,0.12)",
+                iconBorder: "rgba(245,166,35,0.22)",
                 title: "Trust first",
                 desc: "Every host is ID-verified, every car inspected. We never compromise on safety.",
               },
               {
                 icon: Zap,
-                iconColor: "#f59e0b",
-                iconBg: "rgba(245,158,11,0.12)",
-                iconBorder: "rgba(245,158,11,0.22)",
+                iconColor: "#F5A623",
+                iconBg: "rgba(245,166,35,0.12)",
+                iconBorder: "rgba(245,166,35,0.22)",
                 title: "Radical transparency",
                 desc: "What you see is what you pay. No hidden fees, no surprises at checkout.",
               },
@@ -152,9 +152,9 @@ const AboutPage: React.FC = () => {
               },
               {
                 icon: MapPin,
-                iconColor: "#22c55e",
-                iconBg: "rgba(34,197,94,0.12)",
-                iconBorder: "rgba(34,197,94,0.22)",
+                iconColor: "#00C9B1",
+                iconBg: "rgba(0,201,177,0.12)",
+                iconBorder: "rgba(0,201,177,0.22)",
                 title: "Local expertise",
                 desc: "Built specifically for Nigeria — our platform understands local roads, culture, and needs.",
               },
@@ -241,7 +241,7 @@ const AboutPage: React.FC = () => {
           >
             <div
               className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 opacity-[0.08] blur-3xl pointer-events-none"
-              style={{ background: "radial-gradient(ellipse, #3b82f6, transparent)" }}
+              style={{ background: "radial-gradient(ellipse, #F5A623, transparent)" }}
             />
             <div className="relative">
               <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-3">
@@ -254,7 +254,7 @@ const AboutPage: React.FC = () => {
                 <button
                   onClick={() => navigate("/browse")}
                   className="flex items-center gap-2 px-7 py-3 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
+                  style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
                 >
                   Browse cars <ArrowRight size={15} />
                 </button>

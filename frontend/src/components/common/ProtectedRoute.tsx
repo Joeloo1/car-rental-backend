@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/lib/icons";
 import { useAuth } from "../../context/AuthContext";
 
 interface Props {
@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center">
         <Loader2 size={22} className="animate-spin text-ink-tertiary" />
       </div>
     );

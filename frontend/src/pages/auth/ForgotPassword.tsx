@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import { Mail, ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from "@/lib/icons";
 import api from "../../api/axios";
 
 const ForgotPassword: React.FC = () => {
@@ -25,7 +25,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center p-6">
       <div className="w-full max-w-[420px] animate-fade-up">
 
         {success ? (
@@ -34,32 +34,28 @@ const ForgotPassword: React.FC = () => {
             <div className="flex justify-center mb-6">
               <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.22)" }}
+                style={{ background: "rgba(0,201,177,0.12)", border: "1px solid rgba(0,201,177,0.22)" }}
               >
-                <CheckCircle2 size={28} style={{ color: "#22c55e" }} />
+                <CheckCircle2 size={28} className="text-teal" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-ink-primary tracking-tight mb-2">Check your inbox</h1>
+            <h1 className="font-heading text-2xl font-bold text-ink-primary tracking-tight mb-2">Check your inbox</h1>
             <p className="text-sm text-ink-tertiary leading-relaxed mb-8">
               We sent a password reset link to{" "}
               <span className="font-semibold text-ink-secondary">{email}</span>.
               Check your inbox and spam folder.
             </p>
-            <div className="p-4 rounded-2xl bg-surface-1 border border-[#1c1c1c] text-left space-y-2 mb-8">
+            <div className="p-4 rounded-2xl bg-surface-1 border border-white/[0.07] text-left space-y-2.5 mb-8">
               {["Open your email inbox", "Find the email from LuxeDrive", "Click the reset link inside"].map((s, i) => (
                 <div key={s} className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-surface-3 border border-[#282828] flex items-center justify-center flex-shrink-0">
-                    <span className="text-[9px] font-bold text-ink-tertiary">{i + 1}</span>
+                  <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-[9px] font-bold text-gold">{i + 1}</span>
                   </div>
                   <p className="text-sm text-ink-secondary">{s}</p>
                 </div>
               ))}
             </div>
-            <Link
-              to="/login"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
-            >
+            <Link to="/login" className="btn-primary w-full">
               <ArrowLeft size={15} /> Back to sign in
             </Link>
           </div>
@@ -67,13 +63,10 @@ const ForgotPassword: React.FC = () => {
           /* ── Form state ─────────────────────────────────────── */
           <>
             <div className="mb-8">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-6"
-                style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.22)" }}
-              >
-                <Mail size={20} style={{ color: "#3b82f6" }} />
+              <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center mb-6">
+                <Mail size={20} className="text-gold" />
               </div>
-              <h1 className="text-2xl font-bold text-ink-primary tracking-tight mb-1.5">Forgot password?</h1>
+              <h1 className="font-heading text-2xl font-bold text-ink-primary tracking-tight mb-1.5">Forgot password?</h1>
               <p className="text-sm text-ink-tertiary leading-relaxed">
                 Enter your email and we'll send you a secure link to reset your password.
               </p>
@@ -99,7 +92,7 @@ const ForgotPassword: React.FC = () => {
                     onChange={e => { setEmail(e.target.value); setError(""); }}
                     autoComplete="email"
                     required
-                    className="input-base pl-9"
+                    className="input-base pl-10"
                   />
                 </div>
               </div>
@@ -107,8 +100,7 @@ const ForgotPassword: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading || !email.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-black disabled:opacity-60 transition-opacity hover:opacity-90 active:scale-[0.99]"
-                style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
+                className="btn-primary w-full"
               >
                 {loading
                   ? <Loader2 size={15} className="animate-spin text-black" />

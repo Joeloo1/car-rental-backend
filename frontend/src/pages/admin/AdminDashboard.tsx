@@ -14,7 +14,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   User as UserIcon,
-} from 'lucide-react';
+} from '@/lib/icons';
 import ProfileEditor from '../../components/common/ProfileEditor';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -123,8 +123,8 @@ const AdminDashboard: React.FC = () => {
       icon: Users,
       trend: '+12%',
       trendUp: true,
-      color: 'text-blue-400',
-      bg: 'bg-blue-400/10',
+      color: 'text-gold',
+      bg: 'bg-gold/10',
     },
     {
       label: 'Active Listings',
@@ -132,8 +132,8 @@ const AdminDashboard: React.FC = () => {
       icon: Car,
       trend: '+5%',
       trendUp: true,
-      color: 'text-purple-400',
-      bg: 'bg-purple-400/10',
+      color: 'text-teal',
+      bg: 'bg-teal/10',
     },
     {
       label: 'Verified Hosts',
@@ -431,7 +431,7 @@ const UserTable: React.FC<{ users: any[], onDelete: (id: string) => void, onRole
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center text-sm font-bold border border-white/5">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold/30 to-gold-dark/30 flex items-center justify-center text-sm font-bold border border-white/5">
                       {u.name?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div>
