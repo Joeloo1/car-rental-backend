@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X } from "@/lib/icons";
 import { useAuth } from "../../context/AuthContext";
 
 const VerificationBanner: React.FC = () => {
@@ -13,8 +13,8 @@ const VerificationBanner: React.FC = () => {
     <div
       className="relative border-b z-30"
       style={{
-        background: "rgba(245,158,11,0.07)",
-        borderColor: "rgba(245,158,11,0.18)",
+        background: "rgba(245,166,35,0.07)",
+        borderColor: "rgba(245,166,35,0.18)",
       }}
     >
       <div className="container py-2.5">

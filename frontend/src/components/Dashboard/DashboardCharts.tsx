@@ -24,7 +24,7 @@ const data = [
   { name: "Jul", users: 349, cars: 430 },
 ];
 
-const COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b"];
+const COLORS = ["#F5A623", "#00C9B1", "#00C9B1", "#F5A623"];
 
 export const OverviewChart: React.FC = () => {
   return (
@@ -36,12 +36,12 @@ export const OverviewChart: React.FC = () => {
         >
           <defs>
             <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#F5A623" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#F5A623" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="colorCars" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#00C9B1" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#00C9B1" stopOpacity={0} />
             </linearGradient>
           </defs>
           <XAxis 
@@ -64,7 +64,7 @@ export const OverviewChart: React.FC = () => {
           <Area
             type="monotone"
             dataKey="users"
-            stroke="#3b82f6"
+            stroke="#F5A623"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorUsers)"
@@ -72,7 +72,7 @@ export const OverviewChart: React.FC = () => {
           <Area
             type="monotone"
             dataKey="cars"
-            stroke="#8b5cf6"
+            stroke="#00C9B1"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorCars)"
@@ -142,7 +142,7 @@ export const EarningsChart: React.FC = () => {
             contentStyle={{ backgroundColor: "#111115", border: "1px solid #ffffff10", borderRadius: "12px" }}
             itemStyle={{ fontSize: "12px" }}
           />
-          <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="amount" fill="#F5A623" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

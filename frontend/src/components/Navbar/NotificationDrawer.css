@@ -109,10 +109,10 @@
   border-radius: 50%;
 }
 
-.notif-icon.booking { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.notif-icon.success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-.notif-icon.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-.notif-icon.message { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.notif-icon.booking { background: rgba(245, 166, 35, 0.1); color: #F5A623; }
+.notif-icon.success { background: rgba(0, 201, 177, 0.1); color: #00C9B1; }
+.notif-icon.warning { background: rgba(245, 166, 35, 0.1); color: #F5A623; }
+.notif-icon.message { background: rgba(0, 201, 177, 0.1); color: #00C9B1; }
 .notif-icon.info { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
 
 .notif-content {

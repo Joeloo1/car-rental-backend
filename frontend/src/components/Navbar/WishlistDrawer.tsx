@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Heart, Trash2, ArrowRight } from "lucide-react";
+import { X, Heart, Trash2, ArrowRight } from "@/lib/icons";
 import { useNavigate } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
 import { carService } from "../../services/car.service";

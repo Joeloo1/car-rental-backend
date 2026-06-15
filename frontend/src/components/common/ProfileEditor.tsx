@@ -12,7 +12,7 @@ import {
   X,
   CheckCircle2,
   Clock,
-} from "lucide-react";
+} from "@/lib/icons";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../services/user.service";
@@ -87,7 +87,7 @@ const ProfileEditor: React.FC = () => {
   const ROLE = {
     lender: { label: "Car Host",      pill: "text-amber bg-amber/10 border-amber/20"       },
     admin:  { label: "Administrator", pill: "text-red bg-red/[0.1] border-red/20"           },
-    User:   { label: "Renter",        pill: "text-blue-light bg-blue/10 border-blue/20"     },
+    User:   { label: "Renter",        pill: "text-teal bg-teal/10 border-teal/20"     },
   } as const;
 
   const role = ROLE[(user?.role ?? "User") as keyof typeof ROLE] ?? ROLE["User"];
@@ -95,36 +95,36 @@ const ProfileEditor: React.FC = () => {
   const INFO_CARDS = [
     {
       icon:        Mail,
-      iconColor:   "#3b82f6",
-      iconBg:      "rgba(37,99,235,0.12)",
-      iconBorder:  "rgba(37,99,235,0.22)",
+      iconColor:   "#F5A623",
+      iconBg:      "rgba(245,166,35,0.12)",
+      iconBorder:  "rgba(245,166,35,0.22)",
       label:       "Email address",
       value:       user?.email ?? "—",
       note:        "Contact support to change email",
     },
     {
       icon:        Phone,
-      iconColor:   "#f59e0b",
-      iconBg:      "rgba(245,158,11,0.12)",
-      iconBorder:  "rgba(245,158,11,0.22)",
+      iconColor:   "#F5A623",
+      iconBg:      "rgba(245,166,35,0.12)",
+      iconBorder:  "rgba(245,166,35,0.22)",
       label:       "Phone number",
       value:       user?.phoneNumber || "Not provided",
       note:        isEditing ? "Editable above ↑" : "Click Edit Profile to update",
     },
     {
       icon:        UserIcon,
-      iconColor:   "#22c55e",
-      iconBg:      "rgba(34,197,94,0.12)",
-      iconBorder:  "rgba(34,197,94,0.22)",
+      iconColor:   "#00C9B1",
+      iconBg:      "rgba(0,201,177,0.12)",
+      iconBorder:  "rgba(0,201,177,0.22)",
       label:       "Account role",
       value:       role.label,
       note:        "Contact support to change role",
     },
     {
       icon:        user?.isVerified ? CheckCircle2 : Clock,
-      iconColor:   user?.isVerified ? "#22c55e" : "#f59e0b",
-      iconBg:      user?.isVerified ? "rgba(34,197,94,0.12)"  : "rgba(245,158,11,0.12)",
-      iconBorder:  user?.isVerified ? "rgba(34,197,94,0.22)"  : "rgba(245,158,11,0.22)",
+      iconColor:   user?.isVerified ? "#00C9B1" : "#F5A623",
+      iconBg:      user?.isVerified ? "rgba(0,201,177,0.12)"  : "rgba(245,166,35,0.12)",
+      iconBorder:  user?.isVerified ? "rgba(0,201,177,0.22)"  : "rgba(245,166,35,0.22)",
       label:       "Account status",
       value:       user?.isVerified ? "Verified" : "Pending verification",
       note:        user?.isVerified ? "Your account is verified" : "Check your email to verify",
@@ -140,7 +140,7 @@ const ProfileEditor: React.FC = () => {
         {/* Top accent bar */}
         <div
           className="h-[3px]"
-          style={{ background: "linear-gradient(to right, transparent, #d97706 40%, #3b82f6 70%, transparent)" }}
+          style={{ background: "linear-gradient(to right, transparent, #d97706 40%, #F5A623 70%, transparent)" }}
         />
 
         <div className="p-6">
@@ -194,7 +194,7 @@ const ProfileEditor: React.FC = () => {
                     onClick={handleSave}
                     disabled={isSaving}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-black disabled:opacity-60 transition-opacity hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
+                    style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
                   >
                     {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
                     Save changes

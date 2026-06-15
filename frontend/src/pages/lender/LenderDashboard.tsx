@@ -18,7 +18,7 @@ import {
   AlertTriangle,
   Banknote,
   User as UserIcon,
-} from 'lucide-react';
+} from '@/lib/icons';
 import ProfileEditor from '../../components/common/ProfileEditor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -152,8 +152,8 @@ const LenderDashboard: React.FC = () => {
       label: 'Cars Listed',
       value: cars.length,
       icon: Car,
-      color: 'text-blue-500',
-      bg: 'bg-blue-500/10',
+      color: 'text-gold',
+      bg: 'bg-gold/10',
       sub: `${cars.filter((c) => c.isAvailable !== false).length} available`,
     },
     {
@@ -176,8 +176,8 @@ const LenderDashboard: React.FC = () => {
       label: 'New Requests',
       value: pendingBookings.length,
       icon: Clock,
-      color: 'text-purple-500',
-      bg: 'bg-purple-500/10',
+      color: 'text-teal',
+      bg: 'bg-teal/10',
       sub: 'Action required',
     },
   ];

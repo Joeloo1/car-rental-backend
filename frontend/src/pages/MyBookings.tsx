@@ -13,7 +13,7 @@ import {
   ArrowRight,
   Loader2,
   Car as CarIcon,
-} from "lucide-react";
+} from "@/lib/icons";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { bookingService } from "../services/booking.service";
@@ -28,8 +28,8 @@ const STATUS_CONFIG: Record<
   { label: string; icon: React.ElementType; pill: string }
 > = {
   pending:   { label: "Pending",   icon: Clock,        pill: "text-amber bg-amber/10 border-amber/20" },
-  confirmed: { label: "Confirmed", icon: CheckCircle2, pill: "text-blue-light bg-blue/10 border-blue/20" },
-  active:    { label: "Active",    icon: AlertCircle,  pill: "text-blue-light bg-blue/10 border-blue/20" },
+  confirmed: { label: "Confirmed", icon: CheckCircle2, pill: "text-teal bg-teal/10 border-teal/20" },
+  active:    { label: "Active",    icon: AlertCircle,  pill: "text-teal bg-teal/10 border-teal/20" },
   completed: { label: "Completed", icon: CheckCircle2, pill: "text-green bg-green/10 border-green/20" },
   cancelled: { label: "Cancelled", icon: XCircle,      pill: "text-red bg-red/[0.1] border-red/20" },
 };
@@ -237,19 +237,19 @@ const MyBookings: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-ink-tertiary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] py-12">
+    <div className="min-h-screen bg-[#0A0A0C] pt-24 pb-20">
       <div className="container max-w-3xl">
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-ink-primary tracking-tight">My Bookings</h1>
+          <h1 className="font-heading text-2xl sm:text-[28px] font-bold text-ink-primary tracking-tight">My Bookings</h1>
           <p className="text-sm text-ink-tertiary mt-1">
             {bookings.length > 0
               ? `${bookings.length} booking${bookings.length !== 1 ? "s" : ""} total`
@@ -314,7 +314,7 @@ const MyBookings: React.FC = () => {
               <button
                 onClick={() => navigate("/browse")}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #fcd34d, #d97706)" }}
+                style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
               >
                 Browse cars <ArrowRight size={15} />
               </button>

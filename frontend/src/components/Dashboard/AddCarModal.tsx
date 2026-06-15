@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { X, Loader2, Upload, Trash2 } from "lucide-react";
+import { X, Loader2, Upload, Trash2 } from "@/lib/icons";
 import type { ApiError } from "../../types/index";
 
 import { carService } from "../../services/car.service.ts";

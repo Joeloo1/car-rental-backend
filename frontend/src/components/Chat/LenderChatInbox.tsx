@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, ArrowLeft, Loader2, User } from 'lucide-react';
+import { MessageCircle, Send, ArrowLeft, Loader2, User } from '@/lib/icons';
 import { io, Socket } from 'socket.io-client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
@@ -101,7 +101,7 @@ const ChatPane: React.FC<ChatPaneProps> = ({ chat, currentUserId }) => {
     <div className="flex flex-col h-full">
       {/* Pane Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-white/8 flex-shrink-0">
-        <div className="w-9 h-9 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-sm flex-shrink-0">
+        <div className="w-9 h-9 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center text-gold font-bold text-sm flex-shrink-0">
           {otherPerson.name.charAt(0).toUpperCase()}
         </div>
         <div>
@@ -139,14 +139,14 @@ const ChatPane: React.FC<ChatPaneProps> = ({ chat, currentUserId }) => {
                 <div
                   className={`max-w-[72%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                     isMine
-                      ? 'bg-blue-600 text-white rounded-br-sm'
+                      ? 'bg-gold text-black rounded-br-sm'
                       : 'bg-white/8 text-gray-200 rounded-bl-sm border border-white/10'
                   }`}
                 >
                   <p>{msg.messageText}</p>
                   <p
                     className={`text-[10px] mt-1 text-right ${
-                      isMine ? 'text-blue-200' : 'text-gray-500'
+                      isMine ? 'text-black/50' : 'text-gray-500'
                     }`}
                   >
                     {formatTime(msg.createdAt)}
@@ -181,12 +181,12 @@ const ChatPane: React.FC<ChatPaneProps> = ({ chat, currentUserId }) => {
           onKeyDown={handleKeyDown}
           placeholder="Type a reply…"
           disabled={isConnecting}
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500/50 focus:bg-white/8 transition-all disabled:opacity-50"
+          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-gold/50 focus:bg-white/8 transition-all disabled:opacity-50"
         />
         <button
           onClick={handleSend}
           disabled={!inputText.trim() || isConnecting}
-          className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+          className="w-10 h-10 rounded-xl bg-gold text-black flex items-center justify-center hover:bg-gold-light transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
         >
           <Send size={16} />
         </button>
@@ -237,7 +237,7 @@ const LenderChatInbox: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 size={24} className="animate-spin text-blue-400" />
+        <Loader2 size={24} className="animate-spin text-gold" />
       </div>
     );
   }
@@ -252,7 +252,7 @@ const LenderChatInbox: React.FC = () => {
       >
         <div className="px-5 py-4 border-b border-white/8 flex-shrink-0">
           <h3 className="font-semibold text-white text-sm flex items-center gap-2">
-            <MessageCircle size={16} className="text-blue-400" />
+            <MessageCircle size={16} className="text-gold" />
             Conversations
             {chats.length > 0 && (
               <span className="ml-auto text-xs text-gray-500">{chats.length}</span>
@@ -280,10 +280,10 @@ const LenderChatInbox: React.FC = () => {
                   key={chat.id}
                   onClick={() => setSelectedChat(chat)}
                   className={`w-full text-left px-5 py-4 flex items-start gap-3 border-b border-white/5 transition-all hover:bg-white/[0.04] ${
-                    isActive ? 'bg-blue-500/8 border-l-2 border-l-blue-500' : ''
+                    isActive ? 'bg-gold/[0.08] border-l-2 border-l-gold' : ''
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-400 font-bold text-sm flex-shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center text-gold font-bold text-sm flex-shrink-0 mt-0.5">
                     {other.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -303,7 +303,7 @@ const LenderChatInbox: React.FC = () => {
                         {formatPreview(chat)}
                       </p>
                       {unread && (
-                        <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                        <span className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
                       )}
                     </div>
                   </div>
@@ -326,7 +326,7 @@ const LenderChatInbox: React.FC = () => {
             <div className="sm:hidden px-4 pt-3">
               <button
                 onClick={() => setSelectedChat(null)}
-                className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-gold hover:text-gold-light transition-colors"
               >
                 <ArrowLeft size={15} /> Back
               </button>
@@ -337,8 +337,8 @@ const LenderChatInbox: React.FC = () => {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-8">
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-              <MessageCircle size={24} className="text-blue-400" />
+            <div className="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+              <MessageCircle size={24} className="text-gold" />
             </div>
             <p className="text-gray-400 font-medium">Select a conversation</p>
             <p className="text-xs text-gray-600">Choose a chat from the left to reply</p>

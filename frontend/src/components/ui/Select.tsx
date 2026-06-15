@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import type { SelectHTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "@/lib/icons";
 
 export interface SelectOption {
   value: string;

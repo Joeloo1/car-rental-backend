@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Semantic tokens
+        // Semantic tokens (CSS variable–based, kept for compatibility)
         border:     "hsl(var(--border))",
         input:      "hsl(var(--input))",
         ring:       "hsl(var(--ring))",
@@ -34,70 +34,104 @@ export default {
           DEFAULT:    "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // App-specific surface scale
+
+        // ── Surface scale — deep charcoal with warm undertones ─────────────
         surface: {
-          0: "#0a0a0a",
-          1: "#111111",
-          2: "#181818",
-          3: "#222222",
-          4: "#2c2c2c",
+          0: "#0D0D0F",
+          1: "#161618",
+          2: "#1C1C1E",
+          3: "#222224",
+          4: "#2A2A2C",
         },
-        // Inline text colors
+
+        // ── Text / ink — warm white scale ──────────────────────────────────
         ink: {
-          primary:   "#fafafa",
-          secondary: "#a1a1aa",
-          tertiary:  "#71717a",
-          disabled:  "#3f3f46",
+          primary:   "#F2F0EC",
+          secondary: "#ABABAB",
+          tertiary:  "#6B6B6B",
+          disabled:  "#3A3A3A",
         },
-        // Semantic accents
+
+        // ── Interactive blue (kept for auth, links, notifications) ─────────
         blue: {
           DEFAULT: "#2563eb",
           light:   "#3b82f6",
           dim:     "rgba(37,99,235,0.12)",
         },
+
+        // ── Primary brand accent — amber gold ──────────────────────────────
+        gold: {
+          DEFAULT: "#F5A623",
+          light:   "#FFB84D",
+          dark:    "#E8831A",
+          dim:     "rgba(245,166,35,0.12)",
+        },
+
+        // ── Secondary accent — electric teal (availability, live status) ───
+        teal: {
+          DEFAULT: "#00C9B1",
+          light:   "#00E5CC",
+          dark:    "#00A896",
+          dim:     "rgba(0,201,177,0.12)",
+        },
+
+        // ── Semantic status colors ─────────────────────────────────────────
         green: {
           DEFAULT: "#16a34a",
           dim:     "rgba(22,163,74,0.12)",
         },
         red: {
-          DEFAULT: "#dc2626",
-          dim:     "rgba(220,38,38,0.12)",
+          DEFAULT: "#FF4D4D",
+          muted:   "#dc2626",
+          dim:     "rgba(255,77,77,0.12)",
         },
         amber: {
           DEFAULT: "#d97706",
           dim:     "rgba(217,119,6,0.1)",
         },
       },
+
       fontFamily: {
         sans:    ["Inter", "system-ui", "-apple-system", "sans-serif"],
         display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
-        mono:    ["JetBrains Mono", "Fira Code", "monospace"],
+        heading: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        price:   ['"JetBrains Mono"', "Space Grotesk", "monospace"],
+        mono:    ['"JetBrains Mono"', '"Fira Code"', "monospace"],
       },
+
       fontSize: {
         "2xs": ["0.6875rem", { lineHeight: "1rem" }],
       },
+
       borderRadius: {
         DEFAULT: "0.5rem",
-        sm:  "0.375rem",
-        md:  "0.5rem",
-        lg:  "0.75rem",
-        xl:  "1rem",
+        sm:    "0.375rem",
+        md:    "0.5rem",
+        lg:    "0.75rem",
+        xl:    "1rem",
         "2xl": "1.25rem",
-        full: "9999px",
+        "3xl": "1.5rem",
+        full:  "9999px",
       },
+
       spacing: {
         18: "4.5rem",
         22: "5.5rem",
       },
+
       boxShadow: {
-        "sm":       "0 1px 2px rgba(0,0,0,0.5)",
-        "md":       "0 4px 12px rgba(0,0,0,0.4)",
-        "lg":       "0 8px 24px rgba(0,0,0,0.45)",
-        "xl":       "0 16px 40px rgba(0,0,0,0.5)",
-        "card":     "0 0 0 1px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.4)",
-        "dropdown": "0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.6)",
-        "inset":    "inset 0 1px 0 rgba(255,255,255,0.06)",
+        "sm":        "0 1px 2px rgba(0,0,0,0.5)",
+        "md":        "0 4px 12px rgba(0,0,0,0.4)",
+        "lg":        "0 8px 24px rgba(0,0,0,0.45)",
+        "xl":        "0 16px 40px rgba(0,0,0,0.5)",
+        "card":      "0 0 0 1px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.4)",
+        "card-lift": "0 0 0 1px rgba(245,166,35,0.20), 0 20px 50px rgba(0,0,0,0.7)",
+        "dropdown":  "0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.6)",
+        "inset":     "inset 0 1px 0 rgba(255,255,255,0.06)",
+        "gold-glow": "0 0 0 3px rgba(245,166,35,0.10), 0 0 0 1px rgba(245,166,35,0.30)",
+        "teal-glow": "0 0 0 3px rgba(0,201,177,0.10), 0 0 0 1px rgba(0,201,177,0.30)",
       },
+
       keyframes: {
         "fade-in": {
           "0%":   { opacity: "0" },
@@ -111,11 +145,21 @@ export default {
           "0%":   { backgroundPosition: "-400px 0" },
           "100%": { backgroundPosition: "400px 0" },
         },
+        "slide-up": {
+          "0%":   { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "progress-bar": {
+          "0%":   { transform: "scaleX(0)", transformOrigin: "left" },
+          "100%": { transform: "scaleX(1)", transformOrigin: "left" },
+        },
       },
+
       animation: {
-        "fade-in": "fade-in 0.2s ease-out both",
-        "fade-up": "fade-up 0.35s ease-out both",
-        "shimmer": "shimmer 1.4s ease-in-out infinite",
+        "fade-in":     "fade-in 0.2s ease-out both",
+        "fade-up":     "fade-up 0.35s ease-out both",
+        "shimmer":     "shimmer 1.4s ease-in-out infinite",
+        "slide-up":    "slide-up 0.18s ease-out both",
       },
     },
   },

@@ -23,7 +23,7 @@ const LandingPageSimple: React.FC = () => {
         <div>
           <h1 style={{ fontSize: "3rem", marginBottom: "1rem" }}>
             Experience the{" "}
-            <span style={{ color: "#fbbf24" }}>Ultimate Drive</span>
+            <span style={{ color: "#F5A623" }}>Ultimate Drive</span>
           </h1>
           <p
             style={{
@@ -41,7 +41,7 @@ const LandingPageSimple: React.FC = () => {
             style={{
               padding: "12px 32px",
               fontSize: "1.1rem",
-              background: "#3b82f6",
+              background: "#F5A623",
               color: "white",
               border: "none",
               borderRadius: "8px",
@@ -143,7 +143,7 @@ const LandingPageSimple: React.FC = () => {
                 style={{
                   padding: "12px 32px",
                   fontSize: "1rem",
-                  background: "#3b82f6",
+                  background: "#F5A623",
                   color: "white",
                   border: "none",
                   borderRadius: "8px",
@@ -160,7 +160,7 @@ const LandingPageSimple: React.FC = () => {
                   fontSize: "1rem",
                   background: "transparent",
                   color: "white",
-                  border: "2px solid #3b82f6",
+                  border: "2px solid #F5A623",
                   borderRadius: "8px",
                   cursor: "pointer",
                   fontWeight: "600",

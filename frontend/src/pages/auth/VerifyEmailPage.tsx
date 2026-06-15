@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { Mail, CheckCircle2, RefreshCw, ArrowRight, Loader2, Clock } from "lucide-react";
+import { Mail, CheckCircle2, RefreshCw, ArrowRight, Loader2, Clock } from "@/lib/icons";
 import { toast } from "react-hot-toast";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -42,24 +42,25 @@ const VerifyEmailPage: React.FC = () => {
   const canResend = cooldown === 0 && !resendMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md animate-fade-up">
 
         {/* Icon */}
         <div className="flex justify-center mb-6">
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center"
-            style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.22)" }}
+            className={`w-16 h-16 rounded-2xl flex items-center justify-center border ${
+              sent ? "bg-teal-dim border-teal/20" : "bg-gold/10 border-gold/20"
+            }`}
           >
             {sent
-              ? <CheckCircle2 size={28} style={{ color: "#22c55e" }} />
-              : <Mail size={28} style={{ color: "#3b82f6" }} />
+              ? <CheckCircle2 size={28} className="text-teal" />
+              : <Mail size={28} className="text-gold" />
             }
           </div>
         </div>
 
         {/* Heading */}
-        <h1 className="text-2xl font-bold text-ink-primary tracking-tight text-center mb-2">
+        <h1 className="font-heading text-2xl font-bold text-ink-primary tracking-tight text-center mb-2">
           {sent ? "Email sent!" : "Verify your email"}
         </h1>
 
@@ -80,7 +81,7 @@ const VerifyEmailPage: React.FC = () => {
         </p>
 
         {/* Main card */}
-        <div className="rounded-2xl bg-surface-1 border border-[#1c1c1c] p-6 space-y-5 mb-5">
+        <div className="rounded-2xl bg-surface-1 border border-white/[0.07] p-6 space-y-5 mb-5">
 
           {/* Steps */}
           <div className="space-y-3">
@@ -90,15 +91,15 @@ const VerifyEmailPage: React.FC = () => {
               { n: "3", text: "Click the verification link inside" },
             ].map(({ n, text }) => (
               <div key={n} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-surface-3 border border-[#282828] flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-bold text-ink-tertiary">{n}</span>
+                <div className="w-6 h-6 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-bold text-gold">{n}</span>
                 </div>
                 <p className="text-sm text-ink-secondary">{text}</p>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-[#1c1c1c]" />
+          <div className="border-t border-white/[0.07]" />
 
           {/* Resend */}
           <div>
@@ -108,11 +109,10 @@ const VerifyEmailPage: React.FC = () => {
             <button
               onClick={() => resendMutation.mutate()}
               disabled={!canResend || !email}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={
+              className={
                 canResend && email
-                  ? { background: "linear-gradient(135deg, #fcd34d, #d97706)", color: "#000" }
-                  : { background: "rgba(255,255,255,0.04)", color: "#71717a", border: "1px solid #222" }
+                  ? "btn-primary w-full"
+                  : "w-full flex items-center justify-center gap-2 h-[52px] rounded-xl text-sm font-semibold bg-white/[0.04] text-ink-tertiary border border-white/[0.08] cursor-not-allowed"
               }
             >
               {resendMutation.isPending ? (
@@ -134,11 +134,11 @@ const VerifyEmailPage: React.FC = () => {
         {/* Footer links */}
         <div className="flex flex-col items-center gap-2 text-sm text-ink-tertiary">
           {user ? (
-            <Link to="/dashboard" className="flex items-center gap-1.5 text-blue-light hover:text-blue transition-colors font-medium">
+            <Link to="/dashboard" className="flex items-center gap-1.5 text-gold hover:text-gold-light transition-colors font-medium">
               Go to Dashboard <ArrowRight size={13} />
             </Link>
           ) : (
-            <Link to="/login" className="flex items-center gap-1.5 text-blue-light hover:text-blue transition-colors font-medium">
+            <Link to="/login" className="flex items-center gap-1.5 text-gold hover:text-gold-light transition-colors font-medium">
               Already verified? Sign in <ArrowRight size={13} />
             </Link>
           )}
