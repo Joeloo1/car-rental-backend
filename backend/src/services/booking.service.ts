@@ -86,8 +86,8 @@ export const CreateBookingService = async (
   await Promise.all([
     // deleteCache(`bookings:user:${userId}`),
     // deleteCache(`bookings:lender:${car.lenderId}`),
-    deleteCacheByPattern(`booking:user:${userId}:*`),
-    deleteCacheByPattern(`booking:lender:${car.lenderId}:*`),
+    deleteCacheByPattern(`bookings:user:${userId}:*`),
+    deleteCacheByPattern(`bookings:lender:${car.lenderId}:*`),
     deleteCache(`stats:${userId}:User`),
     deleteCache(`stats:${car.lenderId}:lender`),
     deleteCache(`cars:id:${carId}`),
@@ -339,8 +339,8 @@ export const UpdateBookingStatusService = async (
 
   // Invalidate caches for both parties
   await Promise.all([
-    deleteCache(`bookings:user:${booking.userId}`),
-    deleteCache(`bookings:lender:${booking.car.lenderId}`),
+    deleteCacheByPattern(`bookings:user:${booking.userId}:*`),
+    deleteCacheByPattern(`bookings:lender:${booking.car.lenderId}:*`),
     deleteCache(`stats:${booking.userId}:User`),
     deleteCache(`stats:${booking.car.lenderId}:lender`),
     deleteCache(`cars:id:${booking.carId}`),

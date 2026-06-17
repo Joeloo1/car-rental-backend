@@ -13,8 +13,9 @@ import {
 } from "../schema/carImage.schema";
 import { z } from "zod";
 import catchAsync from "../utils/catchAsync";
+import { AuthRequest } from "../types/authRequest";
 
-export const uploadImages = catchAsync(async (req: Request, res: Response) => {
+export const uploadImages = catchAsync(async (req: AuthRequest, res: Response) => {
   // Validate request
   const validatedData = uploadCarImageSchema.parse({
     carId: req.params.carId,
@@ -32,17 +33,22 @@ export const uploadImages = catchAsync(async (req: Request, res: Response) => {
     return;
   }
 
-  const images = await uploadCarImagesService(
+  const { uploadedImages, failedCount } = await uploadCarImagesService(
     validatedData.carId,
+    req.user!.id,
     files,
     validatedData.isMain,
     validatedData.order,
   );
 
-  res.status(201).json({
-    success: true,
-    message: `${images.length} image(s) uploaded successfully`,
-    data: images,
+  res.status(uploadedImages.length === 0 ? 500 : 201).json({
+    success: uploadedImages.length > 0,
+    message:
+      failedCount === 0
+        ? `${uploadedImages.length} image(s) uploaded successfully`
+        : `${uploadedImages.length} image(s) uploaded, ${failedCount} failed`,
+    data: uploadedImages,
+    ...(failedCount > 0 && { failedCount }),
   });
 });
 

@@ -3,8 +3,10 @@ import logger from "../../config/winston";
 import AppError from "../../utils/AppError";
 import { UpdateUserInput } from "../../schema/user/user.schema";
 import cloudinary from "../../config/cloudinary";
-import { UserRole } from "../../generated/prisma/client";
+import { AccountStatus, UserRole } from "../../generated/prisma/client";
 import { Readable } from "stream";
+import { fa } from "zod/v4/locales";
+import { deleteCache } from "@/config/redis";
 
 const bufferToStream = (buffer: Buffer): Readable => {
   const readable = new Readable();
@@ -127,10 +129,13 @@ export const GetUserService = async (userId: string) => {
  * Delete user
  */
 export const deleteUserService = async (userId: string) => {
-  return await prisma.user.update({
+  await prisma.user.update({
     where: { id: userId },
-    data: { active: false },
+    data: { accountStatus: AccountStatus.deleted, active: false },
   });
+
+  await prisma.refreshToken.deleteMany({ where: { userId } });
+  await deleteCache(`auth:user:${userId}`);
 };
 
 /**
@@ -145,6 +150,14 @@ export const upgradeToLenderService = async (userId: string) => {
   return await prisma.user.update({
     where: { id: userId },
     data: { role: UserRole.lender },
-    select: { id: true, name: true, email: true, role: true, profileImage: true, phoneNumber: true, isVerified: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      profileImage: true,
+      phoneNumber: true,
+      isVerified: true,
+    },
   });
 };

@@ -1,6 +1,6 @@
 import { prisma } from "../config/database";
 import { Prisma } from "../generated/prisma/client";
-import { getCache, setCache, deleteCache } from "../config/redis";
+import { getCache, setCache, deleteCache, deleteCacheByPattern } from "../config/redis";
 import AppError from "../utils/AppError";
 import logger from "../config/winston";
 import { CreateReviewInput, UpdateReviewInput } from "../schema/review.schema";
@@ -72,7 +72,8 @@ export const CreateReviewService = async (
   await syncCarAverageRating(carId);
 
   // Invalidate reviews cache for this car + the car's detail page (which shows reviews)
-  await Promise.all([deleteCache(`reviews:car:${carId}`), deleteCache(`cars:id:${carId}`)]);
+  await Promise.all([deleteCacheByPattern(`reviews:car:${carId}:*`), deleteCache(`cars:id:${carId}`)]);
+
 
   return review;
 };
@@ -109,7 +110,7 @@ export const UpdateReviewService = async (
 
   // Invalidate caches
   await Promise.all([
-    deleteCache(`reviews:car:${review.carId}`),
+    deleteCacheByPattern(`reviews:car:${review.carId}:*`),
     deleteCache(`cars:id:${review.carId}`),
   ]);
 
@@ -117,43 +118,36 @@ export const UpdateReviewService = async (
 };
 
 /**
- * Get All Reviews For A Car Service
+ * Get All Reviews For A Car Service (paginated)
  */
-export const GetAllReviewForCarService = async (carId: string) => {
-  const cacheKey = `reviews:car:${carId}`;
+export const GetAllReviewForCarService = async (carId: string, page = 1, limit = 10) => {
+  const cacheKey = `reviews:car:${carId}:${page}:${limit}`;
 
-  // ── Cache read ──────────────────────────────────────────────────────────────
-  const cached = await getCache<any[]>(cacheKey);
+  const cached = await getCache<any>(cacheKey);
   if (cached) {
     logger.info(`Cache HIT: ${cacheKey}`);
     return cached;
   }
 
-  // Check if car exist
-  const car = await prisma.car.findUnique({
-    where: { id: carId },
-  });
-  if (!car) {
-    logger.warn(`Car with ID: ${carId} not found`);
-    throw new AppError("Car not found", 404);
-  }
+  const skip = (page - 1) * limit;
 
-  const review = await prisma.review.findMany({
-    where: { carId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-        },
+  const [reviews, total] = await prisma.$transaction([
+    prisma.review.findMany({
+      where: { carId },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      include: {
+        user: { select: { id: true, name: true } },
       },
-    },
-  });
+    }),
+    prisma.review.count({ where: { carId } }),
+  ]);
 
-  // ── Cache write ─────────────────────────────────────────────────────────────
-  await setCache(cacheKey, review, TTL_REVIEWS);
+  const result = { reviews, total, page, totalPages: Math.ceil(total / limit) };
+  await setCache(cacheKey, result, TTL_REVIEWS);
 
-  return review;
+  return result;
 };
 
 /**
@@ -211,7 +205,7 @@ export const DeleteReviewService = async (userId: string, reviewId: string) => {
 
   // Invalidate caches
   await Promise.all([
-    deleteCache(`reviews:car:${review.carId}`),
+    deleteCacheByPattern(`reviews:car:${review.carId}:*`),
     deleteCache(`cars:id:${review.carId}`),
   ]);
 

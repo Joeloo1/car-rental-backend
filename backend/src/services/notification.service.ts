@@ -1,6 +1,9 @@
 import { getSocketIO } from "../utils/socketInstance";
 import { prisma } from "../config/database";
 import logger from "../config/winston";
+import { getCache, setCache, deleteCacheByPattern } from "../config/redis";
+
+const TTL_NOTIFICATIONS = 60; // 1 minute
 
 export type NotificationType = "booking" | "message" | "info" | "success" | "warning";
 
@@ -28,6 +31,8 @@ export const CreateNotification = async (
       createdAt: notification.createdAt,
     });
 
+    await deleteCacheByPattern(`notifications:${userId}:*`);
+
     logger.info(`Notification sent to User ${userId}: ${title}`);
     return notification;
   } catch (error) {
@@ -37,6 +42,10 @@ export const CreateNotification = async (
 };
 
 export const GetUserNotifications = async (userId: string, page = 1, limit = 20) => {
+  const cacheKey = `notifications:${userId}:${page}:${limit}`;
+  const cached = await getCache<any>(cacheKey);
+  if (cached) return cached;
+
   const skip = (page - 1) * limit;
   const [notifications, total] = await prisma.$transaction([
     prisma.notification.findMany({
@@ -47,7 +56,9 @@ export const GetUserNotifications = async (userId: string, page = 1, limit = 20)
     }),
     prisma.notification.count({ where: { userId } }),
   ]);
-  return { notifications, total, page, totalPages: Math.ceil(total / limit) };
+  const result = { notifications, total, page, totalPages: Math.ceil(total / limit) };
+  await setCache(cacheKey, result, TTL_NOTIFICATIONS);
+  return result;
 };
 
 export const MarkAsRead = async (notificationId: string, userId: string) => {

@@ -44,15 +44,15 @@ export const updateReview = catchAsync(
 // Get All Reviews for a Car
 export const getAllReviewForCar = catchAsync(
   async (req: Request, res: Response, _next: NextFunction) => {
-    const reviews = await GetAllReviewForCarService(req.params.id as string);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const result = await GetAllReviewForCarService(req.params.id as string, page, limit);
 
-    logger.info(`Fetching all reviews for car with ID: ${req.params.id}`);
+    logger.info(`Fetched reviews for car ${req.params.id} — page ${page}`);
     res.status(200).json({
       status: "success",
-      results: reviews.length,
-      data: { reviews },
+      data: result,
     });
-    logger.info(`Fetched all reviews for car with ID: ${req.params.id} successfully`);
   },
 );
 

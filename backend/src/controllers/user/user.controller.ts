@@ -91,13 +91,8 @@ export const upgradeToLender = catchAsync(async (req: AuthRequest, res: Response
 
 // delete user
 export const deleteUser = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const user = await deleteUserService(req.user!.id);
-
-    if (!user) {
-      logger.warn(`user with ID:${req.user!.id} not found`);
-      return next(new AppError("User not found", 404));
-    }
+  async (req: AuthRequest, res: Response) => {
+    await deleteUserService(req.user!.id);
 
     logger.info(`User with ID: ${req.user!.id} successfully deactivated their account`);
 

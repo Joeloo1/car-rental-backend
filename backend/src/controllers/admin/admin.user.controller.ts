@@ -4,7 +4,7 @@ import {
   GetAllUserService,
   GetUserByIdService,
   AdminUpdateUserService,
-  // DeleteUserService,
+  DeleteUserService,
 } from "../../services/admin/admin.user.service";
 import logger from "../../config/winston";
 import { AuthRequest } from "../../types/authRequest";
@@ -65,8 +65,10 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
 
 // Delete User
 export const deleteUser = catchAsync(async (req: AuthRequest, res: Response) => {
-  logger.info(`User with ID ${req.user!.id} deleted successfully`);
-  logger.info(`User with ID ${req.user!.id} deleted successfully`);
+  const { id } = req.params;
+  await DeleteUserService(id as string);
+
+  logger.info(`Admin ${req.user!.id} deleted user ${id}`);
   res.status(200).json({
     status: "success",
     message: "User deleted successfully",

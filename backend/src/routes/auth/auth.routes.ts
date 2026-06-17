@@ -74,7 +74,7 @@ router.route("/resend-verification-email").post(resendverifyEmail);
  * Initiate password reset process by sending reset link to user's email
  * Body: { email: string }
  */
-router.route("/forgot-Password").post(forgotPassword);
+router.route("/forgot-password").post(forgotPassword);
 
 /**
  * PATCH /api/auth/reset-password/:token
