@@ -204,7 +204,7 @@ const CarCard: React.FC<{
           <div className="flex items-center gap-1.5">
             {car.averageRating && car.averageRating > 0 ? (
               <span className="flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-lg border border-yellow-500/20">
-                <Star size={11} fill="#F5A623" />
+                <Star size={11} fill="#D4972A" />
                 {car.averageRating.toFixed(1)}
                 {car.totalReviews > 0 && (
                   <span className="text-gray-500 font-normal">

@@ -43,7 +43,7 @@ const CarPlaceholder: React.FC = () => (
       <circle cx="65" cy="109" r="10" fill="var(--color-surface)" />
       <circle cx="175" cy="109" r="20" fill="var(--color-bg)" stroke="var(--color-gold)" strokeWidth="3" />
       <circle cx="175" cy="109" r="10" fill="var(--color-surface)" />
-      <rect x="208" y="72" width="12" height="8" rx="2" fill="#FFB84D" opacity="0.55" />
+      <rect x="208" y="72" width="12" height="8" rx="2" fill="#E0AC3C" opacity="0.55" />
       <rect x="20"  y="72" width="10" height="8" rx="2" fill="#FF4D4D" opacity="0.50" />
     </svg>
     <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.22em]"
@@ -55,10 +55,10 @@ const CarPlaceholder: React.FC = () => (
 
 /* Fuel type colored dot colors */
 const FUEL_COLORS: Record<string, string> = {
-  Petrol: "#F5A623",
+  Petrol: "#D4972A",
   Diesel: "#5A5A6A",
-  Electric: "#00C9B1",
-  Hybrid: "#00C9B1",
+  Electric: "#4A8EE8",
+  Hybrid: "#4A8EE8",
 };
 
 const STAGGER = ["", "delay-[60ms]", "delay-[120ms]", "delay-[180ms]", "delay-[240ms]"];
@@ -112,21 +112,20 @@ const CarCard: React.FC<CarCardProps> = ({
       className={`group cursor-pointer animate-fade-up ${STAGGER[Math.min(index, 4)]}
                   transition-all duration-[220ms] ease-out hover:-translate-y-2`}
       style={{
-        outline: isCompared ? "1.5px solid rgba(245,166,35,0.4)" : "none",
+        outline: isCompared ? "1.5px solid rgba(212,151,42,0.4)" : "none",
         borderRadius: isCompared ? "20px" : undefined,
       }}
     >
       {/* ── Image container ────────────────────────────────────────────── */}
       <div
-        className="relative overflow-hidden rounded-2xl bg-surface-2 mb-4"
+        className="relative overflow-hidden rounded-2xl bg-surface-2 mb-4 aspect-[16/10]"
         style={{
-          height: "200px",
           boxShadow: "0 0 0 1.5px var(--color-border), 0 4px 16px rgba(0,0,0,0.4)",
           transition: "box-shadow 220ms ease-out",
         }}
         onMouseOver={e => {
           (e.currentTarget as HTMLElement).style.boxShadow =
-            "0 24px 48px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(245,166,35,0.3)";
+            "0 24px 48px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(212,151,42,0.3)";
         }}
         onMouseOut={e => {
           (e.currentTarget as HTMLElement).style.boxShadow =
@@ -220,7 +219,7 @@ const CarCard: React.FC<CarCardProps> = ({
         <div className="absolute bottom-3 right-3 flex items-baseline gap-0.5 px-3 py-1.5 rounded-xl"
           style={{
             background: "rgba(10,10,12,0.75)",
-            border: "1px solid rgba(245,166,35,0.28)",
+            border: "1px solid rgba(212,151,42,0.28)",
             backdropFilter: "blur(12px)",
           }}>
           <span className="font-price font-bold leading-none" style={{ fontSize: "16px", color: "var(--color-gold)" }}>
@@ -235,9 +234,12 @@ const CarCard: React.FC<CarCardProps> = ({
                          translate-y-full group-hover:translate-y-0
                          opacity-0 group-hover:opacity-100
                          transition-all duration-[220ms] ease-out pointer-events-none">
-            <div className="w-full py-2.5 rounded-xl text-center text-[13px] font-semibold"
-              style={{ background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))", color: "#000" }}>
-              View Details →
+            <div className="w-full py-2.5 rounded-xl text-center text-[13px] font-semibold flex items-center justify-center gap-1.5"
+              style={{ background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))", color: "#000", boxShadow: "0 4px 12px rgba(212,151,42,0.3)" }}>
+              View Details
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </div>
           </div>
         )}

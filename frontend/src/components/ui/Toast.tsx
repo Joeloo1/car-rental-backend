@@ -18,17 +18,17 @@ const Toast = () => (
         fontFamily: '"Inter", system-ui, sans-serif',
       },
       success: {
-        iconTheme: { primary: "#00C9B1", secondary: "#0A0A0C" },
-        style: { border: "1px solid rgba(0,201,177,0.25)" },
+        iconTheme: { primary: "#4A8EE8", secondary: "#08080C" },
+        style: { border: "1px solid rgba(74,142,232,0.25)" },
       },
       error: {
-        iconTheme: { primary: "#FF4D4D", secondary: "#0A0A0C" },
+        iconTheme: { primary: "#FF4D4D", secondary: "#08080C" },
         duration: 5000,
         style: { border: "1px solid rgba(255,77,77,0.25)" },
       },
       loading: {
-        iconTheme: { primary: "#F5A623", secondary: "#0A0A0C" },
-        style: { border: "1px solid rgba(245,166,35,0.25)" },
+        iconTheme: { primary: "#D4972A", secondary: "#08080C" },
+        style: { border: "1px solid rgba(212,151,42,0.25)" },
       },
     }}
   />

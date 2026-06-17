@@ -12,23 +12,29 @@ import {
   X,
   CheckCircle2,
   Clock,
+  Lock,
 } from "@/lib/icons";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../services/user.service";
 
+const ROLE = {
+  lender: { label: "Car Host",      color: "text-amber", bg: "bg-amber/10",      border: "border-amber/20" },
+  admin:  { label: "Administrator", color: "text-red",   bg: "bg-red/[0.08]",   border: "border-red/20"   },
+  User:   { label: "Renter",        color: "text-teal",  bg: "bg-teal/10",       border: "border-teal/20"  },
+} as const;
+
 const ProfileEditor: React.FC = () => {
   const { user, updateUser } = useAuth();
 
-  const [isEditing, setIsEditing]   = useState(false);
-  const [name, setName]             = useState(user?.name || "");
-  const [phone, setPhone]           = useState(user?.phoneNumber || "");
-  const [isSaving, setIsSaving]     = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isEditing, setIsEditing]       = useState(false);
+  const [name, setName]                 = useState(user?.name || "");
+  const [phone, setPhone]               = useState(user?.phoneNumber || "");
+  const [isSaving, setIsSaving]         = useState(false);
+  const [isUploading, setIsUploading]   = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Avatar upload ──────────────────────────────────────────────────────────
   const handleAvatarClick = () => { if (!isUploading) fileInputRef.current?.click(); };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,15 +61,11 @@ const ProfileEditor: React.FC = () => {
     }
   };
 
-  // ── Save profile ───────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Name cannot be empty"); return; }
     setIsSaving(true);
     try {
-      const updated = await userService.updateProfile({
-        name: name.trim(),
-        phoneNumber: phone.trim() || undefined,
-      });
+      const updated = await userService.updateProfile({ name: name.trim(), phoneNumber: phone.trim() || undefined });
       updateUser({ name: updated.name, phoneNumber: updated.phoneNumber });
       toast.success("Profile updated");
       setIsEditing(false);
@@ -78,176 +80,161 @@ const ProfileEditor: React.FC = () => {
     setIsEditing(false);
   };
 
-  // ── Derived values ─────────────────────────────────────────────────────────
   const avatarSrc =
     avatarPreview ||
     user?.profileImage ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "U")}&background=1c1c1c&color=a1a1aa&size=200`;
-
-  const ROLE = {
-    lender: { label: "Car Host",      pill: "text-amber bg-amber/10 border-amber/20"       },
-    admin:  { label: "Administrator", pill: "text-red bg-red/[0.1] border-red/20"           },
-    User:   { label: "Renter",        pill: "text-teal bg-teal/10 border-teal/20"     },
-  } as const;
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "U")}&background=161618&color=6B6B6B&size=200`;
 
   const role = ROLE[(user?.role ?? "User") as keyof typeof ROLE] ?? ROLE["User"];
 
-  const INFO_CARDS = [
-    {
-      icon:        Mail,
-      iconColor:   "#F5A623",
-      iconBg:      "rgba(245,166,35,0.12)",
-      iconBorder:  "rgba(245,166,35,0.22)",
-      label:       "Email address",
-      value:       user?.email ?? "—",
-      note:        "Contact support to change email",
-    },
-    {
-      icon:        Phone,
-      iconColor:   "#F5A623",
-      iconBg:      "rgba(245,166,35,0.12)",
-      iconBorder:  "rgba(245,166,35,0.22)",
-      label:       "Phone number",
-      value:       user?.phoneNumber || "Not provided",
-      note:        isEditing ? "Editable above ↑" : "Click Edit Profile to update",
-    },
-    {
-      icon:        UserIcon,
-      iconColor:   "#00C9B1",
-      iconBg:      "rgba(0,201,177,0.12)",
-      iconBorder:  "rgba(0,201,177,0.22)",
-      label:       "Account role",
-      value:       role.label,
-      note:        "Contact support to change role",
-    },
-    {
-      icon:        user?.isVerified ? CheckCircle2 : Clock,
-      iconColor:   user?.isVerified ? "#00C9B1" : "#F5A623",
-      iconBg:      user?.isVerified ? "rgba(0,201,177,0.12)"  : "rgba(245,166,35,0.12)",
-      iconBorder:  user?.isVerified ? "rgba(0,201,177,0.22)"  : "rgba(245,166,35,0.22)",
-      label:       "Account status",
-      value:       user?.isVerified ? "Verified" : "Pending verification",
-      note:        user?.isVerified ? "Your account is verified" : "Check your email to verify",
-    },
-  ];
+  const initials = (user?.name || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="space-y-4">
 
-      {/* ── Hero card ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl bg-surface-1 border border-[#1c1c1c] overflow-hidden">
+      {/* ── Profile card ──────────────────────────────────────────────────── */}
+      <div className="rounded-2xl overflow-hidden border border-[#1c1c1c]" style={{ background: "var(--color-surface-2)" }}>
 
-        {/* Top accent bar */}
-        <div
-          className="h-[3px]"
-          style={{ background: "linear-gradient(to right, transparent, #d97706 40%, #F5A623 70%, transparent)" }}
-        />
+        {/* Cover banner */}
+        <div className="relative h-[72px] overflow-hidden">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(135deg, rgba(212,151,42,0.10) 0%, rgba(74,142,232,0.06) 60%, transparent 100%)",
+            }}
+          />
+          {/* Dot mesh overlay */}
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: "radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px)",
+              backgroundSize: "16px 16px",
+            }}
+          />
+          {/* Edit button top-right */}
+          <div className="absolute top-3 right-4">
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-ink-secondary border border-[#2a2a2a] hover:border-[#383838] hover:text-ink-primary transition-all"
+                style={{ background: "rgba(10,10,14,0.65)", backdropFilter: "blur(8px)" }}
+              >
+                <Edit3 size={11} /> Edit profile
+              </button>
+            ) : (
+              <div className="flex gap-1.5">
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-black disabled:opacity-60 transition-opacity"
+                  style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
+                >
+                  {isSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                  Save
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-ink-tertiary border border-[#2a2a2a] hover:text-ink-secondary transition-colors"
+                  style={{ background: "rgba(10,10,14,0.65)", backdropFilter: "blur(8px)" }}
+                >
+                  <X size={11} />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-
-            {/* Avatar */}
+        {/* Avatar + identity row */}
+        <div className="px-6 pb-6">
+          {/* Avatar overlaps cover */}
+          <div className="-mt-8 mb-4 flex items-end gap-4">
             <div className="relative flex-shrink-0">
               <button
                 onClick={handleAvatarClick}
-                className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-white/10 hover:ring-white/20 focus:outline-none transition-all group"
+                className="relative w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-[#1c1c1c] focus:outline-none transition-all group"
                 title="Change photo"
+                style={{ background: "var(--color-surface-3)" }}
               >
-                <img src={avatarSrc} alt={user?.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <img
+                  src={avatarSrc}
+                  alt={user?.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src =
+                      `https://ui-avatars.com/api/?name=${initials}&background=1e1e24&color=6B6B6B&size=200`;
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
                   {isUploading
-                    ? <Loader2 size={18} className="text-white animate-spin" />
-                    : <>
-                        <Camera size={16} className="text-white mb-0.5" />
-                        <span className="text-white text-[9px] font-semibold tracking-wide">Change</span>
-                      </>
+                    ? <Loader2 size={14} className="text-white animate-spin" />
+                    : <Camera size={14} className="text-white" />
                   }
                 </div>
               </button>
-              <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green rounded-full border-2 border-surface-1" />
+              {/* Online indicator */}
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#16161a]"
+                style={{ background: "var(--color-teal)" }} />
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             </div>
 
-            {/* Identity */}
-            <div className="flex-1 min-w-0 text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 mb-1.5">
-                <h2 className="text-xl font-bold text-ink-primary tracking-tight truncate">
+            {/* Name + role */}
+            <div className="pb-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                <h3 className="text-base font-bold text-ink-primary leading-tight truncate">
                   {user?.name}
-                </h2>
-                <span className={`inline-flex items-center gap-1.5 self-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${role.pill}`}>
-                  <Shield size={10} />
+                </h3>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${role.color} ${role.bg} ${role.border}`}>
+                  <Shield size={9} />
                   {role.label}
                 </span>
               </div>
-              <p className="text-sm text-ink-tertiary mb-4">{user?.email}</p>
-
-              {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-surface-3 border border-[#333] text-ink-primary hover:bg-surface-4 transition-colors"
-                >
-                  <Edit3 size={13} /> Edit Profile
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-black disabled:opacity-60 transition-opacity hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
-                  >
-                    {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                    Save changes
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    disabled={isSaving}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-ink-secondary bg-surface-2 border border-[#282828] hover:bg-surface-3 transition-colors"
-                  >
-                    <X size={13} /> Cancel
-                  </button>
-                </div>
-              )}
+              <p className="text-xs text-ink-tertiary">{user?.email}</p>
             </div>
           </div>
 
-          {/* Edit fields */}
+          {/* Edit form — animated */}
           <AnimatePresence>
             {isEditing && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                 className="overflow-hidden"
               >
-                <div className="mt-6 pt-6 border-t border-[#1c1c1c] grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="pt-5 border-t border-[#1c1c1c] grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-[0.1em] text-ink-tertiary mb-2">
+                    <label className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-tertiary mb-1.5">
                       Full name
                     </label>
                     <div className="relative">
-                      <UserIcon size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-tertiary pointer-events-none" />
+                      <UserIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary pointer-events-none" />
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="input-base pl-9"
+                        className="input-base pl-8 text-sm"
                         placeholder="Your full name"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-[0.1em] text-ink-tertiary mb-2">
+                    <label className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-tertiary mb-1.5">
                       Phone number
                     </label>
                     <div className="relative">
-                      <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-tertiary pointer-events-none" />
+                      <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary pointer-events-none" />
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="input-base pl-9"
+                        className="input-base pl-8 text-sm"
                         placeholder="+234 800 000 0000"
                       />
                     </div>
@@ -259,30 +246,74 @@ const ProfileEditor: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Info cards ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {INFO_CARDS.map((card, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.04 + i * 0.04 }}
-            className="flex items-start gap-4 p-5 rounded-2xl bg-surface-1 border border-[#1c1c1c] hover:border-[#272727] transition-colors"
+      {/* ── Account details ───────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-[#1c1c1c] overflow-hidden" style={{ background: "var(--color-surface-2)" }}>
+        <div className="px-5 py-4 border-b border-[#1c1c1c] flex items-center gap-2">
+          <UserIcon size={13} className="text-ink-tertiary" />
+          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-tertiary">Account details</span>
+        </div>
+
+        {[
+          {
+            icon: Mail,
+            label: "Email address",
+            value: user?.email ?? "—",
+            note: "Contact support to change",
+            locked: true,
+            iconColor: "var(--color-gold)",
+            iconBg: "rgba(212,151,42,0.10)",
+            iconBorder: "rgba(212,151,42,0.20)",
+          },
+          {
+            icon: Phone,
+            label: "Phone number",
+            value: user?.phoneNumber || "Not provided",
+            note: isEditing ? "Editable in form above" : "Click Edit profile to update",
+            locked: false,
+            iconColor: "var(--color-gold)",
+            iconBg: "rgba(212,151,42,0.10)",
+            iconBorder: "rgba(212,151,42,0.20)",
+          },
+          {
+            icon: Shield,
+            label: "Account role",
+            value: role.label,
+            note: "Contact support to change",
+            locked: true,
+            iconColor: "var(--color-teal)",
+            iconBg: "rgba(74,142,232,0.10)",
+            iconBorder: "rgba(74,142,232,0.20)",
+          },
+          {
+            icon: user?.isVerified ? CheckCircle2 : Clock,
+            label: "Verification",
+            value: user?.isVerified ? "Verified" : "Pending",
+            note: user?.isVerified ? "Your account is verified" : "Check your email inbox",
+            locked: true,
+            iconColor: user?.isVerified ? "var(--color-teal)" : "var(--color-gold)",
+            iconBg:    user?.isVerified ? "rgba(74,142,232,0.10)" : "rgba(212,151,42,0.10)",
+            iconBorder: user?.isVerified ? "rgba(74,142,232,0.20)" : "rgba(212,151,42,0.20)",
+          },
+        ].map((item, i, arr) => (
+          <div
+            key={item.label}
+            className={`flex items-center gap-4 px-5 py-3.5 ${i < arr.length - 1 ? "border-b border-[#1c1c1c]" : ""} hover:bg-white/[0.015] transition-colors`}
           >
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{ background: card.iconBg, border: `1px solid ${card.iconBorder}` }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: item.iconBg, border: `1px solid ${item.iconBorder}` }}
             >
-              <card.icon size={18} style={{ color: card.iconColor }} />
+              <item.icon size={14} style={{ color: item.iconColor }} />
             </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-tertiary mb-1">
-                {card.label}
-              </p>
-              <p className="text-sm font-semibold text-ink-primary truncate">{card.value}</p>
-              <p className="text-xs text-ink-tertiary mt-0.5">{card.note}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-tertiary">{item.label}</p>
+              <p className="text-sm font-medium text-ink-primary mt-0.5 truncate">{item.value}</p>
             </div>
-          </motion.div>
+            <div className="flex-shrink-0 flex items-center gap-1.5">
+              <span className="text-[10px] text-ink-tertiary hidden sm:block">{item.note}</span>
+              {item.locked && <Lock size={11} className="text-ink-disabled" />}
+            </div>
+          </div>
         ))}
       </div>
     </div>

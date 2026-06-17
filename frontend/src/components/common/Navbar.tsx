@@ -103,15 +103,16 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2 flex-shrink-0"
+            className="flex items-center gap-2 flex-shrink-0 group"
           >
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(245,166,35,0.10)", border: "1px solid rgba(245,166,35,0.30)" }}
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all group-hover:scale-110"
+              style={{ background: "linear-gradient(135deg, rgba(212,151,42,0.20), rgba(184,121,30,0.10))", border: "1px solid rgba(212,151,42,0.35)" }}
             >
               <Car size={13} className="text-gold" />
             </div>
-            <span className="font-heading font-bold text-[17px] tracking-tight" style={{ color: "#F2F0EC" }}>
+            <span className="font-heading font-bold text-[17px] tracking-tight"
+              style={{ background: "linear-gradient(to right, #F2F0EC, #c8c6c0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               LuxeDrive
             </span>
           </Link>
@@ -135,7 +136,7 @@ const Navbar: React.FC = () => {
                 {isActive(to) && (
                   <span
                     className="absolute bottom-0 left-3.5 right-3.5 h-[2px] rounded-full"
-                    style={{ background: "linear-gradient(to right, #F5A623, #E8831A)" }}
+                    style={{ background: "linear-gradient(to right, #D4972A, #B8791E)" }}
                   />
                 )}
               </Link>
@@ -149,12 +150,13 @@ const Navbar: React.FC = () => {
                 {/* Notification bell */}
                 <button
                   onClick={() => setNotifOpen(true)}
-                  className="relative p-2 rounded-md text-ink-tertiary hover:text-ink-primary hover:bg-surface-2 transition-colors"
+                  className="relative p-2 rounded-lg text-ink-tertiary hover:text-ink-primary hover:bg-surface-2 transition-colors"
                   aria-label="Notifications"
                 >
                   <Bell size={17} />
                   {unread > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-black" style={{ background: "var(--color-gold)" }}>
+                    <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-0.5 flex items-center justify-center rounded-full text-[9px] font-bold text-black animate-fade-in"
+                      style={{ background: "var(--color-gold)" }}>
                       {unread > 9 ? "9+" : unread}
                     </span>
                   )}
@@ -236,7 +238,7 @@ const Navbar: React.FC = () => {
                 <button
                   onClick={() => navigate("/register")}
                   className="px-4 py-2 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90 active:scale-[0.98] whitespace-nowrap"
-                  style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
+                  style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
                 >
                   Get started
                 </button>

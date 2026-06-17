@@ -58,13 +58,13 @@ const CardSkeleton: React.FC = () => (
 const EmptyState: React.FC<{ hasFilters: boolean; onClear: () => void }> = ({ hasFilters, onClear }) => (
   <div className="flex flex-col items-center justify-center py-20 text-center">
     <svg viewBox="0 0 200 130" className="w-44 mb-6" fill="none" style={{ opacity: 0.45 }}>
-      <path d="M18 95L38 62L64 46H136L162 62L182 95H18Z" fill="rgba(245,166,35,0.12)" stroke="rgba(245,166,35,0.25)" strokeWidth="1.5" />
-      <circle cx="54" cy="95" r="18" fill="none" stroke="rgba(245,166,35,0.30)" strokeWidth="2" />
-      <circle cx="146" cy="95" r="18" fill="none" stroke="rgba(245,166,35,0.30)" strokeWidth="2" />
-      <circle cx="152" cy="36" r="22" fill="none" stroke="rgba(245,166,35,0.35)" strokeWidth="2.5" />
-      <line x1="167" y1="51" x2="180" y2="64" stroke="rgba(245,166,35,0.35)" strokeWidth="3" strokeLinecap="round" />
-      <line x1="145" y1="29" x2="145" y2="43" stroke="rgba(245,166,35,0.20)" strokeWidth="2" strokeLinecap="round" />
-      <line x1="138" y1="36" x2="152" y2="36" stroke="rgba(245,166,35,0.20)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M18 95L38 62L64 46H136L162 62L182 95H18Z" fill="rgba(212,151,42,0.12)" stroke="rgba(212,151,42,0.25)" strokeWidth="1.5" />
+      <circle cx="54" cy="95" r="18" fill="none" stroke="rgba(212,151,42,0.30)" strokeWidth="2" />
+      <circle cx="146" cy="95" r="18" fill="none" stroke="rgba(212,151,42,0.30)" strokeWidth="2" />
+      <circle cx="152" cy="36" r="22" fill="none" stroke="rgba(212,151,42,0.35)" strokeWidth="2.5" />
+      <line x1="167" y1="51" x2="180" y2="64" stroke="rgba(212,151,42,0.35)" strokeWidth="3" strokeLinecap="round" />
+      <line x1="145" y1="29" x2="145" y2="43" stroke="rgba(212,151,42,0.20)" strokeWidth="2" strokeLinecap="round" />
+      <line x1="138" y1="36" x2="152" y2="36" stroke="rgba(212,151,42,0.20)" strokeWidth="2" strokeLinecap="round" />
     </svg>
     <h3 className="font-heading font-bold text-xl mb-2" style={{ color: "var(--color-text-primary)" }}>No cars found</h3>
     <p className="text-sm max-w-xs mb-6" style={{ color: "var(--color-text-secondary)" }}>
@@ -97,7 +97,7 @@ const CompareBar: React.FC<{
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl animate-slide-up"
       style={{
         background: "rgba(17,17,20,0.96)",
-        border: "1.5px solid rgba(245,166,35,0.30)",
+        border: "1.5px solid rgba(212,151,42,0.30)",
         backdropFilter: "blur(20px)",
         boxShadow: "0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)",
       }}
@@ -147,7 +147,7 @@ const PillBtn: React.FC<{
     onClick={onClick}
     className="px-2.5 py-1 text-xs font-semibold rounded-full transition-all duration-150 flex-shrink-0"
     style={active
-      ? { background: "rgba(245,166,35,0.16)", border: "1.5px solid rgba(245,166,35,0.45)", color: "var(--color-gold)" }
+      ? { background: "rgba(212,151,42,0.16)", border: "1.5px solid rgba(212,151,42,0.45)", color: "var(--color-gold)" }
       : { background: "transparent", border: "1.5px solid var(--color-border)", color: "var(--color-text-muted)" }
     }
     onMouseOver={e => { if (!active) e.currentTarget.style.color = "var(--color-text-secondary)"; }}
@@ -212,7 +212,7 @@ const PriceDropdown: React.FC<{
             onClick={() => { onMax(p); onClose(); }}
             className="flex-1 text-[10px] font-semibold py-1 rounded-lg transition-all"
             style={{ background: "var(--color-surface-2)", border: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}
-            onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(245,166,35,0.30)"; e.currentTarget.style.color = "var(--color-gold)"; }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(212,151,42,0.30)"; e.currentTarget.style.color = "var(--color-gold)"; }}
             onMouseOut={e  => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-muted)"; }}
           >
             &lt;${p}
@@ -229,7 +229,7 @@ const RecentMiniCard: React.FC<{ car: RecentCar; onClick: () => void }> = ({ car
     onClick={onClick}
     className="flex-shrink-0 w-44 rounded-xl overflow-hidden text-left transition-all duration-[180ms] hover:-translate-y-1"
     style={{ background: "var(--color-surface)", border: "1.5px solid var(--color-border)" }}
-    onMouseOver={e => (e.currentTarget.style.borderColor = "rgba(245,166,35,0.30)")}
+    onMouseOver={e => (e.currentTarget.style.borderColor = "rgba(212,151,42,0.30)")}
     onMouseOut={e  => (e.currentTarget.style.borderColor = "var(--color-border)")}
   >
     <div className="relative h-24 overflow-hidden" style={{ background: "var(--color-surface-2)" }}>
@@ -372,87 +372,96 @@ const BrowseCars: React.FC = () => {
       {/* ── Search hero bar ──────────────────────────────────────────────── */}
       <div style={{ background: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
         <div className="container py-4">
+          {/* Desktop: single-row pill bar */}
           <div
-            className="flex items-center"
+            className="hidden md:flex items-center"
             style={{
-              height: "64px",
+              height: "60px",
               background: "var(--color-surface-2)",
               border: `1.5px solid ${heroFocused ? "var(--color-gold)" : "rgba(255,255,255,0.08)"}`,
               borderRadius: "16px",
-              transition: "border-color 180ms ease-out",
+              transition: "border-color 180ms ease-out, box-shadow 180ms ease-out",
               boxShadow: heroFocused ? "0 0 0 3px var(--color-gold-glow)" : "none",
             }}
             onFocusCapture={() => setHeroFocused(true)}
             onBlurCapture={() => setHeroFocused(false)}
           >
-            {/* City */}
             <div className="relative flex items-center flex-1 min-w-0">
-              <MapPin size={15} className="absolute left-4 pointer-events-none flex-shrink-0" style={{ color: "var(--color-text-muted)" }} />
+              <MapPin size={14} className="absolute left-4 pointer-events-none flex-shrink-0" style={{ color: "var(--color-text-muted)" }} />
               <input
-                type="text"
-                placeholder="City or location"
-                value={filters.locationCity}
-                onChange={e => setFilter("locationCity", e.target.value)}
-                className="w-full bg-transparent text-sm pl-10 pr-4 focus:outline-none"
-                style={{ color: "var(--color-text-primary)", height: "64px" }}
+                type="text" placeholder="City or location"
+                value={filters.locationCity} onChange={e => setFilter("locationCity", e.target.value)}
+                className="w-full bg-transparent text-sm pl-10 pr-4 focus:outline-none h-full"
+                style={{ color: "var(--color-text-primary)", height: "60px" }}
               />
             </div>
-
-            {/* Divider */}
-            <div className="w-px self-stretch my-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.10)" }} />
-
-            {/* Pick-up date */}
+            <div className="w-px self-stretch my-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
             <div className="flex items-center flex-1 min-w-0 px-4">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.1em] mr-2 whitespace-nowrap flex-shrink-0" style={{ color: "var(--color-text-muted)" }}>Pick-up</span>
-              <input
-                type="date"
-                value={pickupDate}
-                onChange={e => setPickupDate(e.target.value)}
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] mr-2 whitespace-nowrap flex-shrink-0" style={{ color: "var(--color-text-muted)" }}>Pick-up</span>
+              <input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)}
                 className="bg-transparent text-sm focus:outline-none cursor-pointer flex-1 min-w-0"
-                style={{ color: pickupDate ? "var(--color-text-primary)" : "var(--color-text-muted)", colorScheme: "dark", height: "64px" }}
+                style={{ color: pickupDate ? "var(--color-text-primary)" : "var(--color-text-muted)", colorScheme: "dark", height: "60px" }}
               />
             </div>
-
-            {/* Divider */}
-            <div className="w-px self-stretch my-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.10)" }} />
-
-            {/* Return date */}
+            <div className="w-px self-stretch my-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
             <div className="flex items-center flex-1 min-w-0 px-4">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.1em] mr-2 whitespace-nowrap flex-shrink-0" style={{ color: "var(--color-text-muted)" }}>Return</span>
-              <input
-                type="date"
-                value={returnDate}
-                onChange={e => setReturnDate(e.target.value)}
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] mr-2 whitespace-nowrap flex-shrink-0" style={{ color: "var(--color-text-muted)" }}>Return</span>
+              <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)}
                 className="bg-transparent text-sm focus:outline-none cursor-pointer flex-1 min-w-0"
-                style={{ color: returnDate ? "var(--color-text-primary)" : "var(--color-text-muted)", colorScheme: "dark", height: "64px" }}
+                style={{ color: returnDate ? "var(--color-text-primary)" : "var(--color-text-muted)", colorScheme: "dark", height: "60px" }}
               />
             </div>
-
-            {/* Divider */}
-            <div className="w-px self-stretch my-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.10)" }} />
-
-            {/* Search input */}
-            <div className="relative flex items-center" style={{ minWidth: "180px" }}>
-              <Search size={14} className="absolute left-4 pointer-events-none" style={{ color: "var(--color-text-muted)" }} />
-              <input
-                type="text"
-                placeholder="Brand or model…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
+            <div className="w-px self-stretch my-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
+            <div className="relative flex items-center" style={{ minWidth: "168px" }}>
+              <Search size={13} className="absolute left-4 pointer-events-none" style={{ color: "var(--color-text-muted)" }} />
+              <input type="text" placeholder="Brand or model…"
+                value={search} onChange={e => setSearch(e.target.value)}
                 className="w-full bg-transparent text-sm pl-10 pr-3 focus:outline-none"
-                style={{ color: "var(--color-text-primary)", height: "64px" }}
+                style={{ color: "var(--color-text-primary)", height: "60px" }}
               />
             </div>
-
-            {/* Search button */}
             <div className="pr-2 flex-shrink-0">
               <button
-                className="flex items-center gap-1.5 px-5 rounded-xl font-semibold text-sm text-black transition-all duration-[180ms] hover:brightness-110 active:scale-[0.97]"
-                style={{ height: "48px", background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))" }}
+                className="flex items-center gap-1.5 px-5 rounded-xl font-semibold text-sm text-black transition-all hover:brightness-110 active:scale-[0.97] hover:-translate-y-0.5"
+                style={{ height: "44px", background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))", boxShadow: "0 4px 12px rgba(212,151,42,0.22)" }}
               >
-                <Search size={14} />
-                <span className="hidden sm:inline">Search</span>
+                <Search size={13} />
+                Search
               </button>
+            </div>
+          </div>
+
+          {/* Mobile: stacked cards */}
+          <div className="flex flex-col gap-2 md:hidden">
+            <div className="relative">
+              <MapPin size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--color-text-muted)" }} />
+              <input type="text" placeholder="City or location"
+                value={filters.locationCity} onChange={e => setFilter("locationCity", e.target.value)}
+                className="w-full pl-9 pr-4 text-sm focus:outline-none transition-all"
+                style={{ height: "48px", background: "var(--color-surface-2)", border: "1.5px solid rgba(255,255,255,0.08)", borderRadius: "12px", color: "var(--color-text-primary)" }}
+              />
+            </div>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)}
+                  className="w-full px-3 text-sm focus:outline-none transition-all cursor-pointer [color-scheme:dark]"
+                  style={{ height: "48px", background: "var(--color-surface-2)", border: "1.5px solid rgba(255,255,255,0.08)", borderRadius: "12px", color: pickupDate ? "var(--color-text-primary)" : "var(--color-text-muted)" }}
+                />
+              </div>
+              <div className="relative flex-1">
+                <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)}
+                  className="w-full px-3 text-sm focus:outline-none transition-all cursor-pointer [color-scheme:dark]"
+                  style={{ height: "48px", background: "var(--color-surface-2)", border: "1.5px solid rgba(255,255,255,0.08)", borderRadius: "12px", color: returnDate ? "var(--color-text-primary)" : "var(--color-text-muted)" }}
+                />
+              </div>
+            </div>
+            <div className="relative">
+              <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--color-text-muted)" }} />
+              <input type="text" placeholder="Brand or model…"
+                value={search} onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 text-sm focus:outline-none transition-all"
+                style={{ height: "48px", background: "var(--color-surface-2)", border: "1.5px solid rgba(255,255,255,0.08)", borderRadius: "12px", color: "var(--color-text-primary)" }}
+              />
             </div>
           </div>
         </div>
@@ -468,8 +477,8 @@ const BrowseCars: React.FC = () => {
               className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium flex-shrink-0 transition-all duration-150"
               style={!filters.categoryId
                 ? {
-                    background: "linear-gradient(135deg, rgba(245,166,35,0.20), rgba(232,131,26,0.10))",
-                    border: "1.5px solid rgba(245,166,35,0.50)",
+                    background: "linear-gradient(135deg, rgba(212,151,42,0.20), rgba(184,121,30,0.10))",
+                    border: "1.5px solid rgba(212,151,42,0.50)",
                     color: "var(--color-gold)",
                   }
                 : {
@@ -493,8 +502,8 @@ const BrowseCars: React.FC = () => {
                   className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium flex-shrink-0 transition-all duration-150"
                   style={active
                     ? {
-                        background: "linear-gradient(135deg, rgba(245,166,35,0.20), rgba(232,131,26,0.10))",
-                        border: "1.5px solid rgba(245,166,35,0.50)",
+                        background: "linear-gradient(135deg, rgba(212,151,42,0.20), rgba(184,121,30,0.10))",
+                        border: "1.5px solid rgba(212,151,42,0.50)",
                         color: "var(--color-gold)",
                       }
                     : {
@@ -577,7 +586,7 @@ const BrowseCars: React.FC = () => {
                 onClick={() => setShowPriceDropdown(v => !v)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150"
                 style={hasPriceFilter || showPriceDropdown
-                  ? { background: "rgba(245,166,35,0.16)", border: "1.5px solid rgba(245,166,35,0.45)", color: "var(--color-gold)" }
+                  ? { background: "rgba(212,151,42,0.16)", border: "1.5px solid rgba(212,151,42,0.45)", color: "var(--color-gold)" }
                   : { background: "transparent", border: "1.5px solid var(--color-border)", color: "var(--color-text-muted)" }
                 }
               >
@@ -601,7 +610,7 @@ const BrowseCars: React.FC = () => {
                 <div
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150"
                   style={filters.locationCity
-                    ? { background: "rgba(245,166,35,0.16)", border: "1.5px solid rgba(245,166,35,0.45)", color: "var(--color-gold)" }
+                    ? { background: "rgba(212,151,42,0.16)", border: "1.5px solid rgba(212,151,42,0.45)", color: "var(--color-gold)" }
                     : { background: "transparent", border: "1.5px solid var(--color-border)", color: "var(--color-text-muted)" }
                   }
                 >
@@ -613,7 +622,7 @@ const BrowseCars: React.FC = () => {
                     onChange={e => setFilter("locationCity", e.target.value)}
                     className="bg-transparent focus:outline-none w-20 text-xs"
                     style={{ color: filters.locationCity ? "var(--color-gold)" : "var(--color-text-muted)" }}
-                    onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "rgba(245,166,35,0.45)")}
+                    onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "rgba(212,151,42,0.45)")}
                     onBlur={e => {
                       if (!filters.locationCity) e.currentTarget.parentElement!.style.borderColor = "var(--color-border)";
                     }}
@@ -659,7 +668,7 @@ const BrowseCars: React.FC = () => {
             {!isLoading && (
               <span
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs flex-shrink-0"
-                style={{ background: "rgba(245,166,35,0.07)", border: "1.5px solid rgba(245,166,35,0.18)" }}
+                style={{ background: "rgba(212,151,42,0.07)", border: "1.5px solid rgba(212,151,42,0.18)" }}
               >
                 <span className="font-heading font-bold" style={{ color: "var(--color-gold)" }}>
                   {totalCount.toLocaleString()}
@@ -708,7 +717,7 @@ const BrowseCars: React.FC = () => {
                     onClick={() => setViewMode(mode)}
                     className="p-2 transition-all duration-[180ms]"
                     style={viewMode === mode
-                      ? { background: "rgba(245,166,35,0.14)", color: "var(--color-gold)" }
+                      ? { background: "rgba(212,151,42,0.14)", color: "var(--color-gold)" }
                       : { background: "transparent", color: "var(--color-text-muted)" }
                     }
                     aria-label={`${mode} view`}
@@ -724,8 +733,8 @@ const BrowseCars: React.FC = () => {
                 className="hidden sm:flex items-center gap-1.5 px-3 rounded-xl text-xs font-semibold transition-all duration-[180ms]"
                 style={{
                   height: "34px",
-                  background: compareSet.size > 0 ? "rgba(245,166,35,0.12)" : "var(--color-surface-2)",
-                  border: compareSet.size > 0 ? "1.5px solid rgba(245,166,35,0.30)" : "1.5px solid var(--color-border)",
+                  background: compareSet.size > 0 ? "rgba(212,151,42,0.12)" : "var(--color-surface-2)",
+                  border: compareSet.size > 0 ? "1.5px solid rgba(212,151,42,0.30)" : "1.5px solid var(--color-border)",
                   color: compareSet.size > 0 ? "var(--color-gold)" : "var(--color-text-muted)",
                 }}
               >
@@ -815,7 +824,7 @@ const BrowseCars: React.FC = () => {
                           onClick={() => setPage(p as number)}
                           className="min-w-[36px] h-9 px-2.5 rounded-lg text-sm font-medium transition-all"
                           style={page === p
-                            ? { background: "rgba(245,166,35,0.12)", border: "1.5px solid rgba(245,166,35,0.30)", color: "var(--color-gold)" }
+                            ? { background: "rgba(212,151,42,0.12)", border: "1.5px solid rgba(212,151,42,0.30)", color: "var(--color-gold)" }
                             : { border: "1.5px solid var(--color-border)", color: "var(--color-text-muted)" }
                           }
                         >

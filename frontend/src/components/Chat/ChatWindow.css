@@ -41,7 +41,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F5A623, #E8831A);
+  background: linear-gradient(135deg, #D4972A, #B8791E);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +71,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #00C9B1;
+  background: #4A8EE8;
   animation: pulse-dot 2s infinite;
 }
 
@@ -146,7 +146,7 @@
 }
 
 .bubble-mine {
-  background: linear-gradient(135deg, #F5A623, #E8831A);
+  background: linear-gradient(135deg, #D4972A, #B8791E);
   color: #0A0A0C;
   border-bottom-right-radius: 0.25rem;
 }
@@ -226,7 +226,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F5A623, #E8831A);
+  background: linear-gradient(135deg, #D4972A, #B8791E);
   color: #fff;
   display: flex;
   align-items: center;

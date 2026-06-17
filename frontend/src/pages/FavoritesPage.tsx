@@ -89,7 +89,7 @@ const FavoritesPage: React.FC = () => {
             <button
               onClick={() => navigate("/browse")}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
+              style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
             >
               Discover cars <ArrowRight size={15} />
             </button>
