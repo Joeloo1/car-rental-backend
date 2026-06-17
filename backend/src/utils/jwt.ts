@@ -41,7 +41,7 @@ export const generateRefreshToken = async (payload: {
   id: string;
   role: UserRole;
 }): Promise<string> => {
-  return jwt.sign({ payload }, config.JWT_REFRESH_TOKEN_SECRET, {
+  return jwt.sign(payload, config.JWT_REFRESH_TOKEN_SECRET, {
     expiresIn: config.REFRESH_TOKEN_EXPIRY as any,
   });
 };

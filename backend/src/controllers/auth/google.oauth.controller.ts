@@ -3,7 +3,7 @@ import config from "../../config/config.env";
 import logger from "../../config/winston";
 import catchAsync from "../../utils/catchAsync";
 import { AuthRequest } from "../../types/authRequest";
-import { generateAccessToken, generateRefreshToken } from "@/utils/jwt";
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwt";
 import { prisma } from "../../config/database";
 
 export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -20,7 +20,8 @@ export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Respo
       generateRefreshToken({ id: user.id, role: user.role }),
     ]);
 
-    // Persist the refresh token so the rotation/lookup logic works
+    // Revoke all previous tokens then persist the new one
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,

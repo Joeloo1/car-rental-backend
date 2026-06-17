@@ -68,7 +68,7 @@ const buildSessionStore = () => {
 app.use(
   session({
     store: buildSessionStore(),
-    secret: config.JWT_ACCESS_TOKEN_SECRET,
+    secret: config.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {

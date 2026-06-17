@@ -1,5 +1,6 @@
 import path from "node:path";
 import winston from "winston";
+import DailyRotateFile from "winston-daily-rotate-file";
 import config from "./config.env";
 import { getRequestId } from "../utils/requestContext";
 
@@ -62,18 +63,22 @@ const fileFormat = combine(
 
 const transports: winston.transport[] = [
   new winston.transports.Console({ format: consoleFormat }),
-  new winston.transports.File({
-    filename: path.join("logs", "error.log"),
+  new DailyRotateFile({
+    filename: path.join("logs", "app-%DATE%.log"),
+    datePattern: "YYYY-MM-DD",
+    format: fileFormat,
+    maxSize: "20m",
+    maxFiles: "14d",
+    zippedArchive: true,
+  }),
+  new DailyRotateFile({
+    filename: path.join("logs", "error-%DATE%.log"),
+    datePattern: "YYYY-MM-DD",
     level: "error",
     format: fileFormat,
-    maxsize: 5242880,
-    maxFiles: 5,
-  }),
-  new winston.transports.File({
-    filename: path.join("logs", "combine.log"),
-    format: fileFormat,
-    maxsize: 5242880,
-    maxFiles: 5,
+    maxSize: "10m",
+    maxFiles: "30d",
+    zippedArchive: true,
   }),
 ];
 
@@ -86,15 +91,23 @@ const logger = winston.createLogger({
   transports,
   exitOnError: false,
   exceptionHandlers: [
-    new winston.transports.File({
-      filename: path.join("logs", "exceptions.log"),
+    new DailyRotateFile({
+      filename: path.join("logs", "exceptions-%DATE%.log"),
+      datePattern: "YYYY-MM-DD",
       format: fileFormat,
+      maxSize: "10m",
+      maxFiles: "30d",
+      zippedArchive: true,
     }),
   ],
   rejectionHandlers: [
-    new winston.transports.File({
-      filename: path.join("logs", "rejection.log"),
+    new DailyRotateFile({
+      filename: path.join("logs", "rejection-%DATE%.log"),
+      datePattern: "YYYY-MM-DD",
       format: fileFormat,
+      maxSize: "10m",
+      maxFiles: "30d",
+      zippedArchive: true,
     }),
   ],
 });

@@ -261,15 +261,15 @@
 
 .feature-icon.blue {
   background: rgba(245, 166, 35, 0.1);
-  color: #F5A623;
+  color: #D4972A;
 }
 .feature-icon.purple {
   background: rgba(0, 201, 177, 0.1);
-  color: #00C9B1;
+  color: #4A8EE8;
 }
 .feature-icon.green {
   background: rgba(0, 201, 177, 0.1);
-  color: #00C9B1;
+  color: #4A8EE8;
 }
 .feature-icon.orange {
   background: rgba(249, 115, 22, 0.1);
@@ -387,7 +387,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #F5A623;
+  color: #D4972A;
 }
 
 .car-specs {

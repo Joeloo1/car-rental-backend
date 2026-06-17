@@ -9,7 +9,7 @@ import { changePasswordAfter } from "../utils/password";
 import { getCache, setCache } from "../config/redis";
 import { AccountStatus, Provider, UserRole } from "../generated/prisma/client";
 
-const TTL_AUTH_USER = 60; // 1 minute
+const TTL_AUTH_USER = 300; // 5 minutes — safe because logout/ban calls deleteCache immediately
 
 type AuthUser = {
   id: string;

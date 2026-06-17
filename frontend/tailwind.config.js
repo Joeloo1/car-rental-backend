@@ -59,20 +59,20 @@ export default {
           dim:     "rgba(37,99,235,0.12)",
         },
 
-        // ── Primary brand accent — amber gold ──────────────────────────────
+        // ── Primary brand accent — refined warm gold ───────────────────────
         gold: {
-          DEFAULT: "#F5A623",
-          light:   "#FFB84D",
-          dark:    "#E8831A",
-          dim:     "rgba(245,166,35,0.12)",
+          DEFAULT: "#D4972A",
+          light:   "#E0AC3C",
+          dark:    "#B8791E",
+          dim:     "rgba(212,151,42,0.12)",
         },
 
-        // ── Secondary accent — electric teal (availability, live status) ───
+        // ── Secondary accent — sapphire blue (availability, live status) ───
         teal: {
-          DEFAULT: "#00C9B1",
-          light:   "#00E5CC",
-          dark:    "#00A896",
-          dim:     "rgba(0,201,177,0.12)",
+          DEFAULT: "#4A8EE8",
+          light:   "#6AA8F0",
+          dark:    "#3A74CC",
+          dim:     "rgba(74,142,232,0.12)",
         },
 
         // ── Semantic status colors ─────────────────────────────────────────
@@ -128,8 +128,8 @@ export default {
         "card-lift": "0 0 0 1px rgba(245,166,35,0.20), 0 20px 50px rgba(0,0,0,0.7)",
         "dropdown":  "0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.6)",
         "inset":     "inset 0 1px 0 rgba(255,255,255,0.06)",
-        "gold-glow": "0 0 0 3px rgba(245,166,35,0.10), 0 0 0 1px rgba(245,166,35,0.30)",
-        "teal-glow": "0 0 0 3px rgba(0,201,177,0.10), 0 0 0 1px rgba(0,201,177,0.30)",
+        "gold-glow": "0 0 0 3px rgba(212,151,42,0.10), 0 0 0 1px rgba(212,151,42,0.30)",
+        "teal-glow": "0 0 0 3px rgba(74,142,232,0.10), 0 0 0 1px rgba(74,142,232,0.30)",
       },
 
       keyframes: {

@@ -24,7 +24,7 @@ const data = [
   { name: "Jul", users: 349, cars: 430 },
 ];
 
-const COLORS = ["#F5A623", "#00C9B1", "#00C9B1", "#F5A623"];
+const COLORS = ["#D4972A", "#4A8EE8", "#4A8EE8", "#D4972A"];
 
 export const OverviewChart: React.FC = () => {
   return (
@@ -36,25 +36,25 @@ export const OverviewChart: React.FC = () => {
         >
           <defs>
             <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#F5A623" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#F5A623" stopOpacity={0} />
+              <stop offset="5%" stopColor="#D4972A" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#D4972A" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="colorCars" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00C9B1" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#00C9B1" stopOpacity={0} />
+              <stop offset="5%" stopColor="#4A8EE8" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#4A8EE8" stopOpacity={0} />
             </linearGradient>
           </defs>
           <XAxis 
             dataKey="name" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: "#64748b", fontSize: 12 }}
+            tick={{ fill: "#4A4A55", fontSize: 12 }}
             dy={10}
           />
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: "#64748b", fontSize: 12 }}
+            tick={{ fill: "#4A4A55", fontSize: 12 }}
           />
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
           <Tooltip 
@@ -64,7 +64,7 @@ export const OverviewChart: React.FC = () => {
           <Area
             type="monotone"
             dataKey="users"
-            stroke="#F5A623"
+            stroke="#D4972A"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorUsers)"
@@ -72,7 +72,7 @@ export const OverviewChart: React.FC = () => {
           <Area
             type="monotone"
             dataKey="cars"
-            stroke="#00C9B1"
+            stroke="#4A8EE8"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorCars)"
@@ -130,19 +130,19 @@ export const EarningsChart: React.FC = () => {
             dataKey="date" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: "#64748b", fontSize: 10 }}
+            tick={{ fill: "#4A4A55", fontSize: 10 }}
           />
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: "#64748b", fontSize: 10 }}
+            tick={{ fill: "#4A4A55", fontSize: 10 }}
           />
           <Tooltip 
             cursor={{ fill: "#ffffff05" }}
             contentStyle={{ backgroundColor: "#111115", border: "1px solid #ffffff10", borderRadius: "12px" }}
             itemStyle={{ fontSize: "12px" }}
           />
-          <Bar dataKey="amount" fill="#F5A623" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="amount" fill="#D4972A" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

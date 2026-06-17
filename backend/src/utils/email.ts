@@ -81,7 +81,7 @@ export const getNewMessageEmailHtml = (
       <p style="margin: 0; color: #cbd5e1; font-size: 14px; font-style: italic;">"${messagePreview}"</p>
     </div>
     <div style="text-align: center; margin: 28px 0 8px;">
-      <a href="${appUrl}/lender-dashboard"
+      <a href="${appUrl}/lender"
          style="display: inline-block; padding: 13px 32px; background: linear-gradient(135deg, #1d4ed8, #4f46e5); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">
         Reply in Dashboard
       </a>

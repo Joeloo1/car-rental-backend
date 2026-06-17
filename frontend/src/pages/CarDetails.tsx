@@ -281,8 +281,8 @@ const CarDetails: React.FC = () => {
     <>
       <div className="min-h-screen text-ink-primary font-sans pt-24 pb-20 relative overflow-hidden" style={{ background: "var(--color-bg)" }}>
         {/* Ambient glows */}
-        <div className="fixed top-0 right-0 w-[40%] h-[40%] blur-[120px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(245,166,35,0.04), transparent)" }} />
-        <div className="fixed bottom-0 left-0 w-[30%] h-[30%] blur-[100px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(0,201,177,0.03), transparent)" }} />
+        <div className="fixed top-0 right-0 w-[40%] h-[40%] blur-[120px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(212,151,42,0.04), transparent)" }} />
+        <div className="fixed bottom-0 left-0 w-[30%] h-[30%] blur-[100px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(74,142,232,0.03), transparent)" }} />
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
 
@@ -311,7 +311,7 @@ const CarDetails: React.FC = () => {
                 >
                   {car.category?.name || "Premium"}
                 </Badge>
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg border" style={{ color: "var(--color-gold)", background: "rgba(245,166,35,0.08)", borderColor: "rgba(245,166,35,0.15)" }}>
+                <div className="flex items-center gap-1 px-2 py-1 rounded-lg border" style={{ color: "var(--color-gold)", background: "rgba(212,151,42,0.08)", borderColor: "rgba(212,151,42,0.15)" }}>
                   <Star size={14} fill="currentColor" />
                   <span className="text-sm font-bold">{car.averageRating || "5.0"}</span>
                   <span className="text-xs font-medium ml-1" style={{ color: "var(--color-text-muted)" }}>
@@ -365,26 +365,47 @@ const CarDetails: React.FC = () => {
             {/* Main grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 h-[300px] md:h-[520px]">
               {/* Primary image */}
-              <div className="md:col-span-3 rounded-3xl overflow-hidden relative group cursor-pointer" onClick={() => {}}>
+              <div className="md:col-span-3 rounded-3xl overflow-hidden relative group cursor-pointer">
                 <img
                   src={getCarImage(activeImage)}
                   alt={`${car.brand} ${car.model}`}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                {/* Image counter badge */}
+
+                {/* Prev / Next arrows */}
+                {thumbCount > 1 && (
+                  <>
+                    <button
+                      onClick={e => { e.stopPropagation(); setActiveImage(prev => (prev - 1 + thumbCount) % thumbCount); }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:text-white hover:bg-black/80 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
+                      aria-label="Previous image"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); setActiveImage(prev => (prev + 1) % thumbCount); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:text-white hover:bg-black/80 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
+                      aria-label="Next image"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6" /></svg>
+                    </button>
+                  </>
+                )}
+
+                {/* Image counter */}
                 <div className="absolute bottom-4 right-4 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-xs font-medium text-white/70">
                   {activeImage + 1} / {thumbCount}
                 </div>
               </div>
-              {/* Side thumbnails (desktop) */}
+              {/* Side thumbnails */}
               <div className="hidden md:flex flex-col gap-3">
                 {[1, 2].map(idx => (
                   <div
                     key={idx}
                     className={cn(
                       "flex-1 rounded-3xl overflow-hidden relative group cursor-pointer transition-all",
-                      activeImage === idx ? "ring-2" : "ring-1 ring-white/[0.06]"
+                      activeImage === idx ? "ring-2 ring-gold/60" : "ring-1 ring-white/[0.06] hover:ring-white/[0.12]"
                     )}
                     onClick={() => setActiveImage(idx)}
                   >
@@ -399,7 +420,7 @@ const CarDetails: React.FC = () => {
               </div>
             </div>
 
-            {/* Thumbnail strip — all images */}
+            {/* Thumbnail strip */}
             {thumbCount > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-1 hide-scrollbar">
                 {Array.from({ length: thumbCount }, (_, i) => (
@@ -407,12 +428,11 @@ const CarDetails: React.FC = () => {
                     key={i}
                     onClick={() => setActiveImage(i)}
                     className={cn(
-                      "flex-shrink-0 w-16 h-12 rounded-xl overflow-hidden transition-all border-2",
+                      "flex-shrink-0 w-16 h-12 rounded-xl overflow-hidden transition-all",
                       activeImage === i
-                        ? "border-transparent opacity-100"
-                        : "border-transparent opacity-60 hover:opacity-100"
+                        ? "opacity-100 ring-2 ring-gold/60"
+                        : "opacity-50 hover:opacity-80 ring-1 ring-white/[0.06]"
                     )}
-                    style={activeImage === i ? { boxShadow: "0 0 0 2px var(--color-gold)" } : {}}
                     aria-label={`View photo ${i + 1}`}
                   >
                     <img
@@ -448,10 +468,10 @@ const CarDetails: React.FC = () => {
                       key={i}
                       className="p-6 rounded-2xl flex flex-col items-center gap-4 text-center transition-colors"
                       style={{ background: "var(--color-surface)", border: "1.5px solid var(--color-border)" }}
-                      onMouseOver={e => ((e.currentTarget as HTMLDivElement).style.borderColor = "rgba(245,166,35,0.20)")}
+                      onMouseOver={e => ((e.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,151,42,0.20)")}
                       onMouseOut={e  => ((e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-border)")}
                     >
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(245,166,35,0.10)", border: "1px solid rgba(245,166,35,0.20)" }}>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(212,151,42,0.10)", border: "1px solid rgba(212,151,42,0.20)" }}>
                         <spec.icon size={22} style={{ color: "var(--color-gold)" }} />
                       </div>
                       <div>
@@ -624,18 +644,21 @@ const CarDetails: React.FC = () => {
                     className="w-full h-14 py-4 rounded-2xl font-display font-bold text-base text-black disabled:opacity-60 transition-all hover:brightness-110 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-2"
                     style={{
                       background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))",
-                      boxShadow: "0 8px 24px rgba(245,166,35,0.25)",
+                      boxShadow: "0 8px 28px rgba(212,151,42,0.28)",
                     }}
                   >
                     {bookingMutation.isPending ? (
-                      <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                     ) : (
-                      "RESERVE NOW"
+                      <>Reserve Now &nbsp;→</>
                     )}
                   </button>
-                  <p className="text-center text-[10px] text-ink-disabled uppercase font-bold tracking-widest mt-3">
-                    Secure transaction · No charge yet
-                  </p>
+                  <div className="flex items-center justify-center gap-1.5 mt-3">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-tertiary"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                    <span className="text-[10px] text-ink-tertiary uppercase tracking-widest font-semibold">
+                      Secure · No charge until confirmed
+                    </span>
+                  </div>
                 </div>
               </div>
 

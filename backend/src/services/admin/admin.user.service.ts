@@ -72,9 +72,13 @@ export const AdminUpdateUserService = async (userId: string, data: AdminUpdateUs
     throw new AppError("User not found", 404);
   }
 
+  const safeData: { role?: typeof data.role; accountStatus?: typeof data.accountStatus } = {};
+  if (data.role !== undefined) safeData.role = data.role;
+  if (data.accountStatus !== undefined) safeData.accountStatus = data.accountStatus;
+
   const updateUser = await prisma.user.update({
     where: { id: userId },
-    data,
+    data: safeData,
     select: safeUserSelect,
   });
 

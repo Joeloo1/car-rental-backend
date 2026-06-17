@@ -225,9 +225,9 @@ const Dashboard: React.FC = () => {
       label:       'Total Trips',
       value:       stats?.totalTrips ?? 0,
       icon:        Compass,
-      iconColor:   '#F5A623',
-      iconBg:      'rgba(245,166,35,0.12)',
-      iconBorder:  'rgba(245,166,35,0.22)',
+      iconColor:   '#D4972A',
+      iconBg:      'rgba(212,151,42,0.12)',
+      iconBorder:  'rgba(212,151,42,0.22)',
       change:      '+12%',
       changeColor: 'text-green bg-green/10 border-green/20',
     },
@@ -235,9 +235,9 @@ const Dashboard: React.FC = () => {
       label:       'Total Earnings',
       value:       `$${(stats?.totalEarnings ?? 0).toLocaleString()}`,
       icon:        TrendingUp,
-      iconColor:   '#00C9B1',
-      iconBg:      'rgba(0,201,177,0.12)',
-      iconBorder:  'rgba(0,201,177,0.22)',
+      iconColor:   '#4A8EE8',
+      iconBg:      'rgba(74,142,232,0.12)',
+      iconBorder:  'rgba(74,142,232,0.22)',
       change:      '+8%',
       changeColor: 'text-green bg-green/10 border-green/20',
     },
@@ -245,9 +245,9 @@ const Dashboard: React.FC = () => {
       label:       'Active Rentals',
       value:       stats?.activeRentals ?? 0,
       icon:        Clock,
-      iconColor:   '#F5A623',
-      iconBg:      'rgba(245,166,35,0.12)',
-      iconBorder:  'rgba(245,166,35,0.22)',
+      iconColor:   '#D4972A',
+      iconBg:      'rgba(212,151,42,0.12)',
+      iconBorder:  'rgba(212,151,42,0.22)',
       change:      null,
       changeColor: '',
     },
@@ -255,9 +255,9 @@ const Dashboard: React.FC = () => {
       label:       'Verified Cars',
       value:       stats?.verifiedCars ?? 0,
       icon:        CheckCircle,
-      iconColor:   '#00C9B1',
-      iconBg:      'rgba(0,201,177,0.12)',
-      iconBorder:  'rgba(0,201,177,0.22)',
+      iconColor:   '#4A8EE8',
+      iconBg:      'rgba(74,142,232,0.12)',
+      iconBorder:  'rgba(74,142,232,0.22)',
       change:      '+1',
       changeColor: 'text-green bg-green/10 border-green/20',
     },
@@ -302,8 +302,8 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen text-white pt-20 relative overflow-hidden" style={{ background: "var(--color-bg)" }}>
       {/* Ambient glows */}
-      <div className="fixed top-0 right-0 w-[40%] h-[35%] opacity-[0.04] blur-[120px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #F5A623, transparent)' }} />
-      <div className="fixed bottom-0 left-0 w-[30%] h-[30%] opacity-[0.03] blur-[100px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #00C9B1, transparent)' }} />
+      <div className="fixed top-0 right-0 w-[40%] h-[35%] opacity-[0.04] blur-[120px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #D4972A, transparent)' }} />
+      <div className="fixed bottom-0 left-0 w-[30%] h-[30%] opacity-[0.03] blur-[100px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #4A8EE8, transparent)' }} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10">
 
@@ -349,7 +349,7 @@ const Dashboard: React.FC = () => {
                     <img
                       src={user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=1c1c1c&color=a1a1aa&size=200`}
                       alt={user?.name}
-                      className="w-16 h-16 rounded-full object-cover ring-1 ring-white/10 group-hover:ring-white/20 transition-all"
+                      className="w-16 h-16 rounded-full object-cover ring-2 ring-gold/25 group-hover:ring-gold/50 transition-all"
                     />
                     <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-green rounded-full border-2 border-surface-1" />
                   </button>
@@ -446,7 +446,7 @@ const Dashboard: React.FC = () => {
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.05 + i * 0.05 }}
-                      className="p-5 rounded-2xl bg-surface-1 border border-[#1c1c1c] hover:border-[#272727] transition-colors"
+                      className="p-5 rounded-2xl bg-surface-1 border border-[#1c1c1c] hover:border-[#2a2a2a] hover:-translate-y-1 transition-all duration-200"
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div
@@ -479,15 +479,15 @@ const Dashboard: React.FC = () => {
                     {/* Ambient glow */}
                     <div
                       className="absolute -top-8 -right-8 w-48 h-48 rounded-full opacity-[0.07] blur-2xl pointer-events-none"
-                      style={{ background: 'radial-gradient(circle, #F5A623, transparent)' }}
+                      style={{ background: 'radial-gradient(circle, #D4972A, transparent)' }}
                     />
                     <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                       <div className="flex items-start gap-4">
                         <div
                           className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.22)' }}
+                          style={{ background: 'rgba(212,151,42,0.12)', border: '1px solid rgba(212,151,42,0.22)' }}
                         >
-                          <Banknote size={20} style={{ color: '#F5A623' }} />
+                          <Banknote size={20} style={{ color: '#D4972A' }} />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
@@ -498,6 +498,10 @@ const Dashboard: React.FC = () => {
                           </div>
                           <p className="text-sm text-white/50 max-w-sm leading-relaxed">
                             Become a lender and list your car. Set your own price and availability — you're in full control.
+                          </p>
+                          <p className="text-xs mt-1.5 text-white/30">
+                            Average host earns{' '}
+                            <span className="text-gold/70 font-semibold">₦280,000/month</span>
                           </p>
                         </div>
                       </div>

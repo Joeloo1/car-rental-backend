@@ -40,9 +40,9 @@ const RouteProgressBar: React.FC = () => {
         style={{
           height: "100%",
           width: `${width}%`,
-          background: "linear-gradient(to right, #F5A623, #E8831A, #FFB84D)",
+          background: "linear-gradient(to right, #D4972A, #B8791E, #E0AC3C)",
           transition: width === 0 ? "none" : "width 280ms cubic-bezier(0.4, 0, 0.2, 1)",
-          boxShadow: "0 0 8px rgba(245,166,35,0.6)",
+          boxShadow: "0 0 8px rgba(212,151,42,0.6)",
         }}
       />
     </div>

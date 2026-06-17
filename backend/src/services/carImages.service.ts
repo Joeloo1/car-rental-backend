@@ -61,14 +61,19 @@ const UploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryU
  */
 export const uploadCarImagesService = async (
   carId: string,
+  lenderId: string,
   files: Express.Multer.File[],
   isMain?: boolean,
   order?: number,
-): Promise<UploadedImage[]> => {
+): Promise<{ uploadedImages: UploadedImage[]; failedCount: number }> => {
   // Verify car exists
   const car = await prisma.car.findUnique({ where: { id: carId } });
   if (!car) {
     throw new Error("Car not found");
+  }
+
+  if (car.lenderId !== lenderId) {
+    throw new AppError("You can only upload images to your own cars", 403);
   }
 
   // Check if car already has images
@@ -105,6 +110,7 @@ export const uploadCarImagesService = async (
   }
 
   const uploadedImages: UploadedImage[] = [];
+  const failedIndexes: number[] = [];
 
   for (let i = 0; i < filesToUpload.length; i++) {
     const file = filesToUpload[i];
@@ -130,10 +136,16 @@ export const uploadCarImagesService = async (
 
       uploadedImages.push(carImage);
     } catch (error) {
-      console.error("Error uploading image:", error);
+      logger.error("Cloudinary upload failed", { error, index: i, carId });
+      failedIndexes.push(i);
     }
   }
-  return uploadedImages;
+
+  if (failedIndexes.length > 0) {
+    logger.warn(`${failedIndexes.length} image(s) failed to upload`, { failedIndexes, carId });
+  }
+
+  return { uploadedImages, failedCount: failedIndexes.length };
 };
 
 /**
@@ -194,15 +206,14 @@ export const BulkReorderImagesService = async (
     throw new AppError("Some images not found for this car", 400);
   }
 
-  // update order for each images
-  const updatePromises = data.images.map((img) =>
-    prisma.carImage.update({
-      where: { id: img.id },
-      data: { order: img.order },
-    }),
+  return await prisma.$transaction(
+    data.images.map((img) =>
+      prisma.carImage.update({
+        where: { id: img.id },
+        data: { order: img.order },
+      }),
+    ),
   );
-
-  return await Promise.all(updatePromises);
 };
 
 /**

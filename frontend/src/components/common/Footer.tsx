@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Car } from "@/lib/icons";
+import { Car, Shield, MapPin } from "@/lib/icons";
 
 const COLS = [
   {
@@ -13,9 +13,10 @@ const COLS = [
   {
     heading: "Account",
     links: [
-      { label: "Sign up",   to: "/register" },
-      { label: "Sign in",   to: "/login" },
-      { label: "Dashboard", to: "/dashboard" },
+      { label: "Sign up",    to: "/register" },
+      { label: "Sign in",    to: "/login" },
+      { label: "Dashboard",  to: "/dashboard" },
+      { label: "My bookings",to: "/bookings" },
     ],
   },
   {
@@ -40,16 +41,9 @@ const InstagramIcon = () => (
   </svg>
 );
 
-const GithubIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
-    <path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
-  </svg>
-);
-
 const SOCIALS = [
-  { icon: XIcon,         href: "https://x.com/luxedrive",          label: "X (Twitter)" },
-  { icon: InstagramIcon, href: "https://instagram.com/luxedrive",   label: "Instagram"   },
-  { icon: GithubIcon,    href: "https://github.com/luxedrive",      label: "GitHub"      },
+  { icon: XIcon,         href: "https://x.com/luxedrive",        label: "X (Twitter)" },
+  { icon: InstagramIcon, href: "https://instagram.com/luxedrive", label: "Instagram"   },
 ];
 
 const Footer: React.FC = () => (
@@ -58,15 +52,29 @@ const Footer: React.FC = () => (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
-          <Link to="/" className="inline-flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 bg-gold/10 border border-gold/30">
-              <Car size={13} className="text-gold" />
+          <Link to="/" className="inline-flex items-center gap-2 mb-3 group">
+            <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110"
+              style={{ background: "linear-gradient(135deg, rgba(212,151,42,0.20), rgba(184,121,30,0.10))", border: "1px solid rgba(212,151,42,0.35)" }}>
+              <Car size={12} className="text-gold" />
             </div>
             <span className="font-heading font-bold text-sm tracking-tight text-ink-primary">LuxeDrive</span>
           </Link>
           <p className="text-xs text-ink-tertiary leading-relaxed max-w-[180px] mb-4">
             Premium car rental across Nigeria. 1,200+ vehicles, 50+ cities.
           </p>
+
+          {/* Trust badges */}
+          <div className="flex flex-col gap-2 mb-4">
+            <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
+              <Shield size={11} className="text-gold flex-shrink-0" />
+              Fully insured trips
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
+              <MapPin size={11} className="text-teal flex-shrink-0" />
+              Serving 50+ Nigerian cities
+            </div>
+          </div>
+
           {/* Social icons */}
           <div className="flex items-center gap-2.5">
             {SOCIALS.map(({ icon: Icon, href, label }) => (
@@ -76,7 +84,7 @@ const Footer: React.FC = () => (
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="w-7 h-7 rounded-md bg-surface-2 border border-[#2a2a2a] flex items-center justify-center text-ink-tertiary hover:text-ink-primary hover:border-[#3a3a3a] transition-all"
+                className="w-7 h-7 rounded-md bg-surface-2 border border-[#2a2a2a] flex items-center justify-center text-ink-tertiary hover:text-ink-primary hover:border-[#3a3a3a] hover:bg-surface-3 transition-all"
               >
                 <Icon />
               </a>
@@ -118,9 +126,7 @@ const Footer: React.FC = () => (
           <Link to="/terms" className="text-xs text-ink-tertiary hover:text-ink-secondary transition-colors">
             Terms
           </Link>
-          <p className="text-xs text-ink-tertiary">
-            Made in Nigeria 🇳🇬
-          </p>
+          <span className="text-xs text-ink-tertiary">Made in Nigeria 🇳🇬</span>
         </div>
       </div>
     </div>

@@ -67,7 +67,7 @@ export const signupService = async (data: SignupInput) => {
     },
   });
 
-  const verifyUrl = `${config.CLIENT_URL}/api/v1/auth/verify-email?token=${verificationToken}`;
+  const verifyUrl = `${config.SERVER_URL}/api/v1/auth/verify-email?token=${verificationToken}`;
 
   await dispatchEmail({
     email: newUser.email,
@@ -164,11 +164,7 @@ export const resendverifyEmailService = async (email: string) => {
     },
   });
 
-  const clientUrl = config.CLIENT_URL;
-  if (!clientUrl) {
-    throw new Error("CLIENT_URL is not defined");
-  }
-  const verifyUrl = `${config.CLIENT_URL}/api/v1/auth/verify-email?token=${verificationToken}`;
+  const verifyUrl = `${config.SERVER_URL}/api/v1/auth/verify-email?token=${verificationToken}`;
 
   await dispatchEmail({
     email: user.email,

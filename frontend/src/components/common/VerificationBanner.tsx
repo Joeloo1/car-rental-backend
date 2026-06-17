@@ -13,8 +13,8 @@ const VerificationBanner: React.FC = () => {
     <div
       className="relative border-b z-30"
       style={{
-        background: "rgba(245,166,35,0.07)",
-        borderColor: "rgba(245,166,35,0.18)",
+        background: "rgba(212,151,42,0.07)",
+        borderColor: "rgba(212,151,42,0.18)",
       }}
     >
       <div className="container py-2.5">

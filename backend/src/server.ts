@@ -45,30 +45,16 @@ const autoCompleteExpiredBookings = async () => {
   try {
     const now = new Date();
 
-    // Find all pending/confirmed bookings whose rental period has ended
-    const expired = await prisma.booking.findMany({
+    // Single atomic update — safe across multiple instances (no findMany race)
+    const { count } = await prisma.booking.updateMany({
       where: {
         status: { in: ["pending", "confirmed"] },
         endDate: { lt: now },
       },
-      include: { car: { select: { id: true, title: true, lenderId: true } } },
+      data: { status: "completed" },
     });
 
-    if (expired.length === 0) return;
-
-    // Mark them completed and free the cars in one transaction
-    await prisma.$transaction([
-      prisma.booking.updateMany({
-        where: { id: { in: expired.map((b) => b.id) } },
-        data: { status: "completed" },
-      }),
-      prisma.car.updateMany({
-        where: { id: { in: [...new Set(expired.map((b) => b.carId))] } },
-        data: { availabilityStatus: "available" },
-      }),
-    ]);
-
-    logger.info(`Auto-completed ${expired.length} expired booking(s)`);
+    if (count > 0) logger.info(`Auto-completed ${count} expired booking(s)`);
   } catch (err) {
     logger.error("Failed to auto-complete expired bookings:", err);
   }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   CheckCircle,
@@ -33,9 +33,9 @@ const HowItWorks: React.FC = () => {
     {
       step:    "01",
       icon:    Search,
-      color:   "#F5A623",
-      bg:      "rgba(245,166,35,0.10)",
-      border:  "rgba(245,166,35,0.22)",
+      color:   "#D4972A",
+      bg:      "rgba(212,151,42,0.10)",
+      border:  "rgba(212,151,42,0.22)",
       title:   "Find Your Perfect Car",
       desc:    "Browse hundreds of verified premium vehicles. Filter by location, date, category, price, and more. Every car is inspected and verified by our team.",
       detail:  "Use our smart search to filter by city, airport, or specific address. Set your exact pickup and return dates to see real-time availability.",
@@ -43,9 +43,9 @@ const HowItWorks: React.FC = () => {
     {
       step:    "02",
       icon:    CreditCard,
-      color:   "#00C9B1",
-      bg:      "rgba(0,201,177,0.10)",
-      border:  "rgba(0,201,177,0.22)",
+      color:   "#4A8EE8",
+      bg:      "rgba(74,142,232,0.10)",
+      border:  "rgba(74,142,232,0.22)",
       title:   "Book Instantly",
       desc:    "Reserve your car in seconds with our secure checkout. No paperwork, no waiting lines. Get instant confirmation sent to your email.",
       detail:  "Pay securely online. Your card is only charged after the host confirms your booking. We support Visa, Mastercard, and major digital wallets.",
@@ -53,9 +53,9 @@ const HowItWorks: React.FC = () => {
     {
       step:    "03",
       icon:    MapPin,
-      color:   "#00C9B1",
-      bg:      "rgba(0,201,177,0.10)",
-      border:  "rgba(0,201,177,0.22)",
+      color:   "#4A8EE8",
+      bg:      "rgba(74,142,232,0.10)",
+      border:  "rgba(74,142,232,0.22)",
       title:   "Meet & Drive",
       desc:    "Meet your host at the pickup location or choose free delivery within 10 miles. Inspect the car, sign digitally, and hit the road.",
       detail:  "Your host will meet you at the agreed time. A quick digital inspection protects both parties. Keys in hand in under 5 minutes.",
@@ -63,9 +63,9 @@ const HowItWorks: React.FC = () => {
     {
       step:    "04",
       icon:    CheckCircle,
-      color:   "#F5A623",
-      bg:      "rgba(245,166,35,0.10)",
-      border:  "rgba(245,166,35,0.22)",
+      color:   "#D4972A",
+      bg:      "rgba(212,151,42,0.10)",
+      border:  "rgba(212,151,42,0.22)",
       title:   "Return & Review",
       desc:    "Return the car at your scheduled time. Drop it off or have it picked up — your choice. Then leave a review to help the community.",
       detail:  "Returns are simple. Any fuel or mileage adjustments are calculated automatically. Your deposit is released within 24 hours.",
@@ -75,49 +75,49 @@ const HowItWorks: React.FC = () => {
   const features = [
     {
       icon:   Shield,
-      color:  "#00C9B1",
-      bg:     "rgba(0,201,177,0.10)",
-      border: "rgba(0,201,177,0.22)",
+      color:  "#4A8EE8",
+      bg:     "rgba(74,142,232,0.10)",
+      border: "rgba(74,142,232,0.22)",
       title:  "$1M Protection",
       desc:   "Every trip is covered by comprehensive insurance from the moment the keys change hands.",
     },
     {
       icon:   Zap,
-      color:  "#F5A623",
-      bg:     "rgba(245,166,35,0.10)",
-      border: "rgba(245,166,35,0.22)",
+      color:  "#D4972A",
+      bg:     "rgba(212,151,42,0.10)",
+      border: "rgba(212,151,42,0.22)",
       title:  "Instant Approval",
       desc:   "Most bookings are confirmed within minutes. No waiting days for approval.",
     },
     {
       icon:   Phone,
-      color:  "#00C9B1",
-      bg:     "rgba(0,201,177,0.10)",
-      border: "rgba(0,201,177,0.22)",
+      color:  "#4A8EE8",
+      bg:     "rgba(74,142,232,0.10)",
+      border: "rgba(74,142,232,0.22)",
       title:  "24/7 Support",
       desc:   "Our team is available around the clock for anything you need, before or during your trip.",
     },
     {
       icon:   Star,
-      color:  "#F5A623",
-      bg:     "rgba(245,166,35,0.10)",
-      border: "rgba(245,166,35,0.22)",
+      color:  "#D4972A",
+      bg:     "rgba(212,151,42,0.10)",
+      border: "rgba(212,151,42,0.22)",
       title:  "Verified Hosts",
       desc:   "Every host and vehicle goes through identity and inspection checks before listing.",
     },
     {
       icon:   Users,
-      color:  "#F5A623",
-      bg:     "rgba(245,166,35,0.10)",
-      border: "rgba(245,166,35,0.22)",
+      color:  "#D4972A",
+      bg:     "rgba(212,151,42,0.10)",
+      border: "rgba(212,151,42,0.22)",
       title:  "Growing Community",
       desc:   "Over 40,000 satisfied renters and 1,200+ premium vehicles across the country.",
     },
     {
       icon:   CreditCard,
-      color:  "#00C9B1",
-      bg:     "rgba(0,201,177,0.10)",
-      border: "rgba(0,201,177,0.22)",
+      color:  "#4A8EE8",
+      bg:     "rgba(74,142,232,0.10)",
+      border: "rgba(74,142,232,0.22)",
       title:  "Secure Payments",
       desc:   "PCI-compliant payment processing. Your financial data is always protected.",
     },
@@ -158,11 +158,11 @@ const HowItWorks: React.FC = () => {
         {/* Ambient glows */}
         <div
           className="absolute top-0 left-1/4 w-[500px] h-[400px] opacity-[0.06] blur-[120px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, #F5A623, transparent)" }}
+          style={{ background: "radial-gradient(circle, #D4972A, transparent)" }}
         />
         <div
           className="absolute bottom-0 right-1/4 w-[400px] h-[300px] opacity-[0.05] blur-[100px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, #00C9B1, transparent)" }}
+          style={{ background: "radial-gradient(circle, #4A8EE8, transparent)" }}
         />
 
         <div className="container text-center relative z-10">
@@ -184,7 +184,7 @@ const HowItWorks: React.FC = () => {
               How{" "}
               <span
                 style={{
-                  background: "linear-gradient(to right, #F5A623, #FFB84D, #E8831A)",
+                  background: "linear-gradient(to right, #D4972A, #E0AC3C, #B8791E)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -204,7 +204,7 @@ const HowItWorks: React.FC = () => {
               <button
                 onClick={() => navigate("/browse")}
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90 active:scale-[0.98]"
-                style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
+                style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
               >
                 Browse Cars <ArrowRight size={16} />
               </button>
@@ -292,7 +292,7 @@ const HowItWorks: React.FC = () => {
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="p-6 rounded-2xl border border-[#1c1c1c] bg-surface-1 hover:border-[#272727] transition-colors group"
+                className="p-6 rounded-2xl border border-[#1c1c1c] bg-surface-1 hover:border-[#2a2a2a] hover:-translate-y-1 transition-all duration-200 group"
               >
                 <div
                   className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
@@ -352,12 +352,23 @@ const HowItWorks: React.FC = () => {
                     className={`text-ink-tertiary flex-shrink-0 transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`}
                   />
                 </button>
-                {openFaq === i && (
-                  <div className="px-5 pb-5">
-                    <div className="pt-1 border-t border-[#1c1c1c]" />
-                    <p className="text-sm text-ink-tertiary leading-relaxed pt-4">{faq.a}</p>
-                  </div>
-                )}
+                <AnimatePresence initial={false}>
+                  {openFaq === i && (
+                    <motion.div
+                      key="answer"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      <div className="px-5 pb-5">
+                        <div className="pt-1 border-t border-[#1c1c1c]" />
+                        <p className="text-sm text-ink-tertiary leading-relaxed pt-4">{faq.a}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             ))}
           </div>
@@ -380,7 +391,7 @@ const HowItWorks: React.FC = () => {
             {/* Ambient glows */}
             <div
               className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[300px] opacity-[0.08] blur-3xl pointer-events-none rounded-full"
-              style={{ background: "radial-gradient(ellipse, #F5A623, transparent)" }}
+              style={{ background: "radial-gradient(ellipse, #D4972A, transparent)" }}
             />
 
             <div className="relative z-10 max-w-xl mx-auto">
@@ -398,7 +409,7 @@ const HowItWorks: React.FC = () => {
                 <button
                   onClick={() => navigate("/browse")}
                   className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-sm text-black transition-opacity hover:opacity-90 active:scale-[0.98]"
-                  style={{ background: "linear-gradient(135deg, #F5A623, #E8831A)" }}
+                  style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
                 >
                   Browse Cars Now <ArrowRight size={15} />
                 </button>

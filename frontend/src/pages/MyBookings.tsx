@@ -68,120 +68,122 @@ const BookingCard: React.FC<{
     : PLACEHOLDER;
 
   return (
-    <div className="rounded-2xl border border-[#1c1c1c] bg-surface-1 overflow-hidden hover:border-[#272727] transition-colors">
+    <div className="rounded-2xl border border-[#1c1c1c] bg-surface-1 overflow-hidden hover:border-[#272727] transition-all duration-200">
       <div className="flex flex-col sm:flex-row">
         {/* Car image */}
         <div
-          className="relative sm:w-48 h-44 sm:h-auto flex-shrink-0 cursor-pointer"
+          className="relative sm:w-52 h-44 sm:h-auto flex-shrink-0 cursor-pointer overflow-hidden"
           onClick={() => booking.car && navigate(`/car/${booking.car.id}`)}
         >
-          <img src={img} alt={booking.car?.brand ?? "Car"} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10" />
+          <img
+            src={img}
+            alt={booking.car?.brand ?? "Car"}
+            className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.05]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/20" />
+          {/* Status ribbon on image */}
+          <div className="absolute top-3 left-3">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${cfg.pill}`}>
+              <StatusIcon size={10} />
+              {cfg.label}
+            </span>
+          </div>
         </div>
 
         {/* Details */}
-        <div className="flex-1 p-5 flex flex-col justify-between gap-3">
+        <div className="flex-1 p-5 flex flex-col justify-between gap-4 min-w-0">
           <div>
-            {/* Car name + status */}
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div>
-                <h3 className="font-semibold text-[15px] text-ink-primary leading-tight">
+            {/* Car name + year */}
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-[15px] text-ink-primary leading-tight truncate">
                   {booking.car
                     ? `${booking.car.brand} ${booking.car.model}`
                     : "Vehicle details unavailable"}
                 </h3>
                 {booking.car?.year && (
-                  <p className="text-xs text-ink-tertiary">{booking.car.year}</p>
+                  <p className="text-xs text-ink-tertiary mt-0.5">{booking.car.year}</p>
                 )}
               </div>
-              <span
-                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border flex-shrink-0 ${cfg.pill}`}
-              >
-                <StatusIcon size={11} />
-                {cfg.label}
-              </span>
+              <div className="font-price text-right flex-shrink-0">
+                <p className="text-lg font-bold text-ink-primary">${booking.totalPrice.toLocaleString()}</p>
+                <p className="text-[10px] text-ink-tertiary">total</p>
+              </div>
             </div>
 
-            {/* Meta */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-ink-tertiary">
-              <span className="flex items-center gap-1">
-                <Calendar size={11} />
-                {fmt(booking.startDate)} → {fmt(booking.endDate)}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock size={11} />
-                {getDays(booking.startDate, booking.endDate)}
-              </span>
-              {booking.car?.locationCity && (
-                <span className="flex items-center gap-1">
-                  <MapPin size={11} />
-                  {booking.car.locationCity}
+            {/* Date range — visual */}
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-surface-2 border border-[#242424] mb-3">
+              <Calendar size={13} className="text-gold flex-shrink-0" />
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs font-semibold text-ink-primary whitespace-nowrap">{fmt(booking.startDate)}</span>
+                <svg width="24" height="8" viewBox="0 0 24 8" fill="none" className="flex-shrink-0">
+                  <path d="M0 4h22M18 1l4 3-4 3" stroke="rgba(245,166,35,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-xs font-semibold text-ink-primary whitespace-nowrap">{fmt(booking.endDate)}</span>
+                <span className="text-xs text-ink-tertiary px-2 py-0.5 rounded-md bg-surface-3 whitespace-nowrap">
+                  {getDays(booking.startDate, booking.endDate)}
                 </span>
-              )}
+              </div>
             </div>
+
+            {/* Location */}
+            {booking.car?.locationCity && (
+              <div className="flex items-center gap-1.5 text-xs text-ink-tertiary">
+                <MapPin size={11} className="text-ink-tertiary flex-shrink-0" />
+                {booking.car.locationCity}
+              </div>
+            )}
           </div>
 
-          {/* Price + actions */}
-          <div className="flex items-center justify-between gap-3 pt-3 border-t border-[#1c1c1c]">
-            <div>
-              <span className="text-lg font-bold text-ink-primary">
-                ${booking.totalPrice.toLocaleString()}
-              </span>
-              <span className="text-xs text-ink-tertiary ml-1">total</span>
-            </div>
+          {/* Actions row */}
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1c1c1c]">
+            {booking.status === "completed" && (
+              <button
+                onClick={() => onReview(booking)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber border border-amber/20 bg-amber/[0.07] hover:bg-amber/[0.14] transition-colors"
+              >
+                <Star size={12} />
+                Review
+              </button>
+            )}
 
-            <div className="flex items-center gap-2">
-              {booking.status === "completed" && (
+            {booking.status === "pending" && !confirmCancel && (
+              <button
+                onClick={() => setConfirmCancel(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red border border-red/20 bg-red/[0.06] hover:bg-red/[0.12] transition-colors"
+              >
+                <X size={12} />
+                Cancel
+              </button>
+            )}
+
+            {confirmCancel && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-ink-tertiary">Cancel?</span>
                 <button
-                  onClick={() => onReview(booking)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber border border-amber/20 bg-amber/[0.07] hover:bg-amber/[0.14] transition-colors"
+                  onClick={() => { onCancel(booking.id); setConfirmCancel(false); }}
+                  disabled={cancelling}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red text-white hover:bg-red/80 transition-colors disabled:opacity-60"
                 >
-                  <Star size={12} />
-                  Leave review
+                  {cancelling ? <Loader2 size={11} className="animate-spin" /> : "Confirm"}
                 </button>
-              )}
-
-              {booking.status === "pending" && !confirmCancel && (
                 <button
-                  onClick={() => setConfirmCancel(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red border border-red/20 bg-red/[0.06] hover:bg-red/[0.12] transition-colors"
+                  onClick={() => setConfirmCancel(false)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-secondary hover:text-ink-primary transition-colors"
                 >
-                  <X size={12} />
-                  Cancel
+                  Keep
                 </button>
-              )}
+              </div>
+            )}
 
-              {confirmCancel && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-ink-tertiary">Cancel booking?</span>
-                  <button
-                    onClick={() => {
-                      onCancel(booking.id);
-                      setConfirmCancel(false);
-                    }}
-                    disabled={cancelling}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red text-white hover:bg-red/80 transition-colors disabled:opacity-60"
-                  >
-                    {cancelling ? <Loader2 size={11} className="animate-spin" /> : "Confirm"}
-                  </button>
-                  <button
-                    onClick={() => setConfirmCancel(false)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-secondary hover:text-ink-primary transition-colors"
-                  >
-                    Keep
-                  </button>
-                </div>
-              )}
-
-              {booking.car && (
-                <button
-                  onClick={() => navigate(`/car/${booking.car!.id}`)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-ink-secondary border border-[#282828] bg-surface-2 hover:bg-surface-3 transition-colors"
-                >
-                  View car <ArrowRight size={11} />
-                </button>
-              )}
-            </div>
+            {booking.car && (
+              <button
+                onClick={() => navigate(`/car/${booking.car!.id}`)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-ink-secondary border border-[#282828] bg-surface-2 hover:bg-surface-3 hover:border-[#333] transition-colors"
+              >
+                View car <ArrowRight size={11} />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -258,24 +260,20 @@ const MyBookings: React.FC = () => {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-1.5 flex-wrap mb-8 p-1 bg-surface-1 rounded-xl border border-[#1c1c1c] w-fit">
+        <div className="flex gap-1 overflow-x-auto hide-scrollbar mb-8 p-1 bg-surface-1 rounded-2xl border border-[#1c1c1c] w-fit max-w-full">
           {TABS.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                 filter === key
-                  ? "bg-surface-3 text-ink-primary border border-[#333]"
+                  ? "bg-surface-3 text-ink-primary border border-[#333] shadow-sm"
                   : "text-ink-tertiary hover:text-ink-secondary"
               }`}
             >
               {label}
               {counts[key] > 0 && (
-                <span
-                  className={`ml-1.5 text-xs ${
-                    filter === key ? "text-ink-secondary" : "text-ink-disabled"
-                  }`}
-                >
+                <span className={`ml-1.5 text-xs font-semibold ${filter === key ? "text-gold" : "text-ink-disabled"}`}>
                   {counts[key]}
                 </span>
               )}
