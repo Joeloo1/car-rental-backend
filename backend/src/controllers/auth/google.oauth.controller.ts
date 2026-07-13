@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import config from "../../config/config.env";
+import { REFRESH_TOKEN_TTL_MS } from "../../config/constants";
 import logger from "../../config/winston";
 import catchAsync from "../../utils/catchAsync";
 import { AuthRequest } from "../../types/authRequest";
@@ -26,7 +27,7 @@ export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Respo
       data: {
         token: refreshToken,
         userId: user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
       },
     });
 
@@ -34,7 +35,7 @@ export const googleAuthCallback = catchAsync(async (req: AuthRequest, res: Respo
       httpOnly: true,
       secure: config.NODE_ENV === "production",
       sameSite: "lax", // "lax" allows the cookie to be sent after cross-site OAuth redirects
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: REFRESH_TOKEN_TTL_MS,
     });
 
     // Set access token as a short-lived, JS-readable cookie so the frontend can

@@ -8,6 +8,7 @@ import {
   updateBookingStatus,
   getDashboardStats,
   createBooking,
+  getBookingById,
 } from "../controllers/booking.controller";
 import { bookingLimiter } from "../middleware/ratelimit";
 
@@ -33,6 +34,12 @@ router.route("/lender").get(restrictTo(UserRole.lender), getLenderBookings);
  * Get dashboard statistics for the authenticated user
  */
 router.route("/stats").get(getDashboardStats);
+
+/**
+ * GET /api/bookings/:id
+ * Get a single booking by ID (renter, lender of that car, or admin)
+ */
+router.route("/:id").get(getBookingById);
 
 /**
  * PATCH /api/bookings/:id/status

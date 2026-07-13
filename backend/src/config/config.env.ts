@@ -21,6 +21,7 @@ const REQUIRED_VARS = [
   "EMAIL_HOST",
   "EMAIL_USER",
   "EMAIL_PASS",
+  "PAYSTACK_SECRET_KEY",
 ] as const;
 
 const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
@@ -54,6 +55,7 @@ const config = {
   GOOGLE_REDIRECT_URL: process.env.GOOGLE_REDIRECT_URL,
   REDIS_URL: process.env.REDIS_URL,
   SERVICE_FEE: Number(process.env.SERVICE_FEE ?? 65),
+  PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY ?? "",
   ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173")
     .split(",")
     .map((o) => o.trim()),

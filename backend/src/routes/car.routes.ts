@@ -12,6 +12,8 @@ import {
   updateCars,
   updateCarStatus,
   deleteCar,
+  checkCarAvailability,
+  searchCars,
 } from "../controllers/car.controller";
 import { UserRole } from "../generated/prisma/client";
 import carImageRouter from "./carImage.routes";
@@ -28,6 +30,13 @@ const router: Router = Router();
  * Cache: DISABLED (Redis connection issue)
  */
 router.route("/").get(getAllCars);
+
+/**
+ * GET /api/cars/search?q=toyota
+ * Autocomplete — returns matching brands, models, and cities (must be before /:id)
+ * Protection: PUBLIC
+ */
+router.route("/search").get(searchCars);
 
 /**
  * GET /api/cars/:id
@@ -53,9 +62,15 @@ router.route("/lender/:id").get(getCarByLender);
  * Get all reviews for a specific car
  * Params: { id: string (car ID) }
  * Protection: PUBLIC
- * Cache: DISABLED (Redis connection issue)
  */
 router.route("/:id/reviews").get(getAllReviewForCar);
+
+/**
+ * GET /api/cars/:id/availability?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+ * Check if a car is available for a given date range
+ * Protection: PUBLIC
+ */
+router.route("/:id/availability").get(checkCarAvailability);
 
 // All routes below this middleware require authentication
 router.use(protect);

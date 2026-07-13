@@ -52,8 +52,8 @@ export const getUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 // Update user
-export const updateUser = catchAsync(async (req: Request, res: Response) => {
-  const user = await AdminUpdateUserService(req.params.id as string, req.body);
+export const updateUser = catchAsync(async (req: AuthRequest, res: Response) => {
+  const user = await AdminUpdateUserService(req.params.id as string, req.body, req.user!.id);
 
   logger.info(`Updating user with ID: ${user.id}`);
   res.status(200).json({

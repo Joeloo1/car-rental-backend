@@ -42,6 +42,7 @@ model User {
   notifications            Notification[]
   bookings                 Booking[]     @relation("UserBookings")
   favorites                Favorite[]
+  payments                 Payment[]
 
 
   @@index([email])
@@ -97,6 +98,10 @@ model Car {
   longitude          Float?
   availabilityStatus CarStatus  @default(available)
   averageRating      Float      @default(0)
+  deletedAt          DateTime?
+  isApproved         Boolean    @default(true)
+  approvedAt         DateTime?
+  approvedBy         String?
 
   lenderId           String
   categoryId         Int
@@ -115,6 +120,8 @@ model Car {
   @@index([availabilityStatus])
   @@index([locationCity])
   @@index([pricePerDay])
+  @@index([deletedAt])
+  @@index([isApproved])
   @@index([availabilityStatus, locationCity])
   @@index([availabilityStatus, pricePerDay])
 }
@@ -131,11 +138,13 @@ model Booking {
   updatedAt  DateTime      @updatedAt
   user       User          @relation("UserBookings", fields: [userId], references: [id])
   car        Car           @relation(fields: [carId], references: [id])
+  payment    Payment?
 
   @@index([userId])
   @@index([carId])
   @@index([status])
   @@index([carId, status])
+  @@index([startDate, endDate])
 }
 
 model CarImage {
@@ -213,6 +222,7 @@ model Notification {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([userId, isRead])
 }
 
 
@@ -263,4 +273,30 @@ enum BookingStatus {
   confirmed
   cancelled
   completed
+}
+
+enum PaymentStatus {
+  pending
+  successful
+  failed
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  bookingId String        @unique
+  userId    String
+  amount    Float
+  reference String        @unique
+  status    PaymentStatus @default(pending)
+  provider  String        @default("paystack")
+  metadata  Json?
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([reference])
+  @@index([status])
 }

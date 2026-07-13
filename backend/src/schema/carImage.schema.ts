@@ -6,7 +6,8 @@ import { z } from "zod";
 export const uploadCarImageSchema = z.object({
   carId: z.string().uuid("Invalid car ID"),
   isMain: z.coerce.boolean().optional().default(false),
-  order: z.coerce.number().int().min(0).optional().default(0),
+  // No default — undefined tells the service to auto-increment from the current max order
+  order: z.coerce.number().int().min(0).optional(),
 });
 
 /**
@@ -29,7 +30,7 @@ export const bulkReorderSchema = z.object({
       }),
     )
     .min(1, "At least one image required")
-    .max(100, "Maximum 100 images can be reordered at once"),
+    .max(10, "Maximum 10 images can be reordered at once"),
 });
 
 /**

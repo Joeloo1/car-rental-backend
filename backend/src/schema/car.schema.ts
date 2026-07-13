@@ -30,14 +30,14 @@ export const CreateCarSchema = z.object({
       .number()
       .int()
       .min(1900, "Year must be 1900 or later")
-      .max(new Date().getFullYear() + 1, "Year cannot be in the future")
+      .max(new Date().getFullYear(), "Year cannot be in the future")
       .optional(),
     description: z
       .string()
       .max(2000, "Description must be 2000 characters or fewer")
       .optional()
       .transform((v) => (v ? xss(v) : v)),
-    pricePerDay: z.number().positive("Price per day must be positive"),
+    pricePerDay: z.number().int("Price must be a whole number").min(1000, "Minimum price is ₦1,000"),
     locationCity: z.string().max(100, "City must be 100 characters or fewer").optional(),
     availabilityStatus: CarStatusEnum.optional().default("available"),
     categoryId: z.number().int().positive("Invalid category ID"),
@@ -77,14 +77,14 @@ export const UpdateCarSchema = z.object({
       .number()
       .int()
       .min(1900, "Year must be 1900 or later")
-      .max(new Date().getFullYear() + 1, "Year cannot be in the future")
+      .max(new Date().getFullYear(), "Year cannot be in the future")
       .optional(),
     description: z
       .string()
       .max(2000, "Description must be 2000 characters or fewer")
       .optional()
       .transform((v) => (v ? xss(v) : v)),
-    pricePerDay: z.number().positive("Price per day must be positive").optional(),
+    pricePerDay: z.number().int("Price must be a whole number").min(1000, "Minimum price is ₦1,000").optional(),
     locationCity: z.string().max(100, "City must be 100 characters or fewer").optional(),
     availabilityStatus: CarStatusEnum.optional(),
     fuelType: z.string().optional(),

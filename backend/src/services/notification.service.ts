@@ -1,6 +1,7 @@
 import { getSocketIO } from "../utils/socketInstance";
 import { prisma } from "../config/database";
 import logger from "../config/winston";
+import AppError from "../utils/AppError";
 import { getCache, setCache, deleteCacheByPattern } from "../config/redis";
 
 const TTL_NOTIFICATIONS = 60; // 1 minute
@@ -47,7 +48,7 @@ export const GetUserNotifications = async (userId: string, page = 1, limit = 20)
   if (cached) return cached;
 
   const skip = (page - 1) * limit;
-  const [notifications, total] = await prisma.$transaction([
+  const [notifications, total] = await Promise.all([
     prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -73,4 +74,21 @@ export const MarkAllAsRead = async (userId: string) => {
     where: { userId, isRead: false },
     data: { isRead: true },
   });
+};
+
+export const GetUnreadNotificationCountService = async (userId: string) => {
+  return await prisma.notification.count({ where: { userId, isRead: false } });
+};
+
+export const DeleteNotificationService = async (notificationId: string, userId: string) => {
+  const notification = await prisma.notification.findUnique({ where: { id: notificationId } });
+  if (!notification) throw new AppError("Notification not found", 404);
+  if (notification.userId !== userId) throw new AppError("Unauthorized", 403);
+  await prisma.notification.delete({ where: { id: notificationId } });
+  await deleteCacheByPattern(`notifications:${userId}:*`);
+};
+
+export const DeleteAllNotificationsService = async (userId: string) => {
+  await prisma.notification.deleteMany({ where: { userId } });
+  await deleteCacheByPattern(`notifications:${userId}:*`);
 };

@@ -7,6 +7,7 @@ import {
   GetLenderBookingsService,
   UpdateBookingStatusService,
   GetDashboardStatsService,
+  GetBookingByIdService,
 } from "../services/booking.service";
 import { CreateBookingSchema, UpdateBookingStatusSchema } from "../schema/booking.schema";
 
@@ -63,6 +64,11 @@ export const updateBookingStatus = catchAsync(async (req: AuthRequest, res: Resp
     status: "success",
     message: "Booking status updated successfully",
   });
+});
+
+export const getBookingById = catchAsync(async (req: AuthRequest, res: Response) => {
+  const booking = await GetBookingByIdService(req.params.id as string, req.user!.id, req.user!.role);
+  res.status(200).json({ status: "success", data: { booking } });
 });
 
 export const getDashboardStats = catchAsync(async (req: AuthRequest, res: Response) => {

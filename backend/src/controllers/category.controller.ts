@@ -39,15 +39,14 @@ export const updateCategory = catchAsync(async (req: Request, res: Response) => 
 
 // Get All Categories
 export const getAllCategories = catchAsync(async (req: Request, res: Response) => {
-  const categories = await GetCategoryService();
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
+  const result = await GetCategoryService(page, limit);
 
   logger.info("Getting all Categories");
   res.status(200).json({
     status: "success",
-    result: categories.length,
-    data: {
-      categories,
-    },
+    data: result,
   });
 });
 

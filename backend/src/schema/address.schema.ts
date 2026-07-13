@@ -31,10 +31,7 @@ export const UpdateAddressSchema = z.object({
  */
 export const AddressParamsSchema = z.object({
   params: z.object({
-    id: z
-      .string()
-      .transform((val) => parseInt(val, 10))
-      .pipe(z.number().int().positive("ID must be a positive integer")),
+    id: z.string().uuid("Invalid address ID"),
   }),
 });
 /*

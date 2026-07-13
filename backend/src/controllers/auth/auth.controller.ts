@@ -14,6 +14,7 @@ import logger from "../../config/winston";
 import AppError from "../../utils/AppError";
 import config from "../../config/config.env";
 import { AuthRequest } from "../../types/authRequest";
+import { REFRESH_TOKEN_TTL_MS } from "../../config/constants";
 
 // signup
 export const signup = catchAsync(async (req: Request, res: Response) => {
@@ -24,7 +25,7 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: REFRESH_TOKEN_TTL_MS,
   });
 
   logger.info(`User with email: ${newUser.email} Signed Up successfully`);
@@ -78,7 +79,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: REFRESH_TOKEN_TTL_MS,
   });
 
   logger.info(`User logged in successfully... Email:${sanitizedUser.email}`);
@@ -142,7 +143,8 @@ const REFRESH_COOKIE_OPTS = (isProd: boolean) => ({
 // log out — revoke token in DB AND clear the cookie so the browser discards it
 export const logOut = catchAsync(async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
+  // Always use the cookie — ignoring body prevents an attacker from revoking a different token
+  const refreshToken = req.cookies?.refreshToken ?? null;
 
   await logOutService(userId, refreshToken ?? null);
 
@@ -184,7 +186,7 @@ export const refreshAccessToken = catchAsync(async (req: Request, res: Response)
     httpOnly: true,
     secure: config.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: REFRESH_TOKEN_TTL_MS,
   });
 
   res.status(200).json({

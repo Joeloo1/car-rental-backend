@@ -46,7 +46,9 @@ export const getAllReviewForCar = catchAsync(
   async (req: Request, res: Response, _next: NextFunction) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
-    const result = await GetAllReviewForCarService(req.params.id as string, page, limit);
+    const sortBy = (req.query.sortBy as "createdAt" | "rating") ?? "createdAt";
+    const sortOrder = (req.query.sortOrder as "asc" | "desc") ?? "desc";
+    const result = await GetAllReviewForCarService(req.params.id as string, page, limit, sortBy, sortOrder);
 
     logger.info(`Fetched reviews for car ${req.params.id} — page ${page}`);
     res.status(200).json({
@@ -72,7 +74,8 @@ export const getReview = catchAsync(async (req: Request, res: Response, _next: N
 // Delete Review
 export const deleteReview = catchAsync(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    await DeleteReviewService(req.user!.id, req.params.id as string);
+    const isAdmin = req.user!.role === "admin";
+    await DeleteReviewService(req.user!.id, req.params.id as string, isAdmin);
 
     res.status(200).json({
       status: "success",

@@ -66,12 +66,12 @@ export const getNewMessageEmailHtml = (
   senderName: string,
   messagePreview: string,
   carModel: string,
-  appUrl: string,
+  dashboardUrl: string,
 ): string => `
 <div style="font-family: Arial, sans-serif; max-width: 540px; margin: 0 auto; background: #0f0f13; border-radius: 14px; overflow: hidden; border: 1px solid #1e1e2e;">
   <div style="background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%); padding: 32px 28px;">
     <h2 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700;">You have a new message</h2>
-    <p style="margin: 6px 0 0; color: #bfdbfe; font-size: 14px;">Someone reached out about your listing</p>
+    <p style="margin: 6px 0 0; color: #bfdbfe; font-size: 14px;">Someone reached out while you were away</p>
   </div>
   <div style="padding: 28px;">
     <p style="color: #e2e8f0; font-size: 15px; margin: 0 0 6px;">
@@ -81,7 +81,7 @@ export const getNewMessageEmailHtml = (
       <p style="margin: 0; color: #cbd5e1; font-size: 14px; font-style: italic;">"${messagePreview}"</p>
     </div>
     <div style="text-align: center; margin: 28px 0 8px;">
-      <a href="${appUrl}/lender"
+      <a href="${dashboardUrl}"
          style="display: inline-block; padding: 13px 32px; background: linear-gradient(135deg, #1d4ed8, #4f46e5); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">
         Reply in Dashboard
       </a>
