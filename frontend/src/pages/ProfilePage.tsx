@@ -1,24 +1,69 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useNavigate, Link } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Shield,
   Key,
   Trash2,
   AlertTriangle,
-  ChevronRight,
+  ChevronDown,
   Loader2,
+  Eye,
+  EyeOff,
+  Check,
+  Star,
 } from "@/lib/icons";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import ProfileEditor from "../components/common/ProfileEditor";
 import { userService } from "../services/user.service";
 
+const PasswordField: React.FC<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}> = ({ label, value, onChange, placeholder }) => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div>
+      <label className="block text-xs font-medium text-ink-tertiary mb-1.5">{label}</label>
+      <div className="relative">
+        <input
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="input-field w-full pr-10"
+          autoComplete="new-password"
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-ink-secondary transition-colors"
+        >
+          {visible ? <EyeOff size={15} /> : <Eye size={15} />}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated, isLoading } = useAuth();
+
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+
+  const { data: reviewsData } = useQuery({
+    queryKey: ["my-reviews"],
+    queryFn: () => userService.getMyReviews(1, 10),
+    enabled: isAuthenticated,
+  });
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) navigate("/login");
@@ -34,6 +79,28 @@ const ProfilePage: React.FC = () => {
     onError: () => toast.error("Failed to delete account. Please try again."),
   });
 
+  const passwordMutation = useMutation({
+    mutationFn: () => userService.changePassword(currentPw, newPw),
+    onSuccess: () => {
+      toast.success("Password updated. Please sign in again.");
+      setCurrentPw("");
+      setNewPw("");
+      setConfirmPw("");
+      setPwOpen(false);
+      setTimeout(() => logout(), 1500);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? "Failed to update password.");
+    },
+  });
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPw.length < 8) { toast.error("New password must be at least 8 characters."); return; }
+    if (newPw !== confirmPw) { toast.error("Passwords do not match."); return; }
+    passwordMutation.mutate();
+  };
+
   if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center">
@@ -42,8 +109,10 @@ const ProfilePage: React.FC = () => {
     );
   }
 
+  const isOAuth = !!user.provider;
+
   return (
-    <div className="min-h-screen pt-24 pb-20" style={{ background: 'var(--color-bg)' }}>
+    <div className="min-h-screen pt-24 pb-20" style={{ background: "var(--color-bg)" }}>
       <div className="container max-w-2xl">
 
         {/* Page header */}
@@ -57,35 +126,144 @@ const ProfilePage: React.FC = () => {
           <ProfileEditor />
         </div>
 
-        {/* Account security */}
-        <div className="mb-5 rounded-2xl border border-[#1c1c1c] overflow-hidden" style={{ background: 'var(--color-surface-2)' }}>
+        {/* My Reviews */}
+        {reviewsData?.data && reviewsData.data.length > 0 && (
+          <div className="mb-5 rounded-2xl border border-[#1c1c1c] overflow-hidden" style={{ background: "var(--color-surface-2)" }}>
+            <div className="px-5 py-4 border-b border-[#1c1c1c] flex items-center gap-2">
+              <Star size={13} className="text-gold" />
+              <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-tertiary">My Reviews</span>
+              <span className="ml-auto text-xs text-ink-tertiary">{reviewsData.pagination?.total ?? reviewsData.data.length} total</span>
+            </div>
+            <div className="divide-y divide-[#1c1c1c]">
+              {reviewsData.data.map((review: any) => (
+                <div key={review.id} className="px-5 py-4">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <Link
+                      to={`/cars/${review.car?.id}`}
+                      className="text-sm font-medium text-ink-primary hover:text-gold transition-colors line-clamp-1"
+                    >
+                      {review.car?.title ?? "Car listing"}
+                    </Link>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          size={11}
+                          className={s <= review.rating ? "text-gold fill-gold" : "text-ink-tertiary/30"}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {review.comment && (
+                    <p className="text-xs text-ink-tertiary leading-relaxed line-clamp-2">{review.comment}</p>
+                  )}
+                  <p className="text-[10px] text-ink-tertiary/60 mt-1.5">
+                    {new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {reviewsData.pagination?.totalPages > 1 && (
+              <div className="px-5 py-3 border-t border-[#1c1c1c]">
+                <p className="text-xs text-ink-tertiary">Showing 10 of {reviewsData.pagination.total} reviews</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Security */}
+        <div className="mb-5 rounded-2xl border border-[#1c1c1c] overflow-hidden" style={{ background: "var(--color-surface-2)" }}>
           <div className="px-5 py-4 border-b border-[#1c1c1c] flex items-center gap-2">
             <Shield size={13} className="text-ink-tertiary" />
             <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-tertiary">Security</span>
           </div>
-          <button
-            onClick={() => navigate("/forgot-password")}
-            className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors group"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(212,151,42,0.10)', border: '1px solid rgba(212,151,42,0.18)' }}>
-                <Key size={13} className="text-gold" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium text-ink-primary">Change password</p>
-                <p className="text-xs text-ink-tertiary mt-0.5">Send a reset link to your email</p>
+
+          {/* Change password row */}
+          {isOAuth ? (
+            <div className="flex items-center justify-between px-5 py-3.5 opacity-50 cursor-not-allowed">
+              <div className="flex items-center gap-3.5">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(212,151,42,0.10)", border: "1px solid rgba(212,151,42,0.18)" }}>
+                  <Key size={13} className="text-gold" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-ink-primary">Change password</p>
+                  <p className="text-xs text-ink-tertiary mt-0.5">Not available for social sign-in accounts</p>
+                </div>
               </div>
             </div>
-            <ChevronRight size={13} className="text-ink-tertiary group-hover:text-ink-secondary transition-colors" />
-          </button>
+          ) : (
+            <div>
+              <button
+                onClick={() => setPwOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(212,151,42,0.10)", border: "1px solid rgba(212,151,42,0.18)" }}>
+                    <Key size={13} className="text-gold" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-ink-primary">Change password</p>
+                    <p className="text-xs text-ink-tertiary mt-0.5">Update your account password</p>
+                  </div>
+                </div>
+                <ChevronDown size={13} className={`text-ink-tertiary transition-transform duration-200 ${pwOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {pwOpen && (
+                <div className="px-5 pb-5 border-t border-[#1c1c1c]">
+                  <form onSubmit={handlePasswordSubmit} className="pt-4 space-y-3">
+                    <PasswordField
+                      label="Current password"
+                      value={currentPw}
+                      onChange={setCurrentPw}
+                      placeholder="Enter current password"
+                    />
+                    <PasswordField
+                      label="New password"
+                      value={newPw}
+                      onChange={setNewPw}
+                      placeholder="At least 8 characters"
+                    />
+                    <PasswordField
+                      label="Confirm new password"
+                      value={confirmPw}
+                      onChange={setConfirmPw}
+                      placeholder="Repeat new password"
+                    />
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="submit"
+                        disabled={passwordMutation.isPending || !currentPw || !newPw || !confirmPw}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                        style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
+                      >
+                        {passwordMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                        Update password
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setPwOpen(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
+                        className="px-4 py-2.5 rounded-xl text-sm font-medium text-ink-secondary border border-[#282828] hover:text-ink-primary transition-colors"
+                        style={{ background: "var(--color-surface-3)" }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="border-t border-[#1c1c1c]" />
 
+          {/* 2FA — coming soon */}
           <div className="flex items-center justify-between px-5 py-3.5 opacity-50 cursor-not-allowed">
             <div className="flex items-center gap-3.5">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(74,142,232,0.10)', border: '1px solid rgba(74,142,232,0.18)' }}>
+                style={{ background: "rgba(74,142,232,0.10)", border: "1px solid rgba(74,142,232,0.18)" }}>
                 <Shield size={13} className="text-teal" />
               </div>
               <div className="text-left">
@@ -94,14 +272,14 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
             <span className="text-[10px] font-semibold text-ink-tertiary border border-[#282828] rounded-full px-2 py-0.5"
-              style={{ background: 'var(--color-surface-3)' }}>
+              style={{ background: "var(--color-surface-3)" }}>
               SOON
             </span>
           </div>
         </div>
 
         {/* Danger zone */}
-        <div className="rounded-2xl border border-red/15 overflow-hidden" style={{ background: 'rgba(255,77,77,0.02)' }}>
+        <div className="rounded-2xl border border-red/15 overflow-hidden" style={{ background: "rgba(255,77,77,0.02)" }}>
           <div className="px-5 py-4 border-b border-red/10 flex items-center gap-2">
             <AlertTriangle size={13} className="text-red" />
             <span className="text-xs font-semibold uppercase tracking-[0.1em] text-red/80">Danger zone</span>
@@ -138,7 +316,7 @@ const ProfilePage: React.FC = () => {
                   <button
                     onClick={() => setConfirmDelete(false)}
                     className="px-4 py-2 rounded-xl text-sm font-medium text-ink-secondary border border-[#282828] hover:text-ink-primary transition-colors"
-                    style={{ background: 'var(--color-surface-3)' }}
+                    style={{ background: "var(--color-surface-3)" }}
                   >
                     Cancel
                   </button>
@@ -147,6 +325,7 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

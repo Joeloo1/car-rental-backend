@@ -56,6 +56,16 @@ export const carService = {
     return res.data.data;
   },
 
+  checkAvailability: async (carId: string, startDate: string, endDate: string) => {
+    const res = await api.get<ApiResponse<{ available: boolean; carStatus: string; conflictingDates: { startDate: string; endDate: string } | null }>>(`/cars/${carId}/availability`, { params: { startDate, endDate } });
+    return res.data.data;
+  },
+
+  search: async (q: string) => {
+    const res = await api.get<ApiResponse<{ brands: string[]; models: string[]; cities: string[] }>>('/cars/search', { params: { q } });
+    return res.data.data;
+  },
+
   // Image uploads
   uploadImages: async (carId: string, formData: FormData) => {
     const res = await api.post<ApiResponse<any>>(

@@ -99,8 +99,12 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={4}
+              maxLength={500}
               required
             ></textarea>
+            <p className="text-right text-[11px] mt-1" style={{ color: comment.length > 450 ? "var(--warning)" : "var(--text-muted)" }}>
+              {comment.length}/500
+            </p>
           </div>
 
           <button

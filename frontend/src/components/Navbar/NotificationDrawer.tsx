@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Bell,
-  X,
-  CheckCircle,
-  Info,
-  AlertTriangle,
-  MessageSquare,
-} from "@/lib/icons";
+import { Bell, X, CheckCircle, Info, AlertTriangle, MessageSquare, Trash2 } from "@/lib/icons";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../../context/SocketContext";
 import { useAuth } from "../../context/AuthContext";
@@ -14,9 +7,7 @@ import { notificationService } from "../../services/notification.service";
 import type { Notification } from "../../services/notification.service";
 import { formatDistanceToNow } from "date-fns";
 
-interface NotificationDrawerProps {
-  onClose: () => void;
-}
+interface NotificationDrawerProps { onClose: () => void; }
 
 const ICON_CFG: Record<string, { icon: React.ElementType; bg: string; cls: string }> = {
   success: { icon: CheckCircle,   bg: "bg-teal/10",   cls: "text-teal"         },
@@ -28,14 +19,15 @@ const ICON_CFG: Record<string, { icon: React.ElementType; bg: string; cls: strin
 
 const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading]         = useState(true);
-  const { socket }  = useSocket();
-  const { user }    = useAuth();
-  const navigate    = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { socket } = useSocket();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     notificationService.getAll()
-      .then(setNotifications)
+      .then((res) => setNotifications(res.notifications ?? []))
       .catch(console.error)
       .finally(() => setIsLoading(false));
   }, []);
@@ -62,6 +54,23 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
     } catch {}
   };
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setDeletingId(id);
+    try {
+      await notificationService.delete(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch {}
+    setDeletingId(null);
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await notificationService.deleteAll();
+      setNotifications([]);
+    } catch {}
+  };
+
   const handleClick = (notif: Notification) => {
     if (!notif.isRead) markRead(notif.id);
     const dest = notif.link ?? (notif.type === "message"
@@ -79,20 +88,13 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
     >
       <div
         className="w-full max-w-[400px] h-full flex flex-col animate-slide-in-right"
-        style={{
-          background:  "var(--color-surface)",
-          borderLeft:  "1px solid rgba(255,255,255,0.07)",
-          boxShadow:   "-20px 0 60px rgba(0,0,0,0.5)",
-        }}
+        style={{ background: "var(--color-surface)", borderLeft: "1px solid rgba(255,255,255,0.07)", boxShadow: "-20px 0 60px rgba(0,0,0,0.5)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1c1c1c] flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(212,151,42,0.10)", border: "1px solid rgba(212,151,42,0.22)" }}
-            >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(212,151,42,0.10)", border: "1px solid rgba(212,151,42,0.22)" }}>
               <Bell size={15} className="text-gold" />
             </div>
             <span className="font-semibold text-[15px] text-ink-primary">Notifications</span>
@@ -104,17 +106,16 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
           </div>
           <div className="flex items-center gap-1">
             {unreadCount > 0 && (
-              <button
-                onClick={markAllRead}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gold hover:bg-gold/10 transition-colors"
-              >
+              <button onClick={markAllRead} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gold hover:bg-gold/10 transition-colors">
                 <CheckCircle size={12} /> All read
               </button>
             )}
-            <button
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-tertiary hover:bg-surface-2 hover:text-ink-primary transition-colors"
-            >
+            {notifications.length > 0 && (
+              <button onClick={handleClearAll} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-tertiary hover:text-red hover:bg-red/10 transition-colors" title="Clear all">
+                <Trash2 size={12} />
+              </button>
+            )}
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-tertiary hover:bg-surface-2 hover:text-ink-primary transition-colors">
               <X size={16} />
             </button>
           </div>
@@ -145,14 +146,14 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
             </div>
           ) : (
             notifications.map((notif) => {
-              const cfg      = ICON_CFG[notif.type] ?? ICON_CFG.info;
-              const IconEl   = cfg.icon;
+              const cfg = ICON_CFG[notif.type] ?? ICON_CFG.info;
+              const IconEl = cfg.icon;
               const clickable = !!(notif.link || notif.type === "message");
               return (
                 <div
                   key={notif.id}
                   onClick={() => handleClick(notif)}
-                  className={`flex gap-3 p-4 rounded-xl mb-0.5 relative transition-colors ${clickable ? "cursor-pointer" : ""} ${
+                  className={`group flex gap-3 p-4 rounded-xl mb-0.5 relative transition-colors ${clickable ? "cursor-pointer" : ""} ${
                     !notif.isRead ? "bg-gold/[0.04] hover:bg-gold/[0.07]" : "hover:bg-surface-2"
                   }`}
                 >
@@ -161,7 +162,7 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
                       <IconEl size={16} className={cfg.cls} />
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0 pr-5">
+                  <div className="flex-1 min-w-0 pr-8">
                     <p className="text-sm font-semibold text-ink-primary mb-0.5 leading-snug">{notif.title}</p>
                     <p className="text-xs text-ink-tertiary leading-relaxed mb-1.5">{notif.message}</p>
                     <span className="text-[11px] text-ink-tertiary">
@@ -169,8 +170,17 @@ const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onClose }) => {
                     </span>
                   </div>
                   {!notif.isRead && (
-                    <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-gold" />
+                    <div className="absolute top-4 right-8 w-2 h-2 rounded-full bg-gold" />
                   )}
+                  {/* Delete button — appears on hover */}
+                  <button
+                    onClick={(e) => handleDelete(e, notif.id)}
+                    disabled={deletingId === notif.id}
+                    className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg text-ink-tertiary hover:text-red hover:bg-red/10 transition-all opacity-0 group-hover:opacity-100"
+                    title="Delete"
+                  >
+                    <X size={13} />
+                  </button>
                 </div>
               );
             })

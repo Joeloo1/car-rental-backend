@@ -167,7 +167,7 @@ const Dashboard: React.FC = () => {
     enabled: !!user,
   });
 
-  const { data: bookings, isLoading: isBookingsLoading } = useQuery({
+  const { data: bookingsData, isLoading: isBookingsLoading } = useQuery({
     queryKey: ['dashboardBookings'],
     queryFn: () =>
       user?.role === 'lender'
@@ -271,7 +271,7 @@ const Dashboard: React.FC = () => {
     { id: 'settings',  label: 'Settings',    icon: Settings },
   ];
 
-  const allBookings = (bookings as any[]) ?? [];
+  const allBookings: any[] = (bookingsData as any)?.data ?? [];
   const recentBookings = allBookings.slice(0, 6);
 
   const pageTitle: Record<string, React.ReactNode> = {
@@ -620,7 +620,7 @@ const Dashboard: React.FC = () => {
                     <Key size={16} className="text-gold" /> Security
                   </h3>
                   <button
-                    onClick={() => navigate('/forgot-password')}
+                    onClick={() => navigate('/profile')}
                     className="w-full flex items-center justify-between py-3 px-3 -mx-1 rounded-xl hover:bg-surface-2 transition-colors group"
                   >
                     <div className="flex items-center gap-3">
@@ -629,7 +629,7 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="text-left">
                         <p className="text-sm font-medium text-ink-primary">Change Password</p>
-                        <p className="text-xs text-ink-tertiary">Send a reset link to your email</p>
+                        <p className="text-xs text-ink-tertiary">Update your account password</p>
                       </div>
                     </div>
                     <ChevronRight size={14} className="text-ink-tertiary group-hover:text-ink-secondary transition-colors" />

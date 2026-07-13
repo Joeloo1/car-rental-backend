@@ -21,4 +21,19 @@ const upgradeToLender = async () => {
   return res.data.data.user;
 };
 
-export const userService = { updateProfile, deleteAccount, upgradeToLender };
+const changePassword = async (currentPassword: string, newPassword: string) => {
+  const res = await api.post("/users/change-password", { currentPassword, newPassword });
+  return res.data;
+};
+
+const getMyReviews = async (page = 1, limit = 10) => {
+  const res = await api.get("/users/me/reviews", { params: { page, limit } });
+  return res.data.data;
+};
+
+const getPublicLenderProfile = async (lenderId: string) => {
+  const res = await api.get(`/users/lender/${lenderId}`);
+  return res.data.data.lender;
+};
+
+export const userService = { updateProfile, deleteAccount, upgradeToLender, changePassword, getMyReviews, getPublicLenderProfile };

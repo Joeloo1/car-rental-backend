@@ -33,8 +33,12 @@ const FavoritesPage   = lazy(() => import("./pages/FavoritesPage.tsx"));
 const AboutPage       = lazy(() => import("./pages/AboutPage.tsx"));
 const PrivacyPage     = lazy(() => import("./pages/PrivacyPage.tsx"));
 const TermsPage       = lazy(() => import("./pages/TermsPage.tsx"));
-const NotFoundPage         = lazy(() => import("./pages/NotFoundPage.tsx"));
-const BookingConfirmation  = lazy(() => import("./pages/BookingConfirmation.tsx"));
+const NotFoundPage            = lazy(() => import("./pages/NotFoundPage.tsx"));
+const BookingConfirmation     = lazy(() => import("./pages/BookingConfirmation.tsx"));
+const PaymentVerification     = lazy(() => import("./pages/PaymentVerification.tsx"));
+const MessagesPage            = lazy(() => import("./pages/MessagesPage.tsx"));
+const ComparePage             = lazy(() => import("./pages/ComparePage.tsx"));
+const LenderProfilePage       = lazy(() => import("./pages/lender/LenderProfilePage.tsx"));
 
 // Routes where the main navbar + footer should be hidden (full-screen auth experience)
 const AUTH_PATHS = [
@@ -83,8 +87,12 @@ const AnimatedRoutes = () => {
         <Route path="/profile"              element={<ProtectedRoute><PageTransition><ProfilePage /></PageTransition></ProtectedRoute>} />
         <Route path="/bookings"             element={<ProtectedRoute><PageTransition><MyBookings /></PageTransition></ProtectedRoute>} />
         <Route path="/favorites"             element={<ProtectedRoute><PageTransition><FavoritesPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/booking/:id"          element={<ProtectedRoute><PageTransition><BookingConfirmation /></PageTransition></ProtectedRoute>} />
-        <Route path="*"                     element={<PageTransition><NotFoundPage /></PageTransition>} />
+        <Route path="/booking/:id"                    element={<ProtectedRoute><PageTransition><BookingConfirmation /></PageTransition></ProtectedRoute>} />
+        <Route path="/bookings/:id/payment/verify"  element={<ProtectedRoute><PageTransition><PaymentVerification /></PageTransition></ProtectedRoute>} />
+        <Route path="/messages"                     element={<ProtectedRoute><PageTransition><MessagesPage /></PageTransition></ProtectedRoute>} />
+        <Route path="/compare"                      element={<PageTransition><ComparePage /></PageTransition>} />
+        <Route path="/host/:lenderId"               element={<PageTransition><LenderProfilePage /></PageTransition>} />
+        <Route path="*"                             element={<PageTransition><NotFoundPage /></PageTransition>} />
       </Routes>
     </AnimatePresence>
   );

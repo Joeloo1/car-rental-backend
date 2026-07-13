@@ -13,10 +13,12 @@ import {
   ArrowRight,
   Loader2,
   Car as CarIcon,
+  CreditCard,
 } from "@/lib/icons";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { bookingService } from "../services/booking.service";
+import { paymentService } from "../services/payment.service";
 import ReviewModal from "../components/Dashboard/ReviewModal";
 import { getImageUrl } from "../utils/image";
 import type { Booking } from "../types/index";
@@ -60,6 +62,22 @@ const BookingCard: React.FC<{
 }> = ({ booking, onCancel, onReview, cancelling }) => {
   const navigate = useNavigate();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [payingNow, setPayingNow] = useState(false);
+
+  const needsPayment =
+    booking.status !== "cancelled" &&
+    (!booking.payment || booking.payment.status === "failed" || booking.payment.status === "pending");
+
+  const handlePayNow = async () => {
+    setPayingNow(true);
+    try {
+      const result = await paymentService.initiate(booking.id);
+      window.location.href = result.authorizationUrl;
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Could not initiate payment.");
+      setPayingNow(false);
+    }
+  };
 
   const cfg = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG["pending"];
   const StatusIcon = cfg.icon;
@@ -135,8 +153,29 @@ const BookingCard: React.FC<{
             )}
           </div>
 
+          {/* Payment status badge */}
+          {booking.payment?.status === "successful" && (
+            <div className="flex items-center gap-1.5 text-xs text-green mb-3">
+              <CheckCircle2 size={11} className="flex-shrink-0" />
+              Paid · {booking.payment.paidAt ? new Date(booking.payment.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : ""}
+            </div>
+          )}
+
           {/* Actions row */}
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1c1c1c]">
+            {/* Pay Now — shown when booking has no successful payment */}
+            {needsPayment && booking.status === "pending" && !confirmCancel && (
+              <button
+                onClick={handlePayNow}
+                disabled={payingNow}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-black disabled:opacity-60 transition-colors"
+                style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
+              >
+                {payingNow ? <Loader2 size={11} className="animate-spin" /> : <CreditCard size={11} />}
+                Pay Now
+              </button>
+            )}
+
             {booking.status === "completed" && (
               <button
                 onClick={() => onReview(booking)}
@@ -203,11 +242,12 @@ const MyBookings: React.FC = () => {
     if (!authLoading && !isAuthenticated) navigate("/login");
   }, [isAuthenticated, authLoading, navigate]);
 
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookingsData, isLoading } = useQuery({
     queryKey: ["my-bookings"],
-    queryFn: bookingService.getMyBookings,
+    queryFn: () => bookingService.getMyBookings(),
     enabled: !!user,
   });
+  const bookings: any[] = (bookingsData as any)?.data ?? [];
 
   const cancelMutation = useMutation({
     mutationFn: (id: string) => bookingService.updateBookingStatus(id, "cancelled"),

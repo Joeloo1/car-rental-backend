@@ -13,9 +13,14 @@ export interface Notification {
 }
 
 export const notificationService = {
-  getAll: async () => {
-    const res = await api.get<ApiResponse<{ notifications: Notification[] }>>('/users/notifications');
-    return res.data.data.notifications;
+  getAll: async (page = 1, limit = 20) => {
+    const res = await api.get<ApiResponse<{ notifications: Notification[]; total: number; totalPages: number }>>('/users/notifications', { params: { page, limit } });
+    return res.data.data;
+  },
+
+  getUnreadCount: async (): Promise<number> => {
+    const res = await api.get<ApiResponse<{ count: number }>>('/users/notifications/unread-count');
+    return res.data.data.count;
   },
 
   markAsRead: async (id: string) => {
@@ -26,5 +31,13 @@ export const notificationService = {
   markAllAsRead: async () => {
     const res = await api.patch<ApiResponse<any>>('/users/notifications/mark-all-read');
     return res.data.data;
-  }
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/users/notifications/${id}`);
+  },
+
+  deleteAll: async () => {
+    await api.delete('/users/notifications');
+  },
 };
