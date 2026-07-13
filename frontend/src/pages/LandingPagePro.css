@@ -70,7 +70,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #D4972A 0%, #F5C36B 50%, #B8791E 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -540,7 +540,8 @@
 }
 
 .cta-card-pro {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a1508 0%, #2d1f05 50%, #1a1508 100%);
+  border: 1.5px solid rgba(212, 151, 42, 0.20);
   border-radius: 24px;
   padding: 60px 40px;
   display: grid;
@@ -583,13 +584,13 @@
 .cta-content h2 {
   font-size: clamp(2rem, 4vw, 2.5rem);
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
 .cta-content p {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-secondary);
   margin-bottom: 2rem;
   line-height: 1.6;
 }
@@ -612,24 +613,24 @@
 }
 
 .btn-primary-large {
-  background: white;
-  color: #667eea;
+  background: linear-gradient(135deg, #D4972A, #B8791E);
+  color: #000;
 }
 
 .btn-primary-large:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(212, 151, 42, 0.35);
 }
 
 .btn-secondary-large {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: #D4972A;
+  border: 2px solid rgba(212, 151, 42, 0.40);
 }
 
 .btn-secondary-large:hover {
-  background: white;
-  color: #667eea;
+  background: rgba(212, 151, 42, 0.10);
+  border-color: rgba(212, 151, 42, 0.65);
 }
 
 .cta-image {
@@ -641,15 +642,15 @@
 }
 
 .cta-badge {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(212, 151, 42, 0.08);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(212, 151, 42, 0.20);
   border-radius: 16px;
   padding: 2rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: white;
+  color: var(--text-primary);
 }
 
 .cta-badge svg {
@@ -664,7 +665,7 @@
 
 .badge-subtitle {
   font-size: 0.9rem;
-  opacity: 0.9;
+  color: var(--text-secondary);
 }
 
 /* Empty State */

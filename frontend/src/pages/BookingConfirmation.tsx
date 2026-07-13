@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, MapPin, Car as CarIcon, ArrowRight, Search } from "@/lib/icons";
+import { Calendar, MapPin, Car as CarIcon, ArrowRight, Search, CheckCircle2, CreditCard } from "@/lib/icons";
 import { bookingService } from "../services/booking.service";
 
 /* ── Animated checkmark circle ──────────────────────────────────────────── */
@@ -82,16 +82,12 @@ const BookingConfirmation: React.FC = () => {
   const { id }   = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: bookings, isLoading } = useQuery({
-    queryKey: ["bookings-me"],
-    queryFn:  () => bookingService.getMyBookings(),
+  const { data: booking, isLoading } = useQuery({
+    queryKey: ["booking", id],
+    queryFn:  () => bookingService.getById(id!),
+    enabled: !!id,
     staleTime: 30 * 1000,
   });
-
-  // Find this specific booking
-  const booking = Array.isArray(bookings)
-    ? bookings.find((b: any) => String(b.id) === id)
-    : undefined;
 
   const car = (booking as any)?.car;
 
@@ -182,6 +178,17 @@ const BookingConfirmation: React.FC = () => {
                       ${(booking as any).totalPrice?.toFixed(2) ?? "—"}
                     </span>
                   </div>
+                  {(booking as any).payment?.status === "successful" ? (
+                    <div className="flex items-center gap-1.5 mt-2 text-xs font-medium" style={{ color: "#4ade80" }}>
+                      <CheckCircle2 size={12} />
+                      Payment confirmed
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 mt-2 text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
+                      <CreditCard size={12} />
+                      Payment pending — you can pay from My Bookings
+                    </div>
+                  )}
                 </div>
               </>
             ) : (

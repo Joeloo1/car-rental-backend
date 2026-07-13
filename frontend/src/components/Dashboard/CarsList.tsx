@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import {
   Eye,
   Trash2,
+  Edit3,
   MapPin,
   Fuel,
   Gauge,
@@ -18,6 +19,7 @@ import {
 import type { ApiError } from "../../types/index";
 import { carService } from "../../services/car.service.ts";
 import { getImageUrl } from "../../utils/image";
+import AddCarModal from "./AddCarModal";
 
 const CAR_PLACEHOLDER =
   "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=600&q=70";
@@ -77,7 +79,8 @@ const CarCard: React.FC<{
   car: any;
   index: number;
   onDelete: (car: any) => void;
-}> = ({ car, index, onDelete }) => {
+  onEdit: (car: any) => void;
+}> = ({ car, index, onDelete, onEdit }) => {
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
 
@@ -226,6 +229,14 @@ const CarCard: React.FC<{
               <Trash2 size={14} />
             </button>
             <button
+              onClick={() => onEdit(car)}
+              className="p-2 rounded-lg bg-white/5 text-gray-400 border border-white/8
+                         hover:bg-white/10 hover:text-white hover:border-white/15 transition-all"
+              title="Edit listing"
+            >
+              <Edit3 size={14} />
+            </button>
+            <button
               onClick={() => navigate(`/car/${car.id}`)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gold/10 text-gold
                          border border-gold/20 text-xs font-semibold
@@ -251,6 +262,7 @@ interface CarsListProps {
 const CarsList: React.FC<CarsListProps> = ({ lenderId, limit }) => {
   const queryClient = useQueryClient();
   const [carToDelete, setCarToDelete] = useState<any | null>(null);
+  const [carToEdit,   setCarToEdit]   = useState<any | null>(null);
 
   const { data: cars, isLoading } = useQuery({
     queryKey: ["cars", "lender", lenderId],
@@ -312,6 +324,7 @@ const CarsList: React.FC<CarsListProps> = ({ lenderId, limit }) => {
             car={car}
             index={i}
             onDelete={setCarToDelete}
+            onEdit={setCarToEdit}
           />
         ))}
       </div>
@@ -326,6 +339,16 @@ const CarsList: React.FC<CarsListProps> = ({ lenderId, limit }) => {
           />
         )}
       </AnimatePresence>
+
+      {carToEdit && (
+        <AddCarModal
+          car={carToEdit}
+          onClose={() => {
+            setCarToEdit(null);
+            queryClient.invalidateQueries({ queryKey: ["cars", "lender", lenderId] });
+          }}
+        />
+      )}
     </>
   );
 };

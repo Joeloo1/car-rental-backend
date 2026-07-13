@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -14,11 +14,16 @@ import {
   MapPin,
   Calendar,
   Shield,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  AlertCircle,
 } from "@/lib/icons";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { carService } from "../services/car.service.ts";
 import { reviewService } from "../services/review.service.ts";
+import { paymentService } from "../services/payment.service";
 import { useFavorites } from "../hooks/useFavorites.ts";
 import { useAuth } from "../context/AuthContext";
 import Map from "../components/common/Map.tsx";
@@ -120,6 +125,71 @@ const ReviewsSection: React.FC<{ carId: string }> = ({ carId }) => {
   );
 };
 
+// ── Image lightbox ────────────────────────────────────────────────────────────
+const Lightbox: React.FC<{
+  images: string[];
+  index: number;
+  onClose: () => void;
+}> = ({ images, index, onClose }) => {
+  const [current, setCurrent] = useState(index);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setCurrent(c => Math.min(c + 1, images.length - 1));
+      if (e.key === "ArrowLeft")  setCurrent(c => Math.max(c - 1, 0));
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose, images.length]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
+        style={{ background: "rgba(255,255,255,0.10)" }}
+      >
+        <X size={18} />
+      </button>
+
+      {current > 0 && (
+        <button
+          onClick={e => { e.stopPropagation(); setCurrent(c => c - 1); }}
+          className="absolute left-4 w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors"
+          style={{ background: "rgba(255,255,255,0.10)" }}
+        >
+          <ChevronLeft size={22} />
+        </button>
+      )}
+
+      <img
+        src={images[current]}
+        alt={`Photo ${current + 1}`}
+        className="max-w-[90vw] max-h-[88vh] object-contain rounded-2xl"
+        onClick={e => e.stopPropagation()}
+      />
+
+      {current < images.length - 1 && (
+        <button
+          onClick={e => { e.stopPropagation(); setCurrent(c => c + 1); }}
+          className="absolute right-4 w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors"
+          style={{ background: "rgba(255,255,255,0.10)" }}
+        >
+          <ChevronRight size={22} />
+        </button>
+      )}
+
+      <div className="absolute bottom-5 text-sm font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+        {current + 1} / {images.length}
+      </div>
+    </div>
+  );
+};
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 const CarDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -129,6 +199,8 @@ const CarDetails: React.FC = () => {
   const [dates, setDates] = useState({ startDate: "", endDate: "" });
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isInitiatingPayment, setIsInitiatingPayment] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const { data: car, isLoading, error } = useQuery({
@@ -151,9 +223,24 @@ const CarDetails: React.FC = () => {
   const bookingMutation = useMutation({
     mutationFn: (data: { startDate: string; endDate: string }) =>
       carService.reserve(id!, data),
-    onSuccess: () => {
-      toast.success("Reservation successful!");
-      navigate("/dashboard");
+    onSuccess: async (data) => {
+      const bookingId = data?.booking?.id;
+      if (!bookingId) {
+        toast.success("Booking created! Redirecting to dashboard…");
+        navigate("/dashboard");
+        return;
+      }
+      toast.success("Booking created! Initiating payment…");
+      setIsInitiatingPayment(true);
+      try {
+        const payment = await paymentService.initiate(bookingId);
+        window.location.href = payment.authorizationUrl;
+      } catch {
+        toast.error("Payment gateway unavailable. Your booking is saved — pay from your dashboard.");
+        navigate("/dashboard");
+      } finally {
+        setIsInitiatingPayment(false);
+      }
     },
     onError: (err: { response?: { data?: { message?: string } } }) => {
       toast.error(err.response?.data?.message || "Failed to book car.");
@@ -191,6 +278,20 @@ const CarDetails: React.FC = () => {
     }
     bookingMutation.mutate(dates);
   };
+
+  const today = new Date().toISOString().split("T")[0];
+  const minReturnDate = dates.startDate
+    ? new Date(new Date(dates.startDate).getTime() + 86_400_000).toISOString().split("T")[0]
+    : today;
+
+  const handleStartDateChange = (val: string) => {
+    setDates(prev => ({
+      startDate: val,
+      endDate: prev.endDate && prev.endDate <= val ? "" : prev.endDate,
+    }));
+  };
+
+  const datesBlocked = !!(dates.startDate && dates.endDate && isDateRangeBlocked(dates.startDate, dates.endDate));
 
   const calculateDays = () => {
     if (!dates.startDate || !dates.endDate) return 0;
@@ -365,7 +466,10 @@ const CarDetails: React.FC = () => {
             {/* Main grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 h-[300px] md:h-[520px]">
               {/* Primary image */}
-              <div className="md:col-span-3 rounded-3xl overflow-hidden relative group cursor-pointer">
+              <div
+                className="md:col-span-3 rounded-3xl overflow-hidden relative group cursor-pointer"
+                onClick={() => setLightboxIndex(activeImage)}
+              >
                 <img
                   src={getCarImage(activeImage)}
                   alt={`${car.brand} ${car.model}`}
@@ -495,23 +599,31 @@ const CarDetails: React.FC = () => {
               {/* Host */}
               <section>
                 <div className="p-8 rounded-2xl flex flex-col md:flex-row items-center gap-8" style={{ background: "var(--color-surface)", border: "1.5px solid var(--color-border)" }}>
-                  <div className="relative flex-shrink-0">
+                  <button
+                    onClick={() => car.lender?.id && navigate(`/host/${car.lender.id}`)}
+                    className="relative flex-shrink-0 group/avatar"
+                  >
                     <img
                       src={
                         car.lender?.profileImage ||
                         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200"
                       }
                       alt={car.lender?.name ?? "Host"}
-                      className="w-20 h-20 rounded-full object-cover"
+                      className="w-20 h-20 rounded-full object-cover group-hover/avatar:brightness-90 transition-all"
                       style={{ border: "2px solid var(--color-gold)" }}
                     />
                     <div className="absolute -bottom-1 -right-1 p-1.5 rounded-full border-2" style={{ background: "var(--color-gold)", color: "#000", borderColor: "var(--color-bg)" }}>
                       <Shield size={11} />
                     </div>
-                  </div>
+                  </button>
                   <div className="flex-1 text-center md:text-left">
                     <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--color-gold)" }}>Vehicle Host</p>
-                    <h3 className="text-2xl font-display font-bold mb-2">{car.lender?.name}</h3>
+                    <button
+                      onClick={() => car.lender?.id && navigate(`/host/${car.lender.id}`)}
+                      className="text-2xl font-display font-bold mb-2 hover:underline decoration-gold/40 text-left"
+                    >
+                      {car.lender?.name}
+                    </button>
                     <div className="flex items-center justify-center md:justify-start gap-4 text-sm text-ink-tertiary">
                       <span className="flex items-center gap-1">
                         <Star size={14} className="text-amber fill-amber" /> 5.0 Rating
@@ -592,8 +704,8 @@ const CarDetails: React.FC = () => {
                         <input
                           type="date"
                           value={dates.startDate}
-                          onChange={e => setDates({ ...dates, startDate: e.target.value })}
-                          min={new Date().toISOString().split("T")[0]}
+                          onChange={e => handleStartDateChange(e.target.value)}
+                          min={today}
                           className="input-base pl-11 pr-4 text-sm font-medium"
                           style={{ colorScheme: "dark" }}
                         />
@@ -608,13 +720,20 @@ const CarDetails: React.FC = () => {
                         <input
                           type="date"
                           value={dates.endDate}
-                          onChange={e => setDates({ ...dates, endDate: e.target.value })}
-                          min={dates.startDate || new Date().toISOString().split("T")[0]}
+                          onChange={e => setDates(prev => ({ ...prev, endDate: e.target.value }))}
+                          min={minReturnDate}
                           className="input-base pl-11 pr-4 text-sm font-medium"
                           style={{ colorScheme: "dark" }}
                         />
                       </div>
                     </div>
+
+                    {/* Inline blocked-dates warning */}
+                    {datesBlocked && (
+                      <p className="flex items-center gap-1.5 text-xs font-medium mt-1" style={{ color: "#f87171" }}>
+                        <AlertCircle size={12} /> These dates overlap an existing booking — please choose different dates.
+                      </p>
+                    )}
                   </div>
 
                   {/* Price breakdown */}
@@ -640,17 +759,20 @@ const CarDetails: React.FC = () => {
                   {/* Reserve button */}
                   <button
                     onClick={handleReserve}
-                    disabled={bookingMutation.isPending}
+                    disabled={bookingMutation.isPending || isInitiatingPayment || datesBlocked}
                     className="w-full h-14 py-4 rounded-2xl font-display font-bold text-base text-black disabled:opacity-60 transition-all hover:brightness-110 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-2"
                     style={{
                       background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))",
                       boxShadow: "0 8px 28px rgba(212,151,42,0.28)",
                     }}
                   >
-                    {bookingMutation.isPending ? (
-                      <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    {bookingMutation.isPending || isInitiatingPayment ? (
+                      <>
+                        <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                        {isInitiatingPayment ? "Redirecting to payment…" : "Creating booking…"}
+                      </>
                     ) : (
-                      <>Reserve Now &nbsp;→</>
+                      <>Reserve &amp; Pay &nbsp;→</>
                     )}
                   </button>
                   <div className="flex items-center justify-center gap-1.5 mt-3">
@@ -681,6 +803,14 @@ const CarDetails: React.FC = () => {
           lenderId={car.lenderId}
           lenderName={car.lender?.name || "Host"}
           onClose={() => setIsChatOpen(false)}
+        />
+      )}
+
+      {lightboxIndex !== null && (
+        <Lightbox
+          images={Array.from({ length: thumbCount }, (_, i) => getCarImage(i))}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
         />
       )}
     </>

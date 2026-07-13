@@ -9,14 +9,19 @@ interface DashboardStats {
 }
 
 export const bookingService = {
-  getMyBookings: async () => {
-    const res = await api.get<ApiResponse<{ bookings: Booking[] }>>('/bookings/me');
-    return res.data.data.bookings;
+  getMyBookings: async (page = 1, limit = 10) => {
+    const res = await api.get<ApiResponse<{ data: Booking[]; pagination: any }>>('/bookings/me', { params: { page, limit } });
+    return res.data.data;
   },
 
-  getLenderBookings: async () => {
-    const res = await api.get<ApiResponse<{ bookings: Booking[] }>>('/bookings/lender');
-    return res.data.data.bookings;
+  getById: async (id: string) => {
+    const res = await api.get<ApiResponse<{ booking: Booking }>>(`/bookings/${id}`);
+    return res.data.data.booking;
+  },
+
+  getLenderBookings: async (page = 1, limit = 10) => {
+    const res = await api.get<ApiResponse<{ data: Booking[]; pagination: any }>>('/bookings/lender', { params: { page, limit } });
+    return res.data.data;
   },
 
   getDashboardStats: async () => {
@@ -27,5 +32,5 @@ export const bookingService = {
   updateBookingStatus: async (id: string, status: string) => {
     const res = await api.patch<ApiResponse<unknown>>(`/bookings/${id}/status`, { status });
     return res.data.data;
-  }
+  },
 };

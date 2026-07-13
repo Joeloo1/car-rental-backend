@@ -61,11 +61,12 @@ const LenderDashboard: React.FC = () => {
     enabled: !!user && user.role === 'lender',
   });
 
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
+  const { data: bookingsData, isLoading: bookingsLoading } = useQuery({
     queryKey: ['lender-bookings'],
-    queryFn: bookingService.getLenderBookings,
+    queryFn: () => bookingService.getLenderBookings(),
     enabled: !!user && user.role === 'lender',
   });
+  const bookings: any[] = (bookingsData as any)?.data ?? [];
 
   const { data: myCars = [], isLoading: carsLoading } = useQuery({
     queryKey: ['lender-cars', user?.id],
@@ -498,6 +499,17 @@ const LenderDashboard: React.FC = () => {
                                     <button className="w-8 h-8 rounded-lg flex items-center justify-center text-red hover:bg-red/[0.08] transition-colors"
                                       onClick={() => updateStatusMutation.mutate({ id: booking.id, status: 'cancelled' })}>
                                       <XCircle size={14} />
+                                    </button>
+                                  </div>
+                                )}
+                                {booking.status === 'confirmed' && new Date(booking.endDate) < new Date() && (
+                                  <div className="flex justify-end">
+                                    <button
+                                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-teal hover:bg-teal/10 border border-teal/20 transition-colors flex items-center gap-1"
+                                      onClick={() => updateStatusMutation.mutate({ id: booking.id, status: 'completed' })}
+                                      disabled={updateStatusMutation.isPending}
+                                    >
+                                      <CheckCircle size={11} /> Mark complete
                                     </button>
                                   </div>
                                 )}

@@ -134,6 +134,14 @@ const LandingPagePro: React.FC = () => {
     staleTime: Infinity,
   });
 
+  const { data: carCount } = useQuery({
+    queryKey: ["car-count"],
+    queryFn: () => carService.getAll({ limit: 1, page: 1 }),
+    staleTime: 10 * 60 * 1000,
+  });
+  const totalCars = carCount?.pagination?.total ?? null;
+  const totalCarsLabel = totalCars ? `${totalCars.toLocaleString()}+` : "1,200+";
+
   const activeCars = featuredTab === "toprated" ? (carsTopRated?.cars ?? []) : (carsNewest?.cars ?? carsTopRated?.cars ?? []);
   const isActiveCarsLoading = featuredTab === "toprated" ? carsLoading : newestLoading && !carsNewest;
 
@@ -192,7 +200,7 @@ const LandingPagePro: React.FC = () => {
               </h1>
 
               <p className="text-[15px] text-white/45 max-w-md mb-9 leading-relaxed animate-fade-up delay-[120ms]">
-                1,200+ verified vehicles across 50 cities. Instant booking,
+                {totalCarsLabel} verified vehicles across 50 cities. Instant booking,
                 transparent pricing, zero hidden fees.
               </p>
 
@@ -260,7 +268,7 @@ const LandingPagePro: React.FC = () => {
         <div className="container">
           <div className="grid grid-cols-2 sm:grid-cols-4">
             {[
-              { value: "1,200+", label: "Vehicles listed",   sub: "verified & inspected",   accent: "#fafafa" },
+              { value: totalCarsLabel, label: "Vehicles listed",   sub: "verified & inspected",   accent: "#fafafa" },
               { value: "50+",    label: "Cities covered",    sub: "across Nigeria",          accent: "#fafafa" },
               { value: "40,000+",label: "Trips completed",   sub: "in 2024 alone",           accent: "#fafafa" },
               { value: "4.9★",   label: "Average rating",    sub: "from 12,000+ reviews",    accent: "#D4972A" },
@@ -582,7 +590,7 @@ const LandingPagePro: React.FC = () => {
               Ready to find your car?
             </h2>
             <p className="text-sm text-ink-tertiary mb-8 leading-relaxed">
-              Browse 1,200+ vehicles right now. No account needed to search — sign up only when you're ready to book.
+              Browse {totalCarsLabel} vehicles right now. No account needed to search — sign up only when you're ready to book.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button

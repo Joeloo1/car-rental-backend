@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   Search, X, ChevronLeft, ChevronRight,
   MapPin, Car as CarIcon, Zap, Truck, Mountain, Briefcase,
-  LayoutGrid, List, GitCompare, Clock, DollarSign,
+  LayoutGrid, List, GitCompare, Clock, DollarSign, Settings,
 } from "@/lib/icons";
 import { carService } from "../services/car.service";
 import { categoryService } from "../services/category.service";
@@ -89,8 +89,14 @@ const CompareBar: React.FC<{
   onRemove: (id: string) => void;
   onClearAll: () => void;
 }> = ({ compareSet, cars, onRemove, onClearAll }) => {
+  const navigate = useNavigate();
   const selected = cars.filter(c => compareSet.has(String(c.id)));
   if (compareSet.size < 2) return null;
+
+  const handleViewComparison = () => {
+    const ids = Array.from(compareSet).join(",");
+    navigate(`/compare?ids=${ids}`);
+  };
 
   return (
     <div
@@ -121,6 +127,7 @@ const CompareBar: React.FC<{
         ))}
       </div>
       <button
+        onClick={handleViewComparison}
         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-black"
         style={{ background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-dark))" }}
       >
@@ -282,9 +289,37 @@ const BrowseCars: React.FC = () => {
   const [returnDate, setReturnDate] = useState("");
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [heroFocused, setHeroFocused] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const searchWrapperRef = useRef<HTMLDivElement>(null);
 
   const debouncedSearch  = useDebounce(search, 400);
   const debouncedFilters = useDebounce(filters, 300);
+
+  const { data: suggestions } = useQuery({
+    queryKey: ["car-search-autocomplete", debouncedSearch],
+    queryFn: () => carService.search(debouncedSearch),
+    enabled: debouncedSearch.length >= 2,
+    staleTime: 60 * 1000,
+  });
+
+  const hasSuggestions = !!(
+    suggestions && (
+      (suggestions.brands?.length ?? 0) > 0 ||
+      (suggestions.models?.length ?? 0) > 0 ||
+      (suggestions.cities?.length ?? 0) > 0
+    )
+  );
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     try {
@@ -412,13 +447,67 @@ const BrowseCars: React.FC = () => {
               />
             </div>
             <div className="w-px self-stretch my-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
-            <div className="relative flex items-center" style={{ minWidth: "168px" }}>
+            <div ref={searchWrapperRef} className="relative flex items-center" style={{ minWidth: "200px" }}>
               <Search size={13} className="absolute left-4 pointer-events-none" style={{ color: "var(--color-text-muted)" }} />
               <input type="text" placeholder="Brand or model…"
-                value={search} onChange={e => setSearch(e.target.value)}
+                value={search}
+                onChange={e => { setSearch(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => { if (search.length >= 2) setShowSuggestions(true); }}
                 className="w-full bg-transparent text-sm pl-10 pr-3 focus:outline-none"
                 style={{ color: "var(--color-text-primary)", height: "60px" }}
               />
+              {search && (
+                <button onClick={() => { setSearch(""); setShowSuggestions(false); }} className="absolute right-3 text-ink-tertiary hover:text-ink-primary transition-colors">
+                  <X size={13} />
+                </button>
+              )}
+              {/* Autocomplete dropdown */}
+              {showSuggestions && hasSuggestions && (
+                <div
+                  className="absolute top-full left-0 mt-1 z-40 w-72 py-2 rounded-2xl overflow-hidden"
+                  style={{ background: "var(--color-surface)", border: "1.5px solid var(--color-border)", boxShadow: "0 16px 48px rgba(0,0,0,0.6)" }}
+                >
+                  {suggestions!.brands?.length > 0 && (
+                    <div>
+                      <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--color-text-muted)" }}>Brands</p>
+                      {suggestions!.brands.map(b => (
+                        <button key={b} onClick={() => { setSearch(b); setShowSuggestions(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors hover:bg-white/[0.04]"
+                          style={{ color: "var(--color-text-primary)" }}>
+                          <CarIcon size={13} style={{ color: "var(--color-gold)", flexShrink: 0 }} />
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {suggestions!.models?.length > 0 && (
+                    <div>
+                      <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--color-text-muted)" }}>Models</p>
+                      {suggestions!.models.map(m => (
+                        <button key={m} onClick={() => { setSearch(m); setShowSuggestions(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors hover:bg-white/[0.04]"
+                          style={{ color: "var(--color-text-primary)" }}>
+                          <Search size={13} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {suggestions!.cities?.length > 0 && (
+                    <div>
+                      <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--color-text-muted)" }}>Locations</p>
+                      {suggestions!.cities.map(c => (
+                        <button key={c} onClick={() => { setFilter("locationCity", c); setShowSuggestions(false); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors hover:bg-white/[0.04]"
+                          style={{ color: "var(--color-text-primary)" }}>
+                          <MapPin size={13} style={{ color: "var(--color-gold)", flexShrink: 0 }} />
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="pr-2 flex-shrink-0">
               <button
@@ -458,10 +547,45 @@ const BrowseCars: React.FC = () => {
             <div className="relative">
               <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--color-text-muted)" }} />
               <input type="text" placeholder="Brand or model…"
-                value={search} onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 text-sm focus:outline-none transition-all"
+                value={search}
+                onChange={e => { setSearch(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => { if (search.length >= 2) setShowSuggestions(true); }}
+                className="w-full pl-9 pr-8 text-sm focus:outline-none transition-all"
                 style={{ height: "48px", background: "var(--color-surface-2)", border: "1.5px solid rgba(255,255,255,0.08)", borderRadius: "12px", color: "var(--color-text-primary)" }}
               />
+              {search && (
+                <button onClick={() => { setSearch(""); setShowSuggestions(false); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-ink-primary transition-colors">
+                  <X size={13} />
+                </button>
+              )}
+              {showSuggestions && hasSuggestions && (
+                <div
+                  className="absolute top-full left-0 right-0 mt-1 z-40 py-2 rounded-2xl overflow-hidden"
+                  style={{ background: "var(--color-surface)", border: "1.5px solid var(--color-border)", boxShadow: "0 16px 48px rgba(0,0,0,0.6)" }}
+                >
+                  {suggestions!.brands?.map(b => (
+                    <button key={b} onClick={() => { setSearch(b); setShowSuggestions(false); }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left hover:bg-white/[0.04]"
+                      style={{ color: "var(--color-text-primary)" }}>
+                      <CarIcon size={13} style={{ color: "var(--color-gold)" }} /> {b}
+                    </button>
+                  ))}
+                  {suggestions!.models?.map(m => (
+                    <button key={m} onClick={() => { setSearch(m); setShowSuggestions(false); }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left hover:bg-white/[0.04]"
+                      style={{ color: "var(--color-text-primary)" }}>
+                      <Search size={13} style={{ color: "var(--color-text-muted)" }} /> {m}
+                    </button>
+                  ))}
+                  {suggestions!.cities?.map(c => (
+                    <button key={c} onClick={() => { setFilter("locationCity", c); setShowSuggestions(false); }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left hover:bg-white/[0.04]"
+                      style={{ color: "var(--color-text-primary)" }}>
+                      <MapPin size={13} style={{ color: "var(--color-gold)" }} /> {c}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -524,8 +648,8 @@ const BrowseCars: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Filter chips row ─────────────────────────────────────────────── */}
-      <div style={{ background: "var(--color-bg)", borderBottom: "1px solid var(--color-border)" }}>
+      {/* ── Filter chips row — desktop only ──────────────────────────────── */}
+      <div className="hidden md:block" style={{ background: "var(--color-bg)", borderBottom: "1px solid var(--color-border)" }}>
         <div className="container py-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
 
@@ -682,6 +806,26 @@ const BrowseCars: React.FC = () => {
               </span>
             )}
 
+            {/* Mobile: Filters button */}
+            <button
+              onClick={() => setMobileFiltersOpen(true)}
+              className="md:hidden flex items-center gap-1.5 px-3 rounded-xl text-xs font-semibold transition-all"
+              style={{
+                height: "34px",
+                background: hasActiveFilters ? "rgba(212,151,42,0.12)" : "var(--color-surface-2)",
+                border: hasActiveFilters ? "1.5px solid rgba(212,151,42,0.35)" : "1.5px solid var(--color-border)",
+                color: hasActiveFilters ? "var(--color-gold)" : "var(--color-text-muted)",
+              }}
+            >
+              <Settings size={12} />
+              Filters
+              {hasActiveFilters && (
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-black" style={{ background: "var(--color-gold)" }}>
+                  {[filters.categoryId, filters.fuelType, filters.transmission, filters.seats !== "" ? "s" : null, hasPriceFilter ? "p" : null, filters.locationCity].filter(Boolean).length}
+                </span>
+              )}
+            </button>
+
             <div className="flex items-center gap-2 ml-auto">
               {/* Sort */}
               <select
@@ -745,6 +889,95 @@ const BrowseCars: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile filter drawer ─────────────────────────────────────────── */}
+      {mobileFiltersOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setMobileFiltersOpen(false)} />
+          <div
+            className="absolute bottom-0 left-0 right-0 rounded-t-2xl max-h-[80vh] overflow-y-auto"
+            style={{ background: "var(--color-surface)", border: "1.5px solid var(--color-border)" }}
+          >
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[#1c1c1c]">
+              <h3 className="font-semibold text-sm" style={{ color: "var(--color-text-primary)" }}>Filters</h3>
+              <button onClick={() => setMobileFiltersOpen(false)} style={{ color: "var(--color-text-muted)" }}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-5">
+              {/* Transmission */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "var(--color-text-muted)" }}>Transmission</p>
+                <div className="flex gap-2 flex-wrap">
+                  {["", "Automatic", "Manual"].map(t => (
+                    <PillBtn key={t} active={filters.transmission === t} onClick={() => setFilter("transmission", filters.transmission === t ? "" : t)}>
+                      {t || "Any"}
+                    </PillBtn>
+                  ))}
+                </div>
+              </div>
+              {/* Fuel */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "var(--color-text-muted)" }}>Fuel type</p>
+                <div className="flex gap-2 flex-wrap">
+                  {["", "Petrol", "Diesel", "Electric", "Hybrid"].map(f => (
+                    <PillBtn key={f} active={filters.fuelType === f} onClick={() => setFilter("fuelType", filters.fuelType === f ? "" : f)}>
+                      {f || "Any"}
+                    </PillBtn>
+                  ))}
+                </div>
+              </div>
+              {/* Seats */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "var(--color-text-muted)" }}>Seats</p>
+                <div className="flex gap-2 flex-wrap">
+                  {(["", "2", "4", "5", "7"] as const).map(s => (
+                    <PillBtn key={s} active={String(filters.seats) === s} onClick={() => setFilter("seats", s ? Number(s) : "")}>
+                      {s || "Any"}{s === "7" ? "+" : ""}
+                    </PillBtn>
+                  ))}
+                </div>
+              </div>
+              {/* Price */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "var(--color-text-muted)" }}>Price per day</p>
+                <div className="flex gap-3">
+                  <input
+                    type="number" placeholder="Min $"
+                    value={filters.minPrice}
+                    onChange={e => setFilter("minPrice", e.target.value ? Number(e.target.value) : "")}
+                    className="flex-1 rounded-xl px-3 py-2 text-sm focus:outline-none"
+                    style={{ background: "var(--color-surface-2)", border: "1.5px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  />
+                  <input
+                    type="number" placeholder="Max $"
+                    value={filters.maxPrice}
+                    onChange={e => setFilter("maxPrice", e.target.value ? Number(e.target.value) : "")}
+                    className="flex-1 rounded-xl px-3 py-2 text-sm focus:outline-none"
+                    style={{ background: "var(--color-surface-2)", border: "1.5px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 px-5 pb-8 pt-3 border-t border-[#1c1c1c]">
+              <button
+                onClick={() => { clearFilters(); setMobileFiltersOpen(false); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                style={{ border: "1.5px solid var(--color-border)", color: "var(--color-text-secondary)" }}
+              >
+                Clear all
+              </button>
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-black"
+                style={{ background: "linear-gradient(135deg, #D4972A, #B8791E)" }}
+              >
+                Show results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Car grid — full width ─────────────────────────────────────────── */}
       <div className="container py-8">

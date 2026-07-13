@@ -8,6 +8,7 @@ export interface User {
   profileImage?: string;
   phoneNumber?: string;
   isVerified: boolean;
+  provider?: string;
 }
 
 export interface ApiResponse<T> {
@@ -70,6 +71,13 @@ export interface Booking {
   status: "pending" | "confirmed" | "cancelled" | "completed";
   createdAt: string;
   car?: Car;
+  payment?: {
+    id: string;
+    status: "pending" | "successful" | "failed";
+    amount: number;
+    reference: string;
+    paidAt?: string;
+  };
 }
 
 export interface AuthResponse {

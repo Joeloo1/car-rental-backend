@@ -265,7 +265,7 @@ const LenderChatInbox: React.FC = () => {
             </div>
             <p className="text-sm text-ink-tertiary font-medium">No conversations yet</p>
             <p className="text-xs text-ink-tertiary opacity-60 leading-relaxed">
-              Renters will message you about your listings here.
+              Your conversations will appear here.
             </p>
           </div>
         ) : (

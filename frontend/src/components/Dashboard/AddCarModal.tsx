@@ -10,25 +10,28 @@ import "./AddCarModal.css";
 
 interface AddCarModalProps {
   onClose: () => void;
+  car?: any; // when provided, modal is in edit mode
 }
 
-const AddCarModal: React.FC<AddCarModalProps> = ({ onClose }) => {
+const AddCarModal: React.FC<AddCarModalProps> = ({ onClose, car }) => {
   const queryClient = useQueryClient();
+  const isEdit = !!car;
+
   const [formData, setFormData] = useState({
-    title: "",
-    brand: "",
-    model: "",
-    year: new Date().getFullYear(),
-    pricePerDay: "",
-    locationCity: "",
-    categoryId: "",
-    description: "",
-    fuelType: "Petrol",
-    transmission: "Automatic",
-    seats: 4,
-    topSpeed: "",
-    acceleration: "",
-    enginePower: "",
+    title:        car?.title        ?? "",
+    brand:        car?.brand        ?? "",
+    model:        car?.model        ?? "",
+    year:         car?.year         ?? new Date().getFullYear(),
+    pricePerDay:  car?.pricePerDay  ?? "",
+    locationCity: car?.locationCity ?? "",
+    categoryId:   car?.categoryId   ?? car?.category?.id ?? "",
+    description:  car?.description  ?? "",
+    fuelType:     car?.fuelType     ?? "Petrol",
+    transmission: car?.transmission ?? "Automatic",
+    seats:        car?.seats        ?? 4,
+    topSpeed:     car?.topSpeed     ?? "",
+    acceleration: car?.acceleration ?? "",
+    enginePower:  car?.enginePower  ?? "",
   });
 
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -87,28 +90,36 @@ const AddCarModal: React.FC<AddCarModalProps> = ({ onClose }) => {
 
     setIsUploading(true);
     try {
-      // 1. Create the car
-      const car = await carService.create(payload);
+      let carId: string;
 
-      // 2. Upload images if any
+      if (isEdit) {
+        await carService.update(car.id, payload);
+        carId = car.id;
+        toast.success("Listing updated!");
+      } else {
+        const created = await carService.create(payload);
+        carId = created.id;
+      }
+
       if (selectedImages.length > 0) {
         const imageFormData = new FormData();
         selectedImages.forEach((image: File) => {
           imageFormData.append("images", image);
         });
-
-        await carService.uploadImages(car.id, imageFormData);
+        await carService.uploadImages(carId, imageFormData);
+        if (!isEdit) toast.success("Car listed successfully with images!");
+      } else if (!isEdit) {
+        toast.success("Car listed successfully!");
       }
 
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
       queryClient.invalidateQueries({ queryKey: ["cars"] });
       onClose();
-      toast.success("Car listed successfully with images!");
     } catch (err: unknown) {
       const error = err as ApiError;
       toast.error(
         error.response?.data?.message ||
-          "Failed to list car. Check your inputs.",
+          (isEdit ? "Failed to update listing." : "Failed to list car. Check your inputs."),
       );
     } finally {
       setIsUploading(false);
@@ -121,8 +132,8 @@ const AddCarModal: React.FC<AddCarModalProps> = ({ onClose }) => {
         <button className="close-btn" onClick={onClose}>
           <X size={24} />
         </button>
-        <h2>Add New Car Listing</h2>
-        <p className="modal-subtitle">List your vehicle to start earning.</p>
+        <h2>{isEdit ? "Edit Listing" : "Add New Car Listing"}</h2>
+        <p className="modal-subtitle">{isEdit ? "Update your car details and pricing." : "List your vehicle to start earning."}</p>
 
         <form onSubmit={handleSubmit} className="add-car-form">
           <div className="form-row">
@@ -344,10 +355,10 @@ const AddCarModal: React.FC<AddCarModalProps> = ({ onClose }) => {
           >
             {isUploading ? (
               <>
-                <Loader2 className="spin" size={18} /> Listing Car...
+                <Loader2 className="spin" size={18} /> {isEdit ? "Saving…" : "Listing Car..."}
               </>
             ) : (
-              "List Car"
+              isEdit ? "Save Changes" : "List Car"
             )}
           </button>
         </form>

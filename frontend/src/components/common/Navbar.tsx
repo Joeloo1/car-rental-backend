@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, Bell, ChevronDown, LogOut, LayoutDashboard, Car, Settings, Heart, Calendar } from "@/lib/icons";
+import { Menu, X, Bell, ChevronDown, LogOut, LayoutDashboard, Car, Settings, Heart, Calendar, MessageCircle } from "@/lib/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useSocket } from "../../context/SocketContext";
@@ -49,11 +49,8 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    notificationService.getAll()
-      .then((res: any) => {
-        const arr = Array.isArray(res) ? res : (res?.notifications ?? []);
-        setUnread(arr.filter((n: any) => !n.isRead).length);
-      })
+    notificationService.getUnreadCount()
+      .then(setUnread)
       .catch(() => {});
   }, [isAuthenticated]);
 
@@ -72,12 +69,7 @@ const Navbar: React.FC = () => {
 
   const handleNotifClose = () => {
     setNotifOpen(false);
-    notificationService.getAll()
-      .then((res: any) => {
-        const arr = Array.isArray(res) ? res : (res?.notifications ?? []);
-        setUnread(arr.filter((n: any) => !n.isRead).length);
-      })
-      .catch(() => {});
+    notificationService.getUnreadCount().then(setUnread).catch(() => {});
   };
 
   const navLinks = [
@@ -204,6 +196,7 @@ const Navbar: React.FC = () => {
                         <div className="py-1">
                           <MenuLink icon={LayoutDashboard} label="Dashboard"   onClick={() => { navigate("/dashboard"); setUserOpen(false); }} />
                           <MenuLink icon={Calendar}        label="My Bookings" onClick={() => { navigate("/bookings"); setUserOpen(false); }} />
+                          <MenuLink icon={MessageCircle}   label="Messages"    onClick={() => { navigate("/messages"); setUserOpen(false); }} />
                           <MenuLink icon={Heart}           label="Favourites"  onClick={() => { navigate("/favorites"); setUserOpen(false); }} />
                           {user?.role === "lender" && (
                             <MenuLink icon={Car}          label="Host Hub"     onClick={() => { navigate("/lender"); setUserOpen(false); }} />
@@ -311,6 +304,7 @@ const Navbar: React.FC = () => {
                   ...(isAuthenticated ? [
                     { label: "Dashboard",   to: "/dashboard" },
                     { label: "My Bookings", to: "/bookings" },
+                    { label: "Messages",    to: "/messages" },
                     { label: "Favourites",  to: "/favorites" },
                   ] : []),
                   ...(isAuthenticated && user?.role === "lender" ? [{ label: "Host Hub", to: "/lender" }] : []),

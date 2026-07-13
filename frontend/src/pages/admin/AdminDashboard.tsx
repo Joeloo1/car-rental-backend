@@ -9,11 +9,14 @@ import {
   Shield,
   TrendingUp,
   CheckCircle,
+  XCircle,
   Search,
   ChevronRight,
   ArrowUpRight,
-  ArrowDownRight,
   User as UserIcon,
+  DollarSign,
+  Clock,
+  Calendar,
 } from '@/lib/icons';
 import ProfileEditor from '../../components/common/ProfileEditor';
 import { motion } from 'framer-motion';
@@ -35,23 +38,41 @@ import { cn } from '../../utils/cn';
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'cars' | 'profile'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'cars' | 'bookings' | 'profile'>('overview');
   const [userSearch, setUserSearch] = useState('');
   const [carSearch, setCarSearch] = useState('');
+  const [carFilter, setCarFilter] = useState<'all' | 'pending'>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading: usersLoading } = useQuery({
+  const { data: statsData } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: adminService.getStats,
+    enabled: !!user && user.role === 'admin',
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: adminService.getAllUsers,
+    queryFn: () => adminService.getAllUsers(1, 100),
     enabled: !!user && user.role === 'admin',
   });
 
-  const { data: cars = [], isLoading: carsLoading } = useQuery({
-    queryKey: ['admin-cars'],
-    queryFn: adminService.getAllCars,
+  const { data: carsData, isLoading: carsLoading } = useQuery({
+    queryKey: ['admin-cars', carFilter],
+    queryFn: () => adminService.getAllCars(1, 100, carFilter === 'pending' ? false : undefined),
     enabled: !!user && user.role === 'admin',
   });
+
+  const { data: bookingsData, isLoading: bookingsLoading } = useQuery({
+    queryKey: ['admin-bookings'],
+    queryFn: () => adminService.getAllBookings(1, 100),
+    enabled: !!user && user.role === 'admin' && activeTab === 'bookings',
+  });
+
+  const users = usersData?.users ?? [];
+  const cars = carsData?.cars ?? [];
+  const adminBookings: any[] = (bookingsData as any)?.data ?? [];
 
   const deleteUserMutation = useMutation({
     mutationFn: adminService.deleteUser,
@@ -60,19 +81,12 @@ const AdminDashboard: React.FC = () => {
       toast.success('User deleted');
       setDeletingId(null);
     },
-    onError: () => {
-      toast.error('Failed to delete user');
-      setDeletingId(null);
-    },
+    onError: () => { toast.error('Failed to delete user'); setDeletingId(null); },
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: string }) =>
-      adminService.updateUser(id, { role }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast.success('Role updated');
-    },
+    mutationFn: ({ id, role }: { id: string; role: string }) => adminService.updateUser(id, { role }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-users'] }); toast.success('Role updated'); },
     onError: () => toast.error('Failed to update role'),
   });
 
@@ -83,10 +97,26 @@ const AdminDashboard: React.FC = () => {
       toast.success('Car removed');
       setDeletingId(null);
     },
-    onError: () => {
-      toast.error('Failed to remove car');
-      setDeletingId(null);
-    },
+    onError: () => { toast.error('Failed to remove car'); setDeletingId(null); },
+  });
+
+  const approveCarMutation = useMutation({
+    mutationFn: adminService.approveCar,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-cars'] }); toast.success('Car approved'); },
+    onError: () => toast.error('Failed to approve car'),
+  });
+
+  const rejectCarMutation = useMutation({
+    mutationFn: adminService.rejectCar,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-cars'] }); toast.success('Car rejected'); },
+    onError: () => toast.error('Failed to reject car'),
+  });
+
+  const suspendUserMutation = useMutation({
+    mutationFn: ({ id, suspend }: { id: string; suspend: boolean }) =>
+      adminService.updateUser(id, { accountStatus: suspend ? 'suspended' : 'active' }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-users'] }); toast.success('User status updated'); },
+    onError: () => toast.error('Failed to update user status'),
   });
 
   if (isAuthLoading) {
@@ -106,76 +136,41 @@ const AdminDashboard: React.FC = () => {
           </div>
           <h2 className="text-2xl font-display font-bold mb-2 text-foreground">Access Denied</h2>
           <p className="text-muted-foreground mb-6">You don't have permission to view this page.</p>
-          <Button onClick={() => navigate('/')} variant="outline">
-            Go Home
-          </Button>
+          <Button onClick={() => navigate('/')} variant="outline">Go Home</Button>
         </div>
       </div>
     );
   }
 
-  const totalLenders = users.filter((u) => u.role === 'lender').length;
-  
+  const stats = statsData as any;
   const statCards = [
-    {
-      label: 'Total Users',
-      value: users.length,
-      icon: Users,
-      trend: '+12%',
-      trendUp: true,
-      color: 'text-gold',
-      bg: 'bg-gold/10',
-    },
-    {
-      label: 'Active Listings',
-      value: cars.length,
-      icon: Car,
-      trend: '+5%',
-      trendUp: true,
-      color: 'text-teal',
-      bg: 'bg-teal/10',
-    },
-    {
-      label: 'Verified Hosts',
-      value: totalLenders,
-      icon: CheckCircle,
-      trend: '+8%',
-      trendUp: true,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-400/10',
-    },
-    {
-      label: 'Growth Rate',
-      value: '24%',
-      icon: TrendingUp,
-      trend: '+2.4%',
-      trendUp: true,
-      color: 'text-amber-400',
-      bg: 'bg-amber-400/10',
-    },
+    { label: 'Total Users',    value: stats?.users            ?? users.length,    icon: Users,     color: 'text-gold',         bg: 'bg-gold/10'         },
+    { label: 'Active Listings',value: stats?.cars             ?? cars.length,     icon: Car,       color: 'text-teal',         bg: 'bg-teal/10'         },
+    { label: 'Pending Review', value: stats?.pendingApproval  ?? '—',             icon: Clock,     color: 'text-amber-400',    bg: 'bg-amber-400/10'    },
+    { label: 'Total Revenue',  value: stats?.revenue ? `$${Number(stats.revenue).toLocaleString()}` : '—', icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
   ];
 
   const categoryData = [
     { name: 'Luxury', value: 30 },
-    { name: 'SUV', value: 45 },
+    { name: 'SUV',    value: 45 },
     { name: 'Sports', value: 15 },
     { name: 'Electric', value: 10 },
   ];
 
   const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-      u.email.toLowerCase().includes(userSearch.toLowerCase()),
+    (u: any) =>
+      u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+      u.email?.toLowerCase().includes(userSearch.toLowerCase()),
   );
 
   const filteredCars = cars.filter(
-    (c) =>
-      c.brand.toLowerCase().includes(carSearch.toLowerCase()) ||
-      c.model.toLowerCase().includes(carSearch.toLowerCase()) ||
+    (c: any) =>
+      c.brand?.toLowerCase().includes(carSearch.toLowerCase()) ||
+      c.model?.toLowerCase().includes(carSearch.toLowerCase()) ||
       (c.title || '').toLowerCase().includes(carSearch.toLowerCase()),
   );
 
-  const isLoading = usersLoading || carsLoading;
+  const isLoading = usersLoading || carsLoading || bookingsLoading;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans pt-24 pb-16">
@@ -203,10 +198,11 @@ const AdminDashboard: React.FC = () => {
 
         <div className="flex gap-2 mb-10 overflow-x-auto hide-scrollbar pb-1">
           {[
-            { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
-            { id: 'users', label: 'User Directory', icon: Users },
-            { id: 'cars', label: 'Vehicle Listings', icon: Car },
-            { id: 'profile', label: 'My Profile', icon: UserIcon },
+            { id: 'overview',  label: 'Dashboard',       icon: LayoutDashboard },
+            { id: 'users',     label: 'User Directory',  icon: Users           },
+            { id: 'cars',      label: 'Vehicle Listings',icon: Car             },
+            { id: 'bookings',  label: 'Bookings',        icon: Calendar        },
+            { id: 'profile',   label: 'My Profile',      icon: UserIcon        },
           ].map((tab) => (
             <Button
               key={tab.id}
@@ -224,20 +220,14 @@ const AdminDashboard: React.FC = () => {
         {isLoading ? (
           <div className="space-y-4 animate-pulse">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 rounded-3xl bg-muted" />
-              ))}
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-muted" />)}
             </div>
             <div className="h-96 rounded-3xl bg-muted" />
           </div>
         ) : (
           <>
             {activeTab === 'overview' && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-10"
-              >
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {statCards.map((stat, i) => (
                     <Card key={i} hover className="border-border/50">
@@ -246,12 +236,8 @@ const AdminDashboard: React.FC = () => {
                           <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center`}>
                             <stat.icon size={22} className={stat.color} />
                           </div>
-                          <div className={cn(
-                            "flex items-center gap-0.5 text-[10px] font-bold px-2 py-1 rounded-full",
-                            stat.trendUp ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"
-                          )}>
-                            {stat.trendUp ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-                            {stat.trend}
+                          <div className="flex items-center gap-0.5 text-[10px] font-bold px-2 py-1 rounded-full text-emerald-500 bg-emerald-500/10">
+                            <ArrowUpRight size={10} /> live
                           </div>
                         </div>
                         <p className="text-3xl font-bold font-display">{stat.value}</p>
@@ -263,9 +249,7 @@ const AdminDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <Card className="lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Growth Analytics</CardTitle>
-                    </CardHeader>
+                    <CardHeader><CardTitle className="text-lg">Growth Analytics</CardTitle></CardHeader>
                     <CardContent>
                       <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}>
                         <OverviewChart />
@@ -273,9 +257,7 @@ const AdminDashboard: React.FC = () => {
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Fleet Distribution</CardTitle>
-                    </CardHeader>
+                    <CardHeader><CardTitle className="text-lg">Fleet Distribution</CardTitle></CardHeader>
                     <CardContent>
                       <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}>
                         <CategoryChart data={categoryData} />
@@ -298,14 +280,13 @@ const AdminDashboard: React.FC = () => {
                       <h2 className="text-xl font-display font-bold flex items-center gap-2">
                         <Users size={20} className="text-primary" /> Newest Users
                       </h2>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab('users')}>
-                        View all
-                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setActiveTab('users')}>View all</Button>
                     </div>
                     <UserTable
                       users={users.slice(0, 5)}
                       onDelete={(id) => { setDeletingId(id); deleteUserMutation.mutate(id); }}
                       onRoleChange={(id, role) => updateRoleMutation.mutate({ id, role })}
+                      onSuspend={(id, suspend) => suspendUserMutation.mutate({ id, suspend })}
                       deletingId={deletingId}
                     />
                   </section>
@@ -315,13 +296,13 @@ const AdminDashboard: React.FC = () => {
                       <h2 className="text-xl font-display font-bold flex items-center gap-2">
                         <Car size={20} className="text-primary" /> Recent Listings
                       </h2>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab('cars')}>
-                        View all
-                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setActiveTab('cars')}>View all</Button>
                     </div>
                     <CarTable
                       cars={cars.slice(0, 5)}
                       onDelete={(id) => { setDeletingId(id); deleteCarMutation.mutate(id); }}
+                      onApprove={(id) => approveCarMutation.mutate(id)}
+                      onReject={(id) => rejectCarMutation.mutate(id)}
                       deletingId={deletingId}
                     />
                   </section>
@@ -330,11 +311,7 @@ const AdminDashboard: React.FC = () => {
             )}
 
             {activeTab === 'users' && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <Input
                     placeholder="Search users by name or email..."
@@ -343,25 +320,20 @@ const AdminDashboard: React.FC = () => {
                     className="max-w-md"
                     leftIcon={<Search size={18} />}
                   />
-                  <span className="text-sm text-muted-foreground ml-auto">
-                    {filteredUsers.length} Users found
-                  </span>
+                  <span className="text-sm text-muted-foreground ml-auto">{filteredUsers.length} users</span>
                 </div>
                 <UserTable
                   users={filteredUsers}
                   onDelete={(id) => { setDeletingId(id); deleteUserMutation.mutate(id); }}
                   onRoleChange={(id, role) => updateRoleMutation.mutate({ id, role })}
+                  onSuspend={(id, suspend) => suspendUserMutation.mutate({ id, suspend })}
                   deletingId={deletingId}
                 />
               </motion.div>
             )}
 
             {activeTab === 'cars' && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <Input
                     placeholder="Search vehicles by brand, model, or title..."
@@ -370,24 +342,89 @@ const AdminDashboard: React.FC = () => {
                     className="max-w-md"
                     leftIcon={<Search size={18} />}
                   />
-                  <span className="text-sm text-muted-foreground ml-auto">
-                    {filteredCars.length} Vehicles listed
-                  </span>
+                  <div className="flex items-center gap-2 ml-auto">
+                    {(['all', 'pending'] as const).map(f => (
+                      <button
+                        key={f}
+                        onClick={() => setCarFilter(f)}
+                        className={cn(
+                          'px-3 py-1.5 rounded-full text-xs font-semibold transition-all border',
+                          carFilter === f
+                            ? 'bg-gold/15 border-gold/40 text-gold'
+                            : 'bg-transparent border-border text-muted-foreground hover:border-gold/20'
+                        )}
+                      >
+                        {f === 'all' ? 'All' : 'Pending approval'}
+                      </button>
+                    ))}
+                    <span className="text-sm text-muted-foreground">{filteredCars.length} vehicles</span>
+                  </div>
                 </div>
                 <CarTable
                   cars={filteredCars}
                   onDelete={(id) => { setDeletingId(id); deleteCarMutation.mutate(id); }}
+                  onApprove={(id) => approveCarMutation.mutate(id)}
+                  onReject={(id) => rejectCarMutation.mutate(id)}
                   deletingId={deletingId}
                 />
               </motion.div>
             )}
 
+            {activeTab === 'bookings' && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-display font-bold">All Bookings</h2>
+                  <span className="text-sm text-muted-foreground">{adminBookings.length} total</span>
+                </div>
+                {adminBookings.length === 0 ? (
+                  <div className="text-center py-20 rounded-3xl bg-card border border-border">
+                    <Calendar size={48} className="mx-auto text-muted-foreground mb-4 opacity-20" />
+                    <p className="text-muted-foreground font-medium">No bookings yet</p>
+                  </div>
+                ) : (
+                  <div className="rounded-3xl bg-card border border-border overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border bg-muted/30">
+                            {['Vehicle', 'Renter', 'Dates', 'Status', 'Total'].map((h) => (
+                              <th key={h} className="text-left px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {adminBookings.map((b: any, i: number) => (
+                            <motion.tr key={b.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+                              className="hover:bg-muted/30 transition-colors">
+                              <td className="px-6 py-4">
+                                <p className="text-sm font-bold">{b.car?.brand} {b.car?.model}</p>
+                                <p className="text-[10px] text-muted-foreground">{b.car?.locationCity}</p>
+                              </td>
+                              <td className="px-6 py-4">
+                                <p className="text-sm font-medium">{b.user?.name ?? '—'}</p>
+                                <p className="text-[10px] text-muted-foreground">{b.user?.email}</p>
+                              </td>
+                              <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">
+                                {new Date(b.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} → {new Date(b.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </td>
+                              <td className="px-6 py-4">
+                                <Badge variant={b.status === 'completed' ? 'success' : b.status === 'cancelled' ? 'destructive' : b.status === 'confirmed' ? 'primary' : 'warning'} className="capitalize">
+                                  {b.status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 text-sm font-bold">₦{b.totalPrice?.toLocaleString()}</td>
+                            </motion.tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
             {activeTab === 'profile' && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-3xl"
-              >
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
                 <ProfileEditor />
               </motion.div>
             )}
@@ -398,7 +435,13 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-const UserTable: React.FC<{ users: any[], onDelete: (id: string) => void, onRoleChange: (id: string, role: string) => void, deletingId: string | null }> = ({ users, onDelete, onRoleChange, deletingId }) => {
+const UserTable: React.FC<{
+  users: any[];
+  onDelete: (id: string) => void;
+  onRoleChange: (id: string, role: string) => void;
+  onSuspend: (id: string, suspend: boolean) => void;
+  deletingId: string | null;
+}> = ({ users, onDelete, onRoleChange, onSuspend, deletingId }) => {
   if (users.length === 0) {
     return (
       <div className="text-center py-20 rounded-3xl bg-card border border-border">
@@ -452,26 +495,38 @@ const UserTable: React.FC<{ users: any[], onDelete: (id: string) => void, onRole
                   </select>
                 </td>
                 <td className="px-6 py-4 hidden md:table-cell">
-                  {u.isVerified ? (
-                    <Badge variant="success">Verified</Badge>
-                  ) : (
-                    <Badge variant="warning">Pending</Badge>
-                  )}
+                  {u.accountStatus === 'suspended'
+                    ? <Badge variant="destructive">Suspended</Badge>
+                    : u.isVerified
+                      ? <Badge variant="success">Verified</Badge>
+                      : <Badge variant="warning">Pending</Badge>
+                  }
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(u.id)}
-                    disabled={deletingId === u.id}
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    {deletingId === u.id ? (
-                      <div className="w-4 h-4 border-2 border-destructive/30 border-t-destructive rounded-full animate-spin" />
-                    ) : (
-                      <Trash2 size={16} />
-                    )}
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onSuspend(u.id, u.accountStatus !== 'suspended')}
+                      title={u.accountStatus === 'suspended' ? 'Unsuspend user' : 'Suspend user'}
+                      className={u.accountStatus === 'suspended' ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-400/10' : 'text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10'}
+                    >
+                      <Shield size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(u.id)}
+                      disabled={deletingId === u.id}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      {deletingId === u.id ? (
+                        <div className="w-4 h-4 border-2 border-destructive/30 border-t-destructive rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
+                    </Button>
+                  </div>
                 </td>
               </motion.tr>
             ))}
@@ -482,7 +537,13 @@ const UserTable: React.FC<{ users: any[], onDelete: (id: string) => void, onRole
   );
 };
 
-const CarTable: React.FC<{ cars: any[], onDelete: (id: string) => void, deletingId: string | null }> = ({ cars, onDelete, deletingId }) => {
+const CarTable: React.FC<{
+  cars: any[];
+  onDelete: (id: string) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+  deletingId: string | null;
+}> = ({ cars, onDelete, onApprove, onReject, deletingId }) => {
   const navigate = useNavigate();
 
   if (cars.length === 0) {
@@ -502,7 +563,8 @@ const CarTable: React.FC<{ cars: any[], onDelete: (id: string) => void, deleting
             <tr className="border-b border-border bg-muted/30">
               <th className="text-left px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Vehicle</th>
               <th className="text-left px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Host</th>
-              <th className="text-left px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Pricing</th>
+              <th className="text-left px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Price</th>
+              <th className="text-left px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider hidden md:table-cell">Approval</th>
               <th className="px-6 py-4" />
             </tr>
           </thead>
@@ -534,15 +596,31 @@ const CarTable: React.FC<{ cars: any[], onDelete: (id: string) => void, deleting
                   <span className="text-xs font-medium text-muted-foreground">{car.lender?.name || '—'}</span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="text-sm font-bold text-primary">${car.pricePerDay}<span className="text-[10px] text-muted-foreground font-normal">/day</span></span>
+                  <span className="text-sm font-bold text-primary">
+                    ${car.pricePerDay}<span className="text-[10px] text-muted-foreground font-normal">/day</span>
+                  </span>
+                </td>
+                <td className="px-6 py-4 hidden md:table-cell">
+                  {car.isApproved
+                    ? <Badge variant="success">Approved</Badge>
+                    : <Badge variant="warning">Pending</Badge>
+                  }
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate(`/car/${car.id}`)}
-                    >
+                  <div className="flex items-center justify-end gap-1.5">
+                    {!car.isApproved && (
+                      <Button variant="ghost" size="icon" onClick={() => onApprove(car.id)} title="Approve"
+                        className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10">
+                        <CheckCircle size={16} />
+                      </Button>
+                    )}
+                    {car.isApproved && (
+                      <Button variant="ghost" size="icon" onClick={() => onReject(car.id)} title="Reject"
+                        className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10">
+                        <XCircle size={16} />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/car/${car.id}`)}>
                       <TrendingUp size={16} />
                     </Button>
                     <Button
