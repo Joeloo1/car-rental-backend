@@ -19,6 +19,7 @@ import {
 import { getVerificationEmailHtml, generatePasswordResetEmail } from "../../utils/email";
 import { dispatchEmail } from "../../workers/email.worker";
 import config from "../../config/config.env";
+import { REFRESH_TOKEN_TTL_MS } from "../../config/constants";
 import { UserRole } from "../../generated/prisma/client";
 import { JwtPayload } from "jsonwebtoken";
 
@@ -87,7 +88,7 @@ export const signupService = async (data: SignupInput) => {
     data: {
       token: refreshToken,
       userId: newUser.id,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     },
   });
 
@@ -240,7 +241,7 @@ export const loginService = async (data: LoginInput) => {
     data: {
       userId: user.id,
       token: refreshToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     },
   });
 
@@ -450,7 +451,7 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
     data: {
       token: newRefreshToken,
       userId: storedToken.user.id,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     },
   });
 

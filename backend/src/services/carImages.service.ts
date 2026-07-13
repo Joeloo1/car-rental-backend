@@ -7,10 +7,7 @@ import logger from "../config/winston";
 import AppError from "../utils/AppError";
 import { validateImageBytes } from "../middleware/upload.middleware";
 
-/**
- * Helper to covert buffer to stream
- */
-const bufferToStreams = (buffer: Buffer): Readable => {
+const bufferToStream = (buffer: Buffer): Readable => {
   const readable = new Readable();
   readable._read = () => {};
   readable.push(buffer);
@@ -20,14 +17,9 @@ const bufferToStreams = (buffer: Buffer): Readable => {
 
 const CLOUDINARY_TIMEOUT_MS = 15_000;
 
-/**
- * Upload single image to Cloudinary with a hard timeout.
- * If Cloudinary doesn't respond within 15s, a 503 is thrown so the request
- * fails fast instead of hanging until the Node.js socket timeout fires.
- */
-const UploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryUploadResult> => {
+const uploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryUploadResult> => {
   const upload = new Promise<CloudinaryUploadResult>((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
+    const stream = cloudinary.uploader.upload_stream(
       {
         folder,
         resource_type: "image",
@@ -42,8 +34,7 @@ const UploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryU
         else resolve(result as CloudinaryUploadResult);
       },
     );
-
-    bufferToStreams(buffer).pipe(uploadStream);
+    bufferToStream(buffer).pipe(stream);
   });
 
   const timeout = new Promise<never>((_, reject) =>
@@ -56,9 +47,14 @@ const UploadToCloudinary = (buffer: Buffer, folder: string): Promise<CloudinaryU
   return Promise.race([upload, timeout]);
 };
 
-/**
- * Upload multiple car images
- */
+const assertCarOwnership = async (carId: string, userId: string, isAdmin: boolean): Promise<void> => {
+  const car = await prisma.car.findUnique({ where: { id: carId }, select: { lenderId: true } });
+  if (!car) throw new AppError("Car not found", 404);
+  if (!isAdmin && car.lenderId !== userId) {
+    throw new AppError("You can only manage images for your own cars", 403);
+  }
+};
+
 export const uploadCarImagesService = async (
   carId: string,
   lenderId: string,
@@ -66,47 +62,31 @@ export const uploadCarImagesService = async (
   isMain?: boolean,
   order?: number,
 ): Promise<{ uploadedImages: UploadedImage[]; failedCount: number }> => {
-  // Verify car exists
-  const car = await prisma.car.findUnique({ where: { id: carId } });
-  if (!car) {
-    throw new Error("Car not found");
-  }
+  const car = await prisma.car.findUnique({ where: { id: carId }, select: { lenderId: true } });
+  if (!car) throw new AppError("Car not found", 404);
+  if (car.lenderId !== lenderId) throw new AppError("You can only upload images to your own cars", 403);
 
-  if (car.lenderId !== lenderId) {
-    throw new AppError("You can only upload images to your own cars", 403);
-  }
+  const existingCount = await prisma.carImage.count({ where: { carId } });
+  if (existingCount >= 10) throw new AppError("Maximum 10 images allowed per car", 400);
 
-  // Check if car already has images
-  const existingImages = await prisma.carImage.count({ where: { carId } });
-  if (existingImages >= 10) {
-    throw new Error("Maximum 10 images allowed per car");
-  }
-
-  const maxUpload = 10 - existingImages;
+  const maxUpload = 10 - existingCount;
   const filesToUpload = files.slice(0, maxUpload);
 
-  // Determine starting order
-  let nextOrder = order ?? 0;
-  if (order === undefined) {
-    const maxOrderResult = await prisma.carImage.findFirst({
+  // Auto-increment order from current max when caller doesn't specify
+  let nextOrder = order;
+  if (nextOrder === undefined) {
+    const maxOrderRow = await prisma.carImage.findFirst({
       where: { carId },
       orderBy: { order: "desc" },
       select: { order: true },
     });
-    nextOrder = (maxOrderResult?.order ?? -1) + 1;
+    nextOrder = (maxOrderRow?.order ?? -1) + 1;
   }
 
-  // Check if there's already a main image
-  const hasMainImage = await prisma.carImage.findFirst({
-    where: { carId, isMain: true },
-  });
+  const hasMainImage = await prisma.carImage.findFirst({ where: { carId, isMain: true } });
 
-  // If isMain is explicitly set to true, unset existing main images
   if (isMain && hasMainImage) {
-    await prisma.carImage.updateMany({
-      where: { carId, isMain: true },
-      data: { isMain: false },
-    });
+    await prisma.carImage.updateMany({ where: { carId, isMain: true }, data: { isMain: false } });
   }
 
   const uploadedImages: UploadedImage[] = [];
@@ -116,21 +96,19 @@ export const uploadCarImagesService = async (
     const file = filesToUpload[i];
     try {
       validateImageBytes(file.buffer);
-      const result = await UploadToCloudinary(file.buffer, `cars/${carId}`);
+      const result = await uploadToCloudinary(file.buffer, `cars/${carId}`);
 
-      // Determine if this should be main
       const shouldBeMain =
-        (isMain === true && i === 0) || // First image when isMain is true
-        (!hasMainImage && uploadedImages.length === 0 && isMain !== false); // First image overall when no main exists
+        (isMain === true && i === 0) ||
+        (!hasMainImage && uploadedImages.length === 0 && isMain !== false);
 
-      // Save to database
       const carImage = await prisma.carImage.create({
         data: {
           carId,
           imageUrl: result.secure_url,
           publicId: result.public_id,
           isMain: shouldBeMain,
-          order: nextOrder + i,
+          order: nextOrder! + i,
         },
       });
 
@@ -148,34 +126,25 @@ export const uploadCarImagesService = async (
   return { uploadedImages, failedCount: failedIndexes.length };
 };
 
-/**
- * Get car Images
- */
 export const GetCarImagesService = async (carId: string): Promise<UploadedImage[]> => {
-  return await prisma.carImage.findMany({
+  return prisma.carImage.findMany({
     where: { carId },
     orderBy: [{ isMain: "desc" }, { order: "asc" }],
   });
 };
 
-/**
- * Upload a single car image
- */
 export const updateCarImageService = async (
   carId: string,
   imageId: string,
+  userId: string,
+  isAdmin: boolean,
   updates: { isMain?: boolean; order?: number },
 ): Promise<UploadedImage> => {
-  // Check if image belong to car
-  const image = await prisma.carImage.findFirst({
-    where: { id: imageId, carId },
-  });
+  await assertCarOwnership(carId, userId, isAdmin);
 
-  if (!image) {
-    logger.warn("Image nor found for this car", { carId });
-    throw new AppError("Image not found for this car", 404);
-  }
-  // If setting as main, unset other main images
+  const image = await prisma.carImage.findFirst({ where: { id: imageId, carId } });
+  if (!image) throw new AppError("Image not found for this car", 404);
+
   if (updates.isMain === true) {
     await prisma.carImage.updateMany({
       where: { carId, isMain: true, id: { not: imageId } },
@@ -183,73 +152,55 @@ export const updateCarImageService = async (
     });
   }
 
-  // Upload the image
-  return await prisma.carImage.update({
-    where: { id: imageId },
-    data: updates,
-  });
+  return prisma.carImage.update({ where: { id: imageId }, data: updates });
 };
 
-/**
- *  Bulk Reorder images
- */
 export const BulkReorderImagesService = async (
   carId: string,
+  userId: string,
+  isAdmin: boolean,
   data: BulkReorderInput,
 ): Promise<UploadedImage[]> => {
+  await assertCarOwnership(carId, userId, isAdmin);
+
   const imageIds = data.images.map((img) => img.id);
-  const images = await prisma.carImage.findMany({
-    where: { id: { in: imageIds }, carId },
-  });
+  const images = await prisma.carImage.findMany({ where: { id: { in: imageIds }, carId } });
 
   if (images.length !== imageIds.length) {
-    throw new AppError("Some images not found for this car", 400);
+    throw new AppError("Some images were not found for this car", 400);
   }
 
-  return await prisma.$transaction(
+  return prisma.$transaction(
     data.images.map((img) =>
-      prisma.carImage.update({
-        where: { id: img.id },
-        data: { order: img.order },
-      }),
+      prisma.carImage.update({ where: { id: img.id }, data: { order: img.order } }),
     ),
   );
 };
 
-/**
- * Delete image
- */
-export const deleteCarImageService = async (carId: string, imageId: string): Promise<void> => {
-  const image = await prisma.carImage.findFirst({
-    where: { id: imageId, carId },
-  });
+export const deleteCarImageService = async (
+  carId: string,
+  imageId: string,
+  userId: string,
+  isAdmin: boolean,
+): Promise<void> => {
+  await assertCarOwnership(carId, userId, isAdmin);
 
-  if (!image) {
-    throw new Error("Image not found for this car");
-  }
+  const image = await prisma.carImage.findFirst({ where: { id: imageId, carId } });
+  if (!image) throw new AppError("Image not found for this car", 404);
 
-  // Delete from Cloudinary
   try {
     await cloudinary.uploader.destroy(image.publicId);
   } catch (error) {
-    console.error("Error deleting from Cloudinary:", error);
+    logger.error("Failed to delete image from Cloudinary", { error, publicId: image.publicId });
   }
 
-  // Delete from database
   await prisma.carImage.delete({ where: { id: imageId } });
 
-  // If deleted image was main, set another as main
+  // Promote the next image to main if the deleted one was main
   if (image.isMain) {
-    const firstImage = await prisma.carImage.findFirst({
-      where: { carId },
-      orderBy: { order: "asc" },
-    });
-
-    if (firstImage) {
-      await prisma.carImage.update({
-        where: { id: firstImage.id },
-        data: { isMain: true },
-      });
+    const next = await prisma.carImage.findFirst({ where: { carId }, orderBy: { order: "asc" } });
+    if (next) {
+      await prisma.carImage.update({ where: { id: next.id }, data: { isMain: true } });
     }
   }
 };

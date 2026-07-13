@@ -1,4 +1,5 @@
 import cookieParser from "cookie-parser";
+import { REFRESH_TOKEN_TTL_MS } from "./config/constants";
 import cors from "cors";
 import express, { NextFunction, Request, Response, Express } from "express";
 import rateLimit from "express-rate-limit";
@@ -18,6 +19,7 @@ declare module "express-session" {
 
 import config from "./config/config.env";
 import logger from "./config/winston";
+import { prisma } from "./config/database";
 import { globalErrorHandler } from "./error/errorHandling";
 import AppError from "./utils/AppError";
 import passport from "./config/passport";
@@ -75,7 +77,7 @@ app.use(
       httpOnly: true,
       secure: config.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: REFRESH_TOKEN_TTL_MS,
     },
   }),
 );
@@ -132,6 +134,15 @@ app.use("/api/v1/auth/signup", authLimiter);
 app.use("/api/v1/auth/forgot-password", authLimiter);
 
 app.use("/api/v1", routes);
+
+app.get("/health", async (_req, res) => {
+  const dbOk = await prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
+  res.status(dbOk ? 200 : 503).json({
+    status: dbOk ? "ok" : "degraded",
+    db: dbOk,
+    ts: new Date().toISOString(),
+  });
+});
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
   logger.warn(`Can't find ${req.originalUrl} on this server`);

@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import catchAsync from "../utils/catchAsync";
-import { GetUserNotifications, MarkAsRead, MarkAllAsRead } from "../services/notification.service";
+import {
+  GetUserNotifications,
+  MarkAsRead,
+  MarkAllAsRead,
+  GetUnreadNotificationCountService,
+  DeleteNotificationService,
+  DeleteAllNotificationsService,
+} from "../services/notification.service";
 import { AuthRequest } from "../types/authRequest";
 
 export const getMyNotifications = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -29,4 +36,19 @@ export const markAllRead = catchAsync(async (req: AuthRequest, res: Response) =>
     status: "success",
     message: "All notifications marked as read",
   });
+});
+
+export const getUnreadCount = catchAsync(async (req: AuthRequest, res: Response) => {
+  const count = await GetUnreadNotificationCountService(req.user!.id);
+  res.status(200).json({ status: "success", data: { count } });
+});
+
+export const deleteNotification = catchAsync(async (req: AuthRequest, res: Response) => {
+  await DeleteNotificationService(req.params.id as string, req.user!.id);
+  res.status(200).json({ status: "success", message: "Notification deleted" });
+});
+
+export const deleteAllNotifications = catchAsync(async (req: AuthRequest, res: Response) => {
+  await DeleteAllNotificationsService(req.user!.id);
+  res.status(200).json({ status: "success", message: "All notifications cleared" });
 });

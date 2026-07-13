@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { z } from "zod";
 import catchAsync from "../utils/catchAsync";
 import {
   CreateCarService,
@@ -8,8 +9,10 @@ import {
   UpdateCarStatusService,
   deleteCarService,
   GetCarsByLenderService,
+  CheckCarAvailabilityService,
+  SearchCarsService,
 } from "../services/car.service";
-import { CarQuerySchema } from "../schema/car.schema";
+import { CarQuerySchema, CarStatusEnum } from "../schema/car.schema";
 import { AuthRequest } from "../types/authRequest";
 
 // create car
@@ -71,11 +74,13 @@ export const updateCars = catchAsync(async (req: AuthRequest, res: Response) => 
 
 // Update car status
 export const updateCarStatus = catchAsync(async (req: AuthRequest, res: Response) => {
-  const { availabilityStatus } = req.body;
+  const { availabilityStatus } = z.object({ availabilityStatus: CarStatusEnum }).parse(req.body);
+  const isAdmin = req.user!.role === "admin";
   const car = await UpdateCarStatusService(
     req.params.id as string,
     availabilityStatus,
     req.user!.id,
+    isAdmin,
   );
 
   res.status(200).json({
@@ -85,9 +90,31 @@ export const updateCarStatus = catchAsync(async (req: AuthRequest, res: Response
   });
 });
 
+// Search autocomplete
+export const searchCars = catchAsync(async (req: Request, res: Response) => {
+  const q = (req.query.q as string) ?? "";
+  const result = await SearchCarsService(q);
+  res.status(200).json({ status: "success", data: result });
+});
+
+// Check car availability for given dates
+export const checkCarAvailability = catchAsync(async (req: Request, res: Response) => {
+  const carId = req.params.id as string;
+  const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+
+  if (!startDate || !endDate) {
+    res.status(400).json({ status: "fail", message: "startDate and endDate query params are required" });
+    return;
+  }
+
+  const result = await CheckCarAvailabilityService(carId, startDate, endDate);
+  res.status(200).json({ status: "success", data: result });
+});
+
 // Delete car
-export const deleteCar = catchAsync(async (req: Request, res: Response) => {
-  await deleteCarService(req.params.id as string);
+export const deleteCar = catchAsync(async (req: AuthRequest, res: Response) => {
+  const isAdmin = req.user!.role === "admin";
+  await deleteCarService(req.params.id as string, req.user!.id, isAdmin);
 
   res.status(200).json({
     status: "success",

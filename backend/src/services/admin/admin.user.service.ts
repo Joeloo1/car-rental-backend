@@ -60,7 +60,11 @@ export const GetUserByIdService = async (userId: string) => {
 /**
  * Update user
  */
-export const AdminUpdateUserService = async (userId: string, data: AdminUpdateUserInput) => {
+export const AdminUpdateUserService = async (
+  userId: string,
+  data: AdminUpdateUserInput,
+  adminId: string,
+) => {
   if (!data || Object.keys(data).length === 0) {
     throw new AppError("No data provided for update", 400);
   }
@@ -75,6 +79,8 @@ export const AdminUpdateUserService = async (userId: string, data: AdminUpdateUs
   const safeData: { role?: typeof data.role; accountStatus?: typeof data.accountStatus } = {};
   if (data.role !== undefined) safeData.role = data.role;
   if (data.accountStatus !== undefined) safeData.accountStatus = data.accountStatus;
+
+  logger.info("Admin user update", { adminId, targetUserId: userId, changes: safeData });
 
   const updateUser = await prisma.user.update({
     where: { id: userId },

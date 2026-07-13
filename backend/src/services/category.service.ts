@@ -53,23 +53,33 @@ export const UpdateCategoryService = async (categoryId: number, data: UpdateCate
   return updateData;
 };
 
-// Get All categories
-export const GetCategoryService = async () => {
-  const cacheKey = "categories:all";
+// Get All categories (paginated)
+export const GetCategoryService = async (page = 1, limit = 50) => {
+  const cacheKey = `categories:${page}:${limit}`;
 
   // ── Cache read ──────────────────────────────────────────────────────────────
-  const cached = await getCache<any[]>(cacheKey);
+  const cached = await getCache<any>(cacheKey);
   if (cached) {
     logger.info(`Cache HIT: ${cacheKey}`);
     return cached;
   }
 
-  const category = await prisma.category.findMany();
+  const skip = (page - 1) * limit;
+
+  const [categories, total] = await Promise.all([
+    prisma.category.findMany({ skip, take: limit, orderBy: { name: "asc" } }),
+    prisma.category.count(),
+  ]);
+
+  const result = {
+    data: categories,
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+  };
 
   // ── Cache write ─────────────────────────────────────────────────────────────
-  await setCache(cacheKey, category, TTL_CATEGORIES);
+  await setCache(cacheKey, result, TTL_CATEGORIES);
 
-  return category;
+  return result;
 };
 
 // Get Single Category

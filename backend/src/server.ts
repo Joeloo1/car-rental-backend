@@ -9,6 +9,9 @@ import { connectRedis, disconnectRedis } from "./config/redis";
 import logger from "./config/winston";
 import { registerChatSocket } from "./sockets/chat.socket";
 import { setSocketIO } from "./utils/socketInstance";
+import { jobQueue } from "./config/queue";
+import { startBackgroundWorker } from "./workers/background.worker";
+import { AUTO_COMPLETE_INTERVAL_MS, TOKEN_CLEANUP_INTERVAL_MS } from "./config/constants";
 
 const port = config.PORT;
 
@@ -30,47 +33,55 @@ io.adapter(createAdapter(pubClient, subClient));
 
 registerChatSocket(io);
 
-const cleanupExpiredTokens = async () => {
+const runOnce = async (task: string, fn: () => Promise<void>) => {
   try {
-    const { count } = await prisma.refreshToken.deleteMany({
-      where: { expiresAt: { lt: new Date() } },
-    });
-    if (count > 0) logger.info(`Cleaned up ${count} expired refresh token(s)`);
+    await fn();
   } catch (err) {
-    logger.error("Failed to clean up expired refresh tokens:", err);
+    logger.error(`Startup task "${task}" failed:`, err);
   }
 };
 
-const autoCompleteExpiredBookings = async () => {
-  try {
-    const now = new Date();
+const registerRepeatableJobs = async () => {
+  if (!jobQueue) return;
 
-    // Single atomic update — safe across multiple instances (no findMany race)
-    const { count } = await prisma.booking.updateMany({
-      where: {
-        status: { in: ["pending", "confirmed"] },
-        endDate: { lt: now },
-      },
-      data: { status: "completed" },
-    });
+  await jobQueue.add("cleanup-tokens", {}, {
+    repeat: { every: TOKEN_CLEANUP_INTERVAL_MS },
+    jobId: "cleanup-tokens",
+  });
+  await jobQueue.add("auto-complete-bookings", {}, {
+    repeat: { every: AUTO_COMPLETE_INTERVAL_MS },
+    jobId: "auto-complete-bookings",
+  });
 
-    if (count > 0) logger.info(`Auto-completed ${count} expired booking(s)`);
-  } catch (err) {
-    logger.error("Failed to auto-complete expired bookings:", err);
-  }
+  logger.info("Repeatable background jobs registered");
 };
 
 connectDB();
 connectRedis();
 
+startBackgroundWorker();
+
 server.listen(port, async () => {
   logger.info(`Server running on PORT: ${port}...`);
-  await cleanupExpiredTokens();
-  await autoCompleteExpiredBookings();
-  // Refresh token cleanup: every 24 hours
-  setInterval(cleanupExpiredTokens, 24 * 60 * 60 * 1000);
-  // Booking auto-completion: every hour
-  setInterval(autoCompleteExpiredBookings, 60 * 60 * 1000);
+
+  // Run once immediately on startup so stale records are cleared before first request
+  await runOnce("cleanup-tokens", async () => {
+    const { count } = await prisma.refreshToken.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
+    });
+    if (count > 0) logger.info(`Cleaned up ${count} expired refresh token(s)`);
+  });
+
+  await runOnce("auto-complete-bookings", async () => {
+    const { count } = await prisma.booking.updateMany({
+      where: { status: { in: ["pending", "confirmed"] }, endDate: { lt: new Date() } },
+      data: { status: "completed" },
+    });
+    if (count > 0) logger.info(`Auto-completed ${count} expired booking(s)`);
+  });
+
+  // Schedule recurring runs via BullMQ (cluster-safe — only one worker picks each job)
+  await registerRepeatableJobs();
 });
 
 let isShuttingDown = false;

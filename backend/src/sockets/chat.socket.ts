@@ -1,14 +1,17 @@
 import { Server, Socket } from "socket.io";
 import xss from "xss";
+import { z } from "zod";
 import { prisma } from "../config/database";
 import logger from "../config/winston";
 import { verifyAccessToken } from "../utils/jwt";
 import { CreateNotification } from "../services/notification.service";
-import { sendEmail, getNewMessageEmailHtml } from "../utils/email";
+import { getNewMessageEmailHtml } from "../utils/email";
+import { dispatchEmail } from "../workers/email.worker";
 import config from "../config/config.env";
-import { incrCache } from "../config/redis";
+import { incrCache, getCache, setCache } from "../config/redis";
+import { CHAT_MAX_MSG_LENGTH, CHAT_RATE_LIMIT_COUNT } from "../config/constants";
 
-const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_MAX = CHAT_RATE_LIMIT_COUNT;
 const RATE_LIMIT_WINDOW_S = 60;
 
 // Redis-backed rate limiter — works correctly across multiple server instances.
@@ -122,15 +125,39 @@ export const registerChatSocket = (io: Server) => {
       const userId = socket.data.userId;
       if (!userId) return;
 
+      const parsed = z
+        .object({ carId: z.string().uuid(), lenderId: z.string().uuid() })
+        .safeParse(data);
+      if (!parsed.success) {
+        socket.emit("chat_error", "Invalid chat parameters");
+        return;
+      }
+
       try {
+        const [car, lender] = await Promise.all([
+          prisma.car.findUnique({
+            where: { id: parsed.data.carId },
+            select: { lenderId: true },
+          }),
+          prisma.user.findUnique({
+            where: { id: parsed.data.lenderId },
+            select: { role: true },
+          }),
+        ]);
+
+        if (!car || !lender || lender.role !== "lender" || car.lenderId !== parsed.data.lenderId) {
+          socket.emit("chat_error", "Invalid car or lender");
+          return;
+        }
+
         const chat = await prisma.chat.upsert({
           where: {
-            carId_userId: { carId: data.carId, userId },
+            carId_userId: { carId: parsed.data.carId, userId },
           },
           create: {
-            carId: data.carId,
+            carId: parsed.data.carId,
             userId,
-            lenderId: data.lenderId,
+            lenderId: parsed.data.lenderId,
           },
           update: {},
         });
@@ -148,9 +175,9 @@ export const registerChatSocket = (io: Server) => {
       const senderId = socket.data.userId;
       if (!senderId) return;
 
-      // Validate message content
-      const text = xss((data.messageText ?? "").trim());
-      if (!text || text.length > 1000) {
+      // Validate raw length before any processing
+      const raw = (data.messageText ?? "").trim();
+      if (!raw || raw.length > CHAT_MAX_MSG_LENGTH) {
         socket.emit("chat_error", "Message must be between 1 and 1000 characters");
         return;
       }
@@ -160,6 +187,9 @@ export const registerChatSocket = (io: Server) => {
         socket.emit("chat_error", "You are sending messages too quickly, please slow down");
         return;
       }
+
+      // Sanitise only after guards pass
+      const text = xss(raw);
 
       try {
         // Verify sender belongs to this chat before saving
@@ -210,31 +240,49 @@ export const registerChatSocket = (io: Server) => {
         const isOnline = recipientRoom && recipientRoom.size > 0;
 
         if (!isOnline) {
-          try {
-            const recipient = await prisma.user.findUnique({
-              where: { id: recipientId },
-              select: { email: true, name: true },
-            });
-            const car = await prisma.car.findUnique({
-              where: { id: chat.carId },
-              select: { model: true, brand: true },
-            });
+          // Throttle: send at most one offline email per chat per 30 minutes
+          const throttleKey = `chat:offline-email:${recipientId}:${data.chatId}`;
+          const alreadySent = await getCache<boolean>(throttleKey);
 
-            if (recipient?.email) {
-              const carLabel = car ? `${car.brand} ${car.model}` : "your listing";
-              await sendEmail({
-                email: recipient.email,
-                subject: `New message from ${message.sender.name} — LuxeDrive`,
-                html: getNewMessageEmailHtml(
-                  message.sender.name,
-                  message.messageText,
-                  carLabel,
-                  config.CLIENT_URL || "http://localhost:5173",
-                ),
-              });
+          if (!alreadySent) {
+            try {
+              const [recipient, car] = await Promise.all([
+                prisma.user.findUnique({
+                  where: { id: recipientId },
+                  select: { email: true, name: true },
+                }),
+                prisma.car.findUnique({
+                  where: { id: chat.carId },
+                  select: { model: true, brand: true },
+                }),
+              ]);
+
+              if (recipient?.email) {
+                const carLabel = car ? `${car.brand} ${car.model}` : "your listing";
+                const baseUrl = config.CLIENT_URL || "http://localhost:5173";
+                // Lenders go to /lender, renters go to /dashboard
+                const dashboardUrl =
+                  recipientId === chat.lenderId
+                    ? `${baseUrl}/lender`
+                    : `${baseUrl}/dashboard`;
+
+                await dispatchEmail({
+                  email: recipient.email,
+                  subject: `New message from ${message.sender.name} — LuxeDrive`,
+                  html: getNewMessageEmailHtml(
+                    message.sender.name,
+                    message.messageText,
+                    carLabel,
+                    dashboardUrl,
+                  ),
+                });
+
+                // Mark as sent for 30 minutes so we don't flood their inbox
+                await setCache(throttleKey, true, 30 * 60);
+              }
+            } catch (emailErr) {
+              logger.error("Failed to send offline message email", emailErr);
             }
-          } catch (emailErr) {
-            logger.error("Failed to send offline message email", emailErr);
           }
         }
       } catch (err) {

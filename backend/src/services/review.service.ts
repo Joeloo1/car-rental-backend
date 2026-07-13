@@ -120,8 +120,14 @@ export const UpdateReviewService = async (
 /**
  * Get All Reviews For A Car Service (paginated)
  */
-export const GetAllReviewForCarService = async (carId: string, page = 1, limit = 10) => {
-  const cacheKey = `reviews:car:${carId}:${page}:${limit}`;
+export const GetAllReviewForCarService = async (
+  carId: string,
+  page = 1,
+  limit = 10,
+  sortBy: "createdAt" | "rating" = "createdAt",
+  sortOrder: "asc" | "desc" = "desc",
+) => {
+  const cacheKey = `reviews:car:${carId}:${page}:${limit}:${sortBy}:${sortOrder}`;
 
   const cached = await getCache<any>(cacheKey);
   if (cached) {
@@ -131,10 +137,10 @@ export const GetAllReviewForCarService = async (carId: string, page = 1, limit =
 
   const skip = (page - 1) * limit;
 
-  const [reviews, total] = await prisma.$transaction([
+  const [reviews, total] = await Promise.all([
     prisma.review.findMany({
       where: { carId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { [sortBy]: sortOrder },
       skip,
       take: limit,
       include: {
@@ -154,7 +160,7 @@ export const GetAllReviewForCarService = async (carId: string, page = 1, limit =
  * Get Review Service
  */
 export const GetReviewService = async (reviewId: string) => {
-  const review = await prisma.review.findMany({
+  const review = await prisma.review.findUnique({
     where: { id: reviewId },
     include: {
       user: {
@@ -180,9 +186,35 @@ export const GetReviewService = async (reviewId: string) => {
 };
 
 /**
+ * Get all reviews written by a user
+ */
+export const GetMyReviewsService = async (userId: string, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const [reviews, total] = await Promise.all([
+    prisma.review.findMany({
+      where: { userId },
+      include: {
+        car: {
+          select: {
+            id: true,
+            title: true,
+            images: { where: { isMain: true }, take: 1 },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.review.count({ where: { userId } }),
+  ]);
+  return { reviews, total, page, totalPages: Math.ceil(total / limit) };
+};
+
+/**
  * Delete Review Service
  */
-export const DeleteReviewService = async (userId: string, reviewId: string) => {
+export const DeleteReviewService = async (userId: string, reviewId: string, isAdmin = false) => {
   // Check if review exist
   const review = await prisma.review.findUnique({
     where: { id: reviewId },
@@ -192,7 +224,7 @@ export const DeleteReviewService = async (userId: string, reviewId: string) => {
     throw new AppError("Review not found", 404);
   }
 
-  if (review.userId !== userId) {
+  if (!isAdmin && review.userId !== userId) {
     logger.warn(`User ${userId} attempted to delete review ${reviewId} they don't own`);
     throw new AppError("Unauthorized", 403);
   }

@@ -5,8 +5,8 @@ import { UpdateUserInput } from "../../schema/user/user.schema";
 import cloudinary from "../../config/cloudinary";
 import { AccountStatus, UserRole } from "../../generated/prisma/client";
 import { Readable } from "stream";
-import { fa } from "zod/v4/locales";
-import { deleteCache } from "@/config/redis";
+import { deleteCache } from "../../config/redis";
+import { hashPassword, ComparePassword } from "../../utils/password";
 
 const bufferToStream = (buffer: Buffer): Readable => {
   const readable = new Readable();
@@ -126,16 +126,67 @@ export const GetUserService = async (userId: string) => {
 };
 
 /**
- * Delete user
+ * Delete user — anonymises PII and cancels active bookings before marking deleted
  */
 export const deleteUserService = async (userId: string) => {
+  // Cancel active bookings so cars are freed
+  await prisma.booking.updateMany({
+    where: { userId, status: { in: ["pending", "confirmed"] } },
+    data: { status: "cancelled" },
+  });
+
+  // Anonymise all personal data — GDPR / data-retention compliance
   await prisma.user.update({
     where: { id: userId },
-    data: { accountStatus: AccountStatus.deleted, active: false },
+    data: {
+      accountStatus: AccountStatus.deleted,
+      active: false,
+      name: "Deleted User",
+      email: `deleted+${userId}@luxedrive.internal`,
+      phoneNumber: null,
+      profileImage: "default.jpg",
+      profileImagePublicId: null,
+      verifyToken: null,
+      verifyTokenExpiry: null,
+      passwordResetToken: null,
+      passwordResetTokenExpiry: null,
+      passwordHash: null,
+    },
   });
 
   await prisma.refreshToken.deleteMany({ where: { userId } });
   await deleteCache(`auth:user:${userId}`);
+};
+
+/**
+ * Change password for a logged-in user
+ */
+export const ChangePasswordService = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError("User not found", 404);
+  if (!user.passwordHash) {
+    throw new AppError("Password change is not available for social login accounts", 400);
+  }
+
+  const isCorrect = await ComparePassword(currentPassword, user.passwordHash);
+  if (!isCorrect) throw new AppError("Current password is incorrect", 401);
+
+  const hashed = await hashPassword(newPassword);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: hashed, passwordChangedAt: new Date() },
+  });
+
+  // Revoke all existing refresh tokens so other sessions are logged out
+  await prisma.refreshToken.updateMany({ where: { userId }, data: { revoked: true } });
+  await deleteCache(`auth:user:${userId}`);
+
+  logger.info(`User ${userId} changed their password`);
 };
 
 /**

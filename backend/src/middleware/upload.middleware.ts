@@ -48,6 +48,16 @@ export const uploadMiddleware = multer({
   },
 });
 
+// Separate instance for car images — allows up to 10 files per request
+export const uploadCarImagesMiddleware = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 10,
+  },
+});
+
 export const uploadProfileImage = multer({
   storage,
   fileFilter,

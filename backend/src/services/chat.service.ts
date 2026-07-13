@@ -49,6 +49,15 @@ export const GetChatMessagesServices = async (chatId: string, userId: string) =>
  * Create a Chat
  */
 export const InitiateChatService = async (carId: string, userId: string, lenderId: string) => {
+  const [car, lender] = await Promise.all([
+    prisma.car.findUnique({ where: { id: carId }, select: { lenderId: true } }),
+    prisma.user.findUnique({ where: { id: lenderId }, select: { role: true } }),
+  ]);
+
+  if (!car) throw new AppError("Car not found", 404);
+  if (!lender || lender.role !== "lender") throw new AppError("Invalid lender", 400);
+  if (car.lenderId !== lenderId) throw new AppError("This lender does not own this car", 400);
+
   const chat = await prisma.chat.upsert({
     where: {
       carId_userId: { carId, userId },

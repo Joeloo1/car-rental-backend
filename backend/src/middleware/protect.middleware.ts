@@ -55,7 +55,7 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
   const decoded = (await verifyAccessToken(token)) as Jwtpayload;
 
   if (!decoded.id) {
-    logger.warn("Invalid token - missing user ID", { token });
+    logger.warn("Invalid token - missing user ID");
     return next(new AppError("Invalid token, please log in again", 401));
   }
 

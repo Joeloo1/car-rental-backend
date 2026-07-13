@@ -5,7 +5,9 @@ import {
   GetUserService,
   deleteUserService,
   upgradeToLenderService,
+  ChangePasswordService,
 } from "../../services/user/user.service";
+import { GetMyReviewsService } from "../../services/review.service";
 import logger from "../../config/winston";
 import catchAsync from "../../utils/catchAsync";
 import AppError from "../../utils/AppError";
@@ -89,6 +91,36 @@ export const upgradeToLender = catchAsync(async (req: AuthRequest, res: Response
   });
 });
 
+// Change password
+export const changePassword = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const { currentPassword, newPassword } = req.body as {
+    currentPassword?: string;
+    newPassword?: string;
+  };
+
+  if (!currentPassword || !newPassword) {
+    return next(new AppError("currentPassword and newPassword are required", 400));
+  }
+  if (newPassword.length < 8) {
+    return next(new AppError("New password must be at least 8 characters", 400));
+  }
+
+  await ChangePasswordService(req.user!.id, currentPassword, newPassword);
+
+  res.status(200).json({
+    status: "success",
+    message: "Password changed successfully. Please log in again.",
+  });
+});
+
+// Get my reviews
+export const getMyReviews = catchAsync(async (req: AuthRequest, res: Response) => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+  const result = await GetMyReviewsService(req.user!.id, page, limit);
+  res.status(200).json({ status: "success", data: result });
+});
+
 // delete user
 export const deleteUser = catchAsync(
   async (req: AuthRequest, res: Response) => {
@@ -103,3 +135,26 @@ export const deleteUser = catchAsync(
     });
   },
 );
+
+import { Request } from "express";
+import { prisma } from "../../config/database";
+
+export const getPublicLenderProfile = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+
+  const [lenderBase, totalCars, completedTrips] = await Promise.all([
+    prisma.user.findFirst({
+      where: { id, role: "lender" },
+      select: { id: true, name: true, profileImage: true, createdAt: true },
+    }),
+    prisma.car.count({ where: { lenderId: id } }),
+    prisma.booking.count({ where: { car: { lenderId: id }, status: "completed" } }),
+  ]);
+
+  if (!lenderBase) throw new AppError("Lender not found", 404);
+
+  res.status(200).json({
+    status: "success",
+    data: { lender: { ...lenderBase, totalCars, completedTrips } },
+  });
+});

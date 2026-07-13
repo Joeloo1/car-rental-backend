@@ -4,12 +4,18 @@ import { SignupInput } from "../../schema/auth.schema";
 import { generateAccessToken, generateRefreshToken } from "../../utils/jwt";
 import logger from "../../config/winston";
 import { hashPassword } from "../../utils/password";
+import config from "../../config/config.env";
+import { REFRESH_TOKEN_TTL_MS } from "../../config/constants";
 
 /**
  * Admin Sign Up
  */
 
-export const adminSignupService = async (data: SignupInput) => {
+export const adminSignupService = async (data: SignupInput, adminSecret: string) => {
+  if (!config.ADMIN_SIGNUP_SECRET || adminSecret !== config.ADMIN_SIGNUP_SECRET) {
+    throw new AppError("Invalid admin secret", 403);
+  }
+
   // Check if Admin exist with the email
   const existingAdmin = await prisma.user.findUnique({
     where: { email: data.email },
@@ -54,7 +60,7 @@ export const adminSignupService = async (data: SignupInput) => {
     data: {
       token: refreshToken,
       userId: newAdmin.id,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     },
   });
 

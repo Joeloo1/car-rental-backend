@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Response } from "express";
 import {
   updateCarImageService,
   uploadCarImagesService,
@@ -16,7 +16,6 @@ import catchAsync from "../utils/catchAsync";
 import { AuthRequest } from "../types/authRequest";
 
 export const uploadImages = catchAsync(async (req: AuthRequest, res: Response) => {
-  // Validate request
   const validatedData = uploadCarImageSchema.parse({
     carId: req.params.carId,
     isMain: req.body.isMain,
@@ -24,12 +23,8 @@ export const uploadImages = catchAsync(async (req: AuthRequest, res: Response) =
   });
 
   const files = req.files as Express.Multer.File[];
-
   if (!files || files.length === 0) {
-    res.status(400).json({
-      success: false,
-      message: "No images provided",
-    });
+    res.status(400).json({ success: false, message: "No images provided" });
     return;
   }
 
@@ -41,71 +36,52 @@ export const uploadImages = catchAsync(async (req: AuthRequest, res: Response) =
     validatedData.order,
   );
 
-  res.status(uploadedImages.length === 0 ? 500 : 201).json({
-    success: uploadedImages.length > 0,
-    message:
-      failedCount === 0
-        ? `${uploadedImages.length} image(s) uploaded successfully`
-        : `${uploadedImages.length} image(s) uploaded, ${failedCount} failed`,
+  res.status(201).json({
+    success: true,
+    message: `${uploadedImages.length} image(s) uploaded successfully${failedCount > 0 ? `, ${failedCount} failed` : ""}`,
     data: uploadedImages,
     ...(failedCount > 0 && { failedCount }),
   });
 });
 
-export const getImages = catchAsync(async (req: Request, res: Response) => {
+export const getImages = catchAsync(async (req: AuthRequest, res: Response) => {
   const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
   const images = await GetCarImagesService(carId);
 
-  res.status(200).json({
-    success: true,
-    data: images,
-  });
+  res.status(200).json({ success: true, data: images });
 });
 
-export const updateImage = catchAsync(async (req: Request, res: Response) => {
+export const updateImage = catchAsync(async (req: AuthRequest, res: Response) => {
   const { carId, imageId } = z
-    .object({
-      carId: z.string().uuid(),
-      imageId: z.string().uuid(),
-    })
+    .object({ carId: z.string().uuid(), imageId: z.string().uuid() })
     .parse(req.params);
 
   const updates = updateCarImageSchema.parse(req.body);
+  const isAdmin = req.user!.role === "admin";
 
-  const image = await updateCarImageService(carId, imageId, updates);
+  const image = await updateCarImageService(carId, imageId, req.user!.id, isAdmin, updates);
 
-  res.status(200).json({
-    success: true,
-    message: "Image updated successfully",
-    data: image,
-  });
+  res.status(200).json({ success: true, message: "Image updated successfully", data: image });
 });
 
-export const bulkReorder = catchAsync(async (req: Request, res: Response) => {
+export const bulkReorder = catchAsync(async (req: AuthRequest, res: Response) => {
   const { carId } = z.object({ carId: z.string().uuid() }).parse(req.params);
   const reorderData = bulkReorderSchema.parse(req.body);
+  const isAdmin = req.user!.role === "admin";
 
-  const images = await BulkReorderImagesService(carId, reorderData);
+  const images = await BulkReorderImagesService(carId, req.user!.id, isAdmin, reorderData);
 
-  res.status(200).json({
-    success: true,
-    message: "Images reordered successfully",
-    data: images,
-  });
+  res.status(200).json({ success: true, message: "Images reordered successfully", data: images });
 });
 
-export const deleteImage = catchAsync(async (req: Request, res: Response) => {
+export const deleteImage = catchAsync(async (req: AuthRequest, res: Response) => {
   const { carId, imageId } = z
-    .object({
-      carId: z.string().uuid(),
-      imageId: z.string().uuid(),
-    })
+    .object({ carId: z.string().uuid(), imageId: z.string().uuid() })
     .parse(req.params);
 
-  await deleteCarImageService(carId, imageId);
+  const isAdmin = req.user!.role === "admin";
 
-  res.status(200).json({
-    success: true,
-    message: "Image deleted successfully",
-  });
+  await deleteCarImageService(carId, imageId, req.user!.id, isAdmin);
+
+  res.status(200).json({ success: true, message: "Image deleted successfully" });
 });
